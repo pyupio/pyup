@@ -5,51 +5,57 @@ from pyup.requirements import Requirement
 from unittest.mock import patch, MagicMock, NonCallableMagicMock, PropertyMock
 from pyup.requirements import RequirementFile, RequirementsBundle
 from pyup.pullrequest import PullRequest
+from pyup.package import Package
 import os
 from datetime import datetime
+
+def package_factory(name, versions):
+    p = Package(name=name)
+    p._versions = versions
+    return p
 
 
 class RequirementUpdateContent(TestCase):
     def test_update_content_simple_pinned(self):
-        with patch('pyupio.requirements.Requirement.latest_version', new_callable=PropertyMock, return_value="1.4.2"):
+        with patch('pyup.requirements.Requirement.latest_version', new_callable=PropertyMock, return_value="1.4.2"):
             content = "Django==1.4.1"
             req = Requirement.parse(content, 0)
 
             self.assertEqual(req.update_content(content), "Django==1.4.2")
 
-        with patch('pyupio.requirements.Requirement.latest_version', new_callable=PropertyMock, return_value="1.4.2"):
+        with patch('pyup.requirements.Requirement.latest_version', new_callable=PropertyMock, return_value="1.4.2"):
             content = "django==1.4.1"
             req = Requirement.parse(content, 0)
 
             self.assertEqual(req.update_content(content), "django==1.4.2")
 
     def test_update_content_simple_unpinned(self):
-        with patch('pyupio.requirements.Requirement.latest_version', new_callable=PropertyMock, return_value="1.4.2"):
+        with patch('pyup.requirements.Requirement.latest_version', new_callable=PropertyMock, return_value="1.4.2"):
             content = "django"
             req = Requirement.parse(content, 0)
 
             self.assertEqual(req.update_content(content), "django==1.4.2")
 
-        with patch('pyupio.requirements.Requirement.latest_version', new_callable=PropertyMock, return_value="1.4.2"):
+        with patch('pyup.requirements.Requirement.latest_version', new_callable=PropertyMock, return_value="1.4.2"):
             content = "Django"
             req = Requirement.parse(content, 0)
 
             self.assertEqual(req.update_content(content), "Django==1.4.2")
 
     def test_update_content_simple_unpinned_with_comment(self):
-        with patch('pyupio.requirements.Requirement.latest_version', new_callable=PropertyMock, return_value="1.4.2"):
+        with patch('pyup.requirements.Requirement.latest_version', new_callable=PropertyMock, return_value="1.4.2"):
             content = "django # newest django release"
             req = Requirement.parse(content, 0)
 
             self.assertEqual(req.update_content(content), "django==1.4.2 # newest django release")
 
-        with patch('pyupio.requirements.Requirement.latest_version', new_callable=PropertyMock, return_value="1.4.2"):
+        with patch('pyup.requirements.Requirement.latest_version', new_callable=PropertyMock, return_value="1.4.2"):
             content = "Django #django"
             req = Requirement.parse(content, 0)
 
             self.assertEqual(req.update_content(content), "Django==1.4.2 #django")
 
-        with patch('pyupio.requirements.Requirement.latest_version', new_callable=PropertyMock, return_value="1.4.2"):
+        with patch('pyup.requirements.Requirement.latest_version', new_callable=PropertyMock, return_value="1.4.2"):
             content = "Django #django #yay this has really cool comments ######"
             req = Requirement.parse(content, 0)
 
@@ -57,7 +63,7 @@ class RequirementUpdateContent(TestCase):
                              "Django==1.4.2 #django #yay this has really cool comments ######")
 
     def test_update_content_with_package_in_comments(self):
-        with patch('pyupio.requirements.Requirement.latest_version', new_callable=PropertyMock, return_value="2.58.1.44"):
+        with patch('pyup.requirements.Requirement.latest_version', new_callable=PropertyMock, return_value="2.58.1.44"):
             content = 'raven==5.8.1\n' \
                       '{%- endif %}\n\n' \
                       '{% if cookiecutter.use_newrelic == "y" -%}\n' \
@@ -232,33 +238,6 @@ class RequirementTestCase(TestCase):
         r = Requirement.parse("django==1.9-b1", 0)
         self.assertEqual(r.name, "django")
 
-    def test_serialize(self):
-        r = Requirement.parse("Django==1.9", 0)
-
-        data = {'line': 'Django==1.9', 'pull_request': None, 'lineno': 0}
-        self.assertEqual(r.serialize(), data)
-        r.pull_request = PullRequest(None, None, None, datetime.fromtimestamp(1448023411.173526))
-        data["pull_request"] = {"state": None, "title": None, "url": None, "created_at": 1448023411.173526}
-        self.assertEqual(r.serialize(), data)
-
-        r = Requirement.parse("DETAILS", 0)
-        r.pull_request = PullRequest(state="closed", title="the foo", url="foo.bar", created_at=datetime.fromtimestamp(1448023411.173526))
-        data = {'line': 'DETAILS', 'pull_request': r.pull_request.serialize(), 'lineno': 0}
-        self.assertEqual(r.serialize(), data)
-
-    def test_deserialize(self):
-        data = {'line': 'Django==1.9', 'pull_request': None, 'lineno': 0}
-        r = Requirement.deserialize(data)
-        self.assertEqual(r.line, "Django==1.9")
-        self.assertEqual(r.lineno, 0)
-        self.assertEqual(r.specs, [("==", "1.9")])
-        self.assertEqual(r.name, "Django")
-        self.assertEqual(r.pull_request, None)
-
-        data["pull_request"] = {"state": None, "title": None, "url": None, "created_at": 1448023411.173526}
-        r = Requirement.deserialize(data)
-        self.assertNotEqual(r.pull_request, None)
-
 
 class RequirementsFileTestCase(TestCase):
     def test_parse_empty_line(self):
@@ -293,7 +272,7 @@ class RequirementsFileTestCase(TestCase):
         self.assertEqual(r.requirements, [])
         self.assertEqual(r._other_files, [])
 
-    @patch("pyupio.requirements.requirement.Requirement.package")
+    @patch("pyup.requirements.Requirement.package")
     def test_parse_requirement(self, package):
         package.return_value = True
         content = """
@@ -336,47 +315,8 @@ pdfminer==20140328
         resolved = RequirementFile.resolve_file("requirements.txt", "-r production.txt # prod file")
         self.assertEqual(resolved, "production.txt")
 
-    def test_serialize(self):
-        content = """
-Django
--r foo.txt
-        """
-        data = {"content": content, "path": "req.txt", "sha": None, "_other_files": None, "_requirements": None,
-                "_is_valid": None}
-        r = RequirementFile(content=content, path="req.txt")
-        self.assertEqual(r.serialize(), data)
 
-        # data["_requirements"] = [r.serialize() for r in r.requirements]
-        # data["_other_files"] = r.other_files
-        self.assertEqual(r.serialize(), data)
-
-    @patch("pyupio.requirements.requirement.Requirement.package")
-    def test_deserialize(self, package):
-        package.return_value = True
-        data = {'_other_files': None, '_requirements': None, 'path': 'req.txt',
-                'content': '\nDjango\n-r foo.txt\n        ',
-                'sha': None, "_is_valid": None}
-        r = RequirementFile.deserialize(data)
-        self.assertEqual(r._other_files, None)
-        self.assertEqual(r._requirements, None)
-        self.assertEqual(r.path, "req.txt")
-        self.assertEqual(r.content, data["content"])
-        self.assertEqual(r.sha, None)
-        self.assertEqual(r.requirements, [Requirement.parse("Django", 2)])
-        self.assertEqual(r.other_files, ["foo.txt", ])
-
-        data = {'_is_valid': True, '_other_files': ['foo.txt'],
-                '_requirements': [{'pull_request': None, 'line': 'Django', 'lineno': 2}],
-                'path': 'req.txt', 'content': '\nDjango\n-r foo.txt\n        ', 'sha': None}
-        r = RequirementFile.deserialize(data)
-        self.assertEqual(r.path, "req.txt")
-        self.assertEqual(r.content, data["content"])
-        self.assertEqual(r.sha, None)
-        self.assertEqual(r._requirements, [Requirement.parse("Django", 2)])
-        self.assertEqual(r._other_files, ["foo.txt", ])
-
-
-class RequirementsTestCase(TestCase):
+class RequirementsBundleTestCase(TestCase):
     def test_has_file(self):
         reqs = RequirementsBundle()
         self.assertEqual(reqs.has_file("foo.txt"), False)
@@ -389,21 +329,3 @@ class RequirementsTestCase(TestCase):
         self.assertEqual(reqs.requirement_files, [])
         reqs.add(RequirementFile(path="foo.txt", content=''))
         self.assertEqual(reqs.requirement_files[0].path, "foo.txt")
-
-    def test_serialize(self):
-        reqs = RequirementsBundle()
-        reqs.add(RequirementFile(path="foo.txt", content='Django'))
-        data = {'requirement_files': [
-            {'content': 'Django', 'sha': None, '_other_files': None, 'path': 'foo.txt', '_requirements': None,
-             "_is_valid": None}]}
-        self.assertEqual(data, reqs.serialize())
-
-    @patch("pyupio.requirements.requirement.Requirement.package")
-    def test_deserialize(self, package):
-        package.return_value = True
-        data = {'requirement_files': [
-            {'content': 'Django', 'sha': None, '_other_files': None, 'path': 'foo.txt', '_requirements': None,
-             "_is_valid": None}]}
-        reqs = Requirements.deserialize(data)
-        self.assertEqual(reqs.requirement_files[0].path, "foo.txt")
-        self.assertEqual(reqs.requirement_files[0].requirements[0].name, "Django")
