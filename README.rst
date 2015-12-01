@@ -1,0 +1,35 @@
+===============================
+pyup-oss
+===============================
+
+.. image:: https://img.shields.io/pypi/v/pyup.svg
+        :target: https://pypi.python.org/pypi/pyup
+
+.. image:: https://img.shields.io/travis/pyup/pyup.svg
+        :target: https://travis-ci.org/pyup/pyup
+
+.. image:: https://readthedocs.org/projects/pyup/badge/?version=latest
+        :target: https://readthedocs.org/projects/pyup/?badge=latest
+        :alt: Documentation Status
+
+
+A tool to update all your projects requirements
+
+* Free software: ISC license
+* Documentation: https://pyup.readthedocs.org.
+
+Features
+--------
+
+* TODO
+
+Credits
+---------
+
+Tools used in rendering this package:
+
+*  Cookiecutter_
+*  `cookiecutter-pypackage`_
+
+.. _Cookiecutter: https://github.com/audreyr/cookiecutter
+.. _`cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage
