@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, print_function, unicode_literals
 import logging
-from pyup.requirements import RequirementsBundle
-from pyup.providers.github import Provider as GithubProvider
+from .requirements import RequirementsBundle
+from .providers.github import Provider as GithubProvider
 
 logger = logging.getLogger(__name__)
 
