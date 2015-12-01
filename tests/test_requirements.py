@@ -9,6 +9,7 @@ from pyup.package import Package
 import os
 from datetime import datetime
 
+
 def package_factory(name, versions):
     p = Package(name=name)
     p._versions = versions
@@ -150,67 +151,68 @@ class RequirementTestCase(TestCase):
         self.assertEqual(latest, "1.2.1")
 
     def test_latest_version_within_specs(self):
-        pkg = package_factory("bliss", versions=["1.9rc1", "1.9", "1.8.1", "1.8", "1.7", "1.6"])
-        req = Requirement.parse("bliss #rq.filter:", 0)
-        self.assertEqual(req.latest_version_within_specs, "1.9")
+        with patch('pyup.requirements.Requirement.package', new_callable=PropertyMock,
+                   return_value=package_factory("bliss", versions=["1.9rc1", "1.9", "1.8.1", "1.8", "1.7", "1.6"])):
+            req = Requirement.parse("bliss #rq.filter:", 0)
+            self.assertEqual(req.latest_version_within_specs, "1.9")
 
-        req = Requirement.parse("bliss==1.8rc1 #rq.filter:", 0)
-        self.assertEqual(req.prereleases, True)
-        self.assertEqual(req.latest_version_within_specs, "1.9rc1")
+            req = Requirement.parse("bliss==1.8rc1 #rq.filter:", 0)
+            self.assertEqual(req.prereleases, True)
+            self.assertEqual(req.latest_version_within_specs, "1.9rc1")
 
-        req = Requirement.parse("bliss #rq.filter: >=1.7,<1.9", 0)
-        self.assertEqual(req.latest_version_within_specs, "1.8.1")
+            req = Requirement.parse("bliss #rq.filter: >=1.7,<1.9", 0)
+            self.assertEqual(req.latest_version_within_specs, "1.8.1")
 
-        pkg.delete()
 
-        pkg = package_factory("gevent",
+        with patch('pyup.requirements.Requirement.package', new_callable=PropertyMock,
+                   return_value=package_factory("gevent",
                               versions=['1.1rc1', '1.1b6', '1.1b5', '1.1b4', '1.1b3', '1.1b2', '1.1b1', '1.1a2',
-                                        '1.1a1', '1.0.2', '1.0.1', ])
-        req = Requirement.parse("gevent==1.1b6", 0)
-        self.assertEqual(req.latest_version_within_specs, "1.1rc1")
-        self.assertEqual(req.latest_version, "1.1rc1")
+                                        '1.1a1', '1.0.2', '1.0.1', ])):
+            req = Requirement.parse("gevent==1.1b6", 0)
+            self.assertEqual(req.latest_version_within_specs, "1.1rc1")
+            self.assertEqual(req.latest_version, "1.1rc1")
 
     def test_version_unpinned(self):
-        p = package_factory(name="django", versions=["1.9", "1.8"])
-        r = Requirement.parse("Django", 0)
-        self.assertEqual(r.version, "1.9")
-        p.delete()
+        with patch('pyup.requirements.Requirement.package', new_callable=PropertyMock,
+                   return_value=package_factory(name="django", versions=["1.9", "1.8"])):
+            r = Requirement.parse("Django", 0)
+            self.assertEqual(r.version, "1.9")
 
-        p = package_factory(name="django", versions=["1.9rc1", "1.9", "1.8"])
-        r = Requirement.parse("Django", 0)
-        self.assertEqual(r.version, "1.9")
-        p.delete()
+        with patch('pyup.requirements.Requirement.package', new_callable=PropertyMock,
+                   return_value=package_factory(name="django", versions=["1.9rc1", "1.9", "1.8"])):
+            r = Requirement.parse("Django", 0)
+            self.assertEqual(r.version, "1.9")
 
-        p = package_factory(name="django", versions=["1.9.1", "1.8", "1.9rc1"])
-        r = Requirement.parse("django", 0)
-        self.assertEqual(r.version, "1.9.1")
-        p.delete()
+        with patch('pyup.requirements.Requirement.package', new_callable=PropertyMock,
+                   return_value=package_factory(name="django", versions=["1.9.1", "1.8", "1.9rc1"])):
+            r = Requirement.parse("django", 0)
+            self.assertEqual(r.version, "1.9.1")
 
-        p = package_factory(name="django", versions=["1.4.3", "1.5", "1.4.2", "1.4.1", ])
-        r = Requirement.parse("Django  # rq.filter: >=1.4,<1.5", 0)
-        self.assertEqual(r.version, "1.4.3")
-        p.delete()
+        with patch('pyup.requirements.Requirement.package', new_callable=PropertyMock,
+                   return_value=package_factory(name="django", versions=["1.4.3", "1.5", "1.4.2", "1.4.1", ])):
+            r = Requirement.parse("Django  # rq.filter: >=1.4,<1.5", 0)
+            self.assertEqual(r.version, "1.4.3")
 
-        p = package_factory(name="django", versions=["1.8.1", "1.8"])
-        r = Requirement.parse("Django  # rq.filter: != 1.8.1", 0)
-        self.assertEqual(r.version, "1.8")
-        p.delete()
+        with patch('pyup.requirements.Requirement.package', new_callable=PropertyMock,
+                   return_value=package_factory(name="django", versions=["1.8.1", "1.8"])):
+            r = Requirement.parse("Django  # rq.filter: != 1.8.1", 0)
+            self.assertEqual(r.version, "1.8")
 
-        p = package_factory(name="django", versions=["1.9rc1", "1.9.1", "1.8", ])
-        r = Requirement.parse("django  # rq.filter: bogus", 0)
-        self.assertEqual(r.version, "1.9.1")
-        p.delete()
+        with patch('pyup.requirements.Requirement.package', new_callable=PropertyMock,
+                   return_value=package_factory(name="django", versions=["1.9rc1", "1.9.1", "1.8", ])):
+            r = Requirement.parse("django  # rq.filter: bogus", 0)
+            self.assertEqual(r.version, "1.9.1")
 
     def test_version_pinned(self):
-        p = package_factory(name="django", versions=["1.8", "1.9"])
-        r = Requirement.parse("Django==1.9", 0)
-        self.assertEqual(r.version, "1.9")
-        p.delete()
+        with patch('pyup.requirements.Requirement.package', new_callable=PropertyMock,
+                   return_value=package_factory(name="django", versions=["1.8", "1.9"])):
+            r = Requirement.parse("Django==1.9", 0)
+            self.assertEqual(r.version, "1.9")
 
-        p = package_factory(name="django==1.9rc1", versions=["1.8", "1.9rc1", "1.9rc2"])
-        r = Requirement.parse("Django==1.9.2.rc14 # rq.filter != 1.44", 0)
-        self.assertEqual(r.version, "1.9.2.rc14")
-        p.delete()
+        with patch('pyup.requirements.Requirement.package', new_callable=PropertyMock,
+                   return_value=package_factory(name="django==1.9rc1", versions=["1.8", "1.9rc1", "1.9rc2"])):
+            r = Requirement.parse("Django==1.9.2.rc14 # rq.filter != 1.44", 0)
+            self.assertEqual(r.version, "1.9.2.rc14")
 
     def test_prereleases(self):
         r = Requirement.parse("Django==1.9rc1", 0)
