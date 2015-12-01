@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, print_function, unicode_literals
-from django.test import TestCase
+from unittest import TestCase
 from pyup.requirements import Requirement
-from pyupio.packages.models import Package
 from unittest.mock import patch, MagicMock, NonCallableMagicMock, PropertyMock
 from pyup.requirements import RequirementFile, RequirementsBundle
 from pyup.pullrequest import PullRequest
 import os
-from pyupio.packages.tests.test_models import package_factory
 from datetime import datetime
 
 

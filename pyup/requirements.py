@@ -2,7 +2,6 @@ from __future__ import unicode_literals
 import re
 from pkg_resources import Requirement as RequirementBase, parse_requirements
 from pkg_resources import parse_version
-from django.utils.functional import cached_property
 from pkg_resources import RequirementParseError
 from pkg_resources._vendor.packaging.specifiers import SpecifierSet
 from .updates import InitialUpdate, SequentialUpdate
