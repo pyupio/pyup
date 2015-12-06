@@ -1,20 +1,21 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, print_function, unicode_literals
 from pkg_resources import parse_version
+import requests
+
+
+def fetch_package(name):
+    r = requests.get("https://pypi.python.org/pypi/{name}/json".format(name=name), timeout=3)
+    if r.status_code != 200:
+        return None
+    json = r.json()
+    return Package(name, sorted(json["releases"].keys(), key=lambda v: parse_version(v), reverse=True))
+
 
 class Package(object):
-    def __init__(self, name):
+    def __init__(self, name, versions):
         self.name = name
-        self._versions = None
-
-    @property
-    def versions(self):
-        if self._versions is None:
-            self._complete_lazy()
-        return self._versions
-
-    def _complete_lazy(self):
-        self._versions = ["1.2"]
+        self.versions = versions
 
     def latest_version(self, prereleases=False):
         for version in self.versions:

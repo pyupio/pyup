@@ -7,7 +7,7 @@ from pkg_resources._vendor.packaging.specifiers import SpecifierSet
 from .updates import InitialUpdate, SequentialUpdate
 from .pullrequest import PullRequest
 import logging
-from .package import Package, package_by_name
+from .package import Package, fetch_package
 
 logger = logging.getLogger(__name__)
 
@@ -225,7 +225,7 @@ class Requirement(RequirementBase):
     @property
     def package(self):
         if not self._fetched_package:
-            self._package = package_by_name(self.name)
+            self._package = fetch_package(self.name)
         return self._package
 
     @property
