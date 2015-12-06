@@ -4,6 +4,7 @@ from collections import namedtuple
 
 
 class Update(object):
+
     @classmethod
     def create_update_key(cls, requirement):
         key = requirement.key
@@ -50,13 +51,15 @@ class Update(object):
 
 
 class InitialUpdate(Update):
+
     def get_updates(self):
-        yield (
-            "Initial Update",
-            self.get_body([update for updates in self.updates.values() for update in updates]),
-            "pyup-initial-update",
-            [update for updates in self.updates.values() for update in updates]
-        )
+        if self.updates:
+            yield (
+                "Initial Update",
+                self.get_body([update for updates in self.updates.values() for update in updates]),
+                "pyup-initial-update",
+                [update for updates in self.updates.values() for update in updates]
+            )
 
     @classmethod
     def get_body(cls, updates):
@@ -67,6 +70,7 @@ RequirementUpdate = namedtuple("RequirementUpdate", ["requirement_file", "requir
 
 
 class SequentialUpdate(Update):
+
     def get_updates(self):
         for key, updates in self.updates.items():
             requirement = updates[0]
