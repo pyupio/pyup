@@ -1,10 +1,7 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function, unicode_literals
 
-
-class BranchExistsError(Exception):
+class BranchExistsError(Exception):  # pragma: no cover
     pass
 
 
-class NoPermissionError(Exception):
+class NoPermissionError(Exception):  # pragma: no cover
     pass
