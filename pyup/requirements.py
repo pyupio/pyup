@@ -13,7 +13,6 @@ logger = logging.getLogger(__name__)
 
 
 class RequirementsBundle(list):
-
     def has_file_in_path(self, path):
         return path in [req_file.path for req_file in self]
 
@@ -32,7 +31,8 @@ class RequirementsBundle(list):
 
     def pull_requests(self):
         returned = []
-        for pr in sorted([r.pull_request for r in self.requirements if r.pull_request is not None], key=lambda r: r.created_at):
+        for pr in sorted([r.pull_request for r in self.requirements if r.pull_request is not None],
+                         key=lambda r: r.created_at):
             if pr not in returned:
                 returned.append(pr)
                 yield pr
@@ -109,7 +109,7 @@ class RequirementFile(object):
                         logger.warning("Unable to find package for requirement: {}".format(line))
                         self._requirements.append(req)
                 except RequirementParseError:
-                    #print("can't parse", line)
+                    # print("can't parse", line)
                     continue
         self._is_valid = len(self._requirements) > 0 or len(self._other_files) > 0
 
@@ -125,6 +125,7 @@ class RequirementFile(object):
 
     def get_requirement_class(self):
         return Requirement
+
 
 class Requirement(RequirementBase):
     def __init__(self, project_name, specs, extras, line, lineno, pull_request=None):
