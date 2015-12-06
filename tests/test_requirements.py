@@ -8,13 +8,7 @@ from pyup.pullrequest import PullRequest
 from pyup.package import Package
 import os
 from datetime import datetime
-
-
-def package_factory(name, versions):
-    p = Package(name=name)
-    p._versions = versions
-    return p
-
+from .test_package import package_factory
 
 class RequirementUpdateContent(TestCase):
     def test_update_content_simple_pinned(self):
