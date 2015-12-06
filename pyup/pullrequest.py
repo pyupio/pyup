@@ -18,7 +18,6 @@ class PullRequest(object):
             self.url == other.url and \
             self.created_at == other.created_at
 
-
     @property
     def type(self):
         if self.title.startswith("Update"):
@@ -27,6 +26,8 @@ class PullRequest(object):
             return "security"
         elif self.title.startswith("Pin"):
             return "pin"
+        elif self.title.startswith("Initial"):
+            return "initial"
         return "unknown"
 
     @property
