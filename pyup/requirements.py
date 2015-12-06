@@ -7,7 +7,7 @@ from pkg_resources._vendor.packaging.specifiers import SpecifierSet
 from .updates import InitialUpdate, SequentialUpdate
 from .pullrequest import PullRequest
 import logging
-from .package import Package
+from .package import Package, package_by_name
 
 logger = logging.getLogger(__name__)
 
@@ -110,7 +110,8 @@ class RequirementFile(object):
                 continue
             else:
                 try:
-                    req = self.get_requirement_class().parse(line, num + 1)
+                    klass = self.get_requirement_class()
+                    req = klass.parse(line, num + 1)
                     if req.package is not None:
                         logger.warning("Unable to find package for requirement: {}".format(line))
                         self._requirements.append(req)
@@ -138,6 +139,8 @@ class Requirement(RequirementBase):
         self.line = line
         self.lineno = lineno
         self.pull_request = pull_request
+        self._fetched_package = False
+        self._package = None
 
     @property
     def is_pinned(self):
@@ -173,14 +176,20 @@ class Requirement(RequirementBase):
         specs = self.specs
         if self.filter:
             specs += self.filter
-        return self.get_latest_version_within_specs(specs, versions=self.package.versions,
-                                                        prereleases=self.prereleases)
+        return self.get_latest_version_within_specs(
+            specs,
+            versions=self.package.versions,
+            prereleases=self.prereleases
+        )
 
     @property
     def latest_version_within_specs(self):
         if self.filter:
-            return self.get_latest_version_within_specs(self.filter, versions=self.package.versions,
-                                                        prereleases=self.prereleases)
+            return self.get_latest_version_within_specs(
+                self.filter,
+                versions=self.package.versions,
+                prereleases=self.prereleases
+            )
         return self.latest_version
 
     @property
@@ -215,7 +224,9 @@ class Requirement(RequirementBase):
 
     @property
     def package(self):
-        return self.get_package_class()(name=self.key)
+        if not self._fetched_package:
+            self._package = package_by_name(self.name)
+        return self._package
 
     @property
     def needs_update(self):
@@ -239,10 +250,10 @@ class Requirement(RequirementBase):
         regex = r"^{}".format(self.line)
         return re.sub(regex, new_line, content, flags=re.MULTILINE)
 
-    @staticmethod
-    def parse(s, lineno):
+    @classmethod
+    def parse(cls, s, lineno):
         parsed, = parse_requirements(s)
-        return Requirement(
+        return cls(
             project_name=parsed.project_name,
             specs=parsed.specs,
             extras=parsed.extras,
