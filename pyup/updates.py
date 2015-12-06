@@ -73,7 +73,7 @@ class SequentialUpdate(Update):
 
     def get_updates(self):
         for key, updates in self.items():
-            requirement = updates[0]
+            requirement = updates[0].requirement
             yield (
                 self.get_title(requirement),
                 self.get_body(requirement),
