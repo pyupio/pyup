@@ -84,9 +84,8 @@ class Bot(object):
             else:
                 pull_request = next((pr for pr in self.pull_requests if pr.title == title), None)
 
-            if pull_request:
-                for update in updates:
-                    update.requirement.pull_request = pull_request
+            for update in updates:
+                update.requirement.pull_request = pull_request
 
     def commit_and_pull(self, base_branch, new_branch, title, body, updates):
 
