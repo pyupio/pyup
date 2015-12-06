@@ -3,7 +3,7 @@ from __future__ import absolute_import, print_function, unicode_literals
 from collections import namedtuple
 
 
-class Update(object):
+class Update(dict):
 
     @classmethod
     def create_update_key(cls, requirement):
@@ -15,7 +15,7 @@ class Update(object):
         return key
 
     def __init__(self, requirement_files):
-        self.updates = {}
+        super(dict, self).__init__()
 
         for requirement_file in requirement_files:
             for requirement in requirement_file.requirements:
@@ -29,10 +29,10 @@ class Update(object):
             requirement_file=requirement_file,
             commit_message=self.get_commit_message(requirement)
         )
-        if key in self.updates:
-            self.updates[key].append(update)
+        if key in self:
+            self[key].append(update)
         else:
-            self.updates[key] = [update]
+            self[key] = [update]
 
     @classmethod
     def get_commit_message(cls, requirement):
@@ -53,12 +53,12 @@ class Update(object):
 class InitialUpdate(Update):
 
     def get_updates(self):
-        if self.updates:
+        if self:
             yield (
                 "Initial Update",
-                self.get_body([update for updates in self.updates.values() for update in updates]),
+                self.get_body([update for updates in self.values() for update in updates]),
                 "pyup-initial-update",
-                [update for updates in self.updates.values() for update in updates]
+                [update for updates in self.values() for update in updates]
             )
 
     @classmethod
@@ -72,7 +72,7 @@ RequirementUpdate = namedtuple("RequirementUpdate", ["requirement_file", "requir
 class SequentialUpdate(Update):
 
     def get_updates(self):
-        for key, updates in self.updates.items():
+        for key, updates in self.items():
             requirement = updates[0]
             yield (
                 self.get_title(requirement),
