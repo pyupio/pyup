@@ -315,13 +315,13 @@ pdfminer==20140328
 class RequirementsBundleTestCase(TestCase):
     def test_has_file(self):
         reqs = RequirementsBundle()
-        self.assertEqual(reqs.has_file("foo.txt"), False)
-        self.assertEqual(reqs.has_file(""), False)
-        reqs.add(RequirementFile(path="foo.txt", content=''))
-        self.assertEqual(reqs.has_file("foo.txt"), True)
+        self.assertEqual(reqs.has_file_in_path("foo.txt"), False)
+        self.assertEqual(reqs.has_file_in_path(""), False)
+        reqs.append(RequirementFile(path="foo.txt", content=''))
+        self.assertEqual(reqs.has_file_in_path("foo.txt"), True)
 
     def test_add(self):
         reqs = RequirementsBundle()
-        self.assertEqual(reqs.requirement_files, [])
-        reqs.add(RequirementFile(path="foo.txt", content=''))
-        self.assertEqual(reqs.requirement_files[0].path, "foo.txt")
+        self.assertEqual(reqs, [])
+        reqs.append(RequirementFile(path="foo.txt", content=''))
+        self.assertEqual(reqs[0].path, "foo.txt")

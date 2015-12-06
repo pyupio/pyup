@@ -12,30 +12,23 @@ from .package import Package, fetch_package
 logger = logging.getLogger(__name__)
 
 
-class RequirementsBundle(object):
+class RequirementsBundle(list):
 
-    def __init__(self,):
-        self.requirement_files = []
-
-
-    def has_file(self, path):
-        return path in [req_file.path for req_file in self.requirement_files]
-
-    def add(self, req_file):
-        self.requirement_files.append(req_file)
+    def has_file_in_path(self, path):
+        return path in [req_file.path for req_file in self]
 
     def get_updates(self, inital):
-        return self.get_initial_update_class()(self.requirement_files).get_updates() if inital \
-            else self.get_sequential_update_class()(self.requirement_files).get_updates()
+        return self.get_initial_update_class()(self).get_updates() if inital \
+            else self.get_sequential_update_class()(self).get_updates()
 
     @property
     def requirements(self):
-        for req_file in self.requirement_files:
+        for req_file in self:
             for req in req_file.requirements:
                 yield req
 
     def __str__(self):
-        return "Requirements: {}".format(",".join([r.path for r in self.requirement_files]))
+        return "Requirements: {}".format(",".join([r.path for r in self]))
 
     def pull_requests(self):
         returned = []

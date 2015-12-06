@@ -159,7 +159,7 @@ class Bot(object):
                     self.add_requirement_file(path)
 
     def add_requirement_file(self, path):
-        if not self.req_bundle.has_file(path):
+        if not self.req_bundle.has_file_in_path(path):
             req_file = self.provider.get_requirement_file(path=path, repo=self.user_repo)
             if req_file is not None:
                 self.req_bundle.add(req_file)
