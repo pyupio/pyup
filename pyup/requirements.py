@@ -37,19 +37,19 @@ class RequirementsBundle(list):
                 returned.append(pr)
                 yield pr
 
-    def get_pull_request_class(self):
+    def get_pull_request_class(self):  # pragma: no cover
         return PullRequest
 
-    def get_requirement_class(self):
+    def get_requirement_class(self):  # pragma: no cover
         return Requirement
 
-    def get_requirement_file_class(self):
+    def get_requirement_file_class(self):  # pragma: no cover
         return RequirementFile
 
-    def get_initial_update_class(self):
+    def get_initial_update_class(self):  # pragma: no cover
         return InitialUpdate
 
-    def get_sequential_update_class(self):
+    def get_sequential_update_class(self):  # pragma: no cover
         return SequentialUpdate
 
 
@@ -123,7 +123,7 @@ class RequirementFile(object):
             return line
         return "/".join(parts[:-1]) + "/" + line
 
-    def get_requirement_class(self):
+    def get_requirement_class(self):   # pragma: no cover
         return Requirement
 
 
@@ -255,5 +255,5 @@ class Requirement(RequirementBase):
             lineno=lineno,
         )
 
-    def get_package_class(self):
+    def get_package_class(self):  # pragma: no cover
         return Package
