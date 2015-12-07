@@ -169,5 +169,5 @@ class Bot(object):
 
 class DryBot(Bot):
 
-    def commit_and_pull(self, base_branch, new_branch, title, body, updates):
+    def commit_and_pull(self, base_branch, new_branch, title, body, updates):  # pragma: no cover
         return None
