@@ -162,7 +162,7 @@ class Bot(object):
         if not self.req_bundle.has_file_in_path(path):
             req_file = self.provider.get_requirement_file(path=path, repo=self.user_repo)
             if req_file is not None:
-                self.req_bundle.add(req_file)
+                self.req_bundle.append(req_file)
                 for other_file in req_file.other_files:
                     self.add_requirement_file(other_file)
 
