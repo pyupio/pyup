@@ -154,8 +154,9 @@ class Bot(object):
     def get_all_requirements(self, branch):
         for file_type, path in self.provider.iter_git_tree(branch=branch, repo=self.user_repo):
             if file_type == "blob":
-                if "requirements" in path and path.endswith("txt") or path.endswith("pip"):
-                    self.add_requirement_file(path)
+                if "requirements" in path:
+                    if path.endswith("txt") or path.endswith("pip"):
+                        self.add_requirement_file(path)
 
     def add_requirement_file(self, path):
         if not self.req_bundle.has_file_in_path(path):
