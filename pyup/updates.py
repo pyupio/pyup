@@ -95,7 +95,12 @@ class SequentialUpdate(Update):
 
     @classmethod
     def get_title(cls, requirement):
-        return "Update {} to {}".format(
+        if requirement.is_pinned:
+            return "Update {} to {}".format(
+                requirement.key,
+                requirement.latest_version_within_specs
+            )
+        return "Pin {} to latest version {}".format(
             requirement.key,
             requirement.latest_version_within_specs
         )
