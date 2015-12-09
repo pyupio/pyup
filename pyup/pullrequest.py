@@ -12,11 +12,7 @@ class PullRequest(object):
         self.created_at = created_at
 
     def __eq__(self, other):
-        return \
-            self.state == other.state and \
-            self.title == other.title and \
-            self.url == other.url and \
-            self.created_at == other.created_at
+        return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
 
     @property
     def type(self):
