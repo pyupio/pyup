@@ -90,7 +90,7 @@ class Provider(object):
             return self.bundle.get_pull_request_class()(
                 state=pr.state,
                 title=pr.title,
-                url=pr.url,
+                url=pr.html_url,
                 created_at=pr.created_at,
             )
         except GithubException:
