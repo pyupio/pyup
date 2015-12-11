@@ -101,6 +101,6 @@ class Provider(object):
             yield self.bundle.get_pull_request_class()(
                 state=issue.state,
                 title=issue.title,
-                url=issue.url,
+                url=issue.html_url,
                 created_at=issue.created_at,
             )
