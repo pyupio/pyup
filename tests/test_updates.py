@@ -95,7 +95,7 @@ class SequentialUpdateTestBody(TestCase):
 
 class SequentialUpdateTestTitle(TestCase):
     def test_get_title(self):
-        req = Mock
+        req = Mock()
         req.key = "foo"
         req.latest_version_within_specs = "bar"
         self.assertEqual(SequentialUpdate.get_title(req), "Update foo to bar")
