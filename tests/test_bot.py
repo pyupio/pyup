@@ -4,9 +4,9 @@ from unittest import TestCase
 from pyup.bot import Bot, DryBot
 from .test_pullrequest import pullrequest_factory
 from pyup.updates import RequirementUpdate
-from unittest.mock import Mock
 from pyup.requirements import RequirementFile
 from pyup.errors import NoPermissionError
+from mock import Mock
 
 
 def bot_factory(repo="foo/foo", user_token="foo", bot_token=None, bot_class=Bot):

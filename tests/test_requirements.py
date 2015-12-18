@@ -2,7 +2,7 @@
 from __future__ import absolute_import, print_function, unicode_literals
 from unittest import TestCase
 from pyup.requirements import Requirement
-from unittest.mock import patch, MagicMock, NonCallableMagicMock, PropertyMock
+from mock import patch, MagicMock, NonCallableMagicMock, PropertyMock
 from pyup.requirements import RequirementFile, RequirementsBundle
 from pyup.pullrequest import PullRequest
 from pyup.package import Package
