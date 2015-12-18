@@ -21,6 +21,8 @@ requirements = [
 
 test_requirements = [
     "requests-mock",
+    "mock",
+    "flake8"
 ]
 
 setup(
