@@ -12,7 +12,7 @@ def package_factory(name, versions):
 class FetchPackageTestCase(TestCase):
     @requests_mock.mock()
     def test_fetch_packages(self, requests):
-        with open(os.path.dirname(os.path.realpath(__file__)) + "/data/Django.json") as f:
+        with open(os.path.dirname(os.path.realpath(__file__)) + "/data/django.json") as f:
             requests.get("https://pypi.python.org/pypi/Django/json", text=f.read())
 
         package = fetch_package("Django")
