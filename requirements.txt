@@ -1,1 +1,2 @@
 -e git://github.com/jayfk/PyGithub.git@top#egg=PyGithub
+requests
