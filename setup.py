@@ -15,11 +15,12 @@ with open('HISTORY.rst') as history_file:
     history = history_file.read().replace('.. :changelog:', '')
 
 requirements = [
-    # TODO: put package requirements here
+    "requests",
+    "PyGithub",
 ]
 
 test_requirements = [
-    # TODO: put package test requirements here
+    "requests-mock",
 ]
 
 setup(
@@ -53,5 +54,6 @@ setup(
         'Programming Language :: Python :: 3.4',
     ],
     test_suite='tests',
-    tests_require=test_requirements
+    tests_require=test_requirements,
+    dependency_links=['git+https://github.com/jayfk/PyGithub.git@top#egg=PyGithub']
 )
