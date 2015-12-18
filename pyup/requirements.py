@@ -127,7 +127,8 @@ class RequirementFile(object):
         return Requirement
 
 
-class Requirement(RequirementBase):
+# inherit from object to make this a new style class for older versions of pip
+class Requirement(RequirementBase, object):
     def __init__(self, project_name, specs, extras, line, lineno, pull_request=None):
         super(Requirement, self).__init__(project_name, specs, extras)
         self.line = line
