@@ -9,7 +9,10 @@ def fetch_package(name):
     if r.status_code != 200:
         return None
     json = r.json()
-    return Package(name, sorted(json["releases"].keys(), key=lambda v: parse_version(v), reverse=True))
+    return Package(
+        name,
+        sorted(json["releases"].keys(), key=lambda v: parse_version(v), reverse=True)
+    )
 
 
 class Package(object):
@@ -25,4 +28,3 @@ class Package(object):
         if self.versions and not prereleases:
             return self.latest_version(prereleases=True)
         return None
-

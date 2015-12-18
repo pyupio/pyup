@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, print_function, unicode_literals
 from unittest import TestCase
-from pyup.bot import Bot, DryBot
+from pyup.bot import Bot
 from .test_pullrequest import pullrequest_factory
 from pyup.updates import RequirementUpdate
 from pyup.requirements import RequirementFile
@@ -90,9 +90,11 @@ class BotApplyUpdateTest(TestCase):
         bot = bot_factory()
         bot.provider.iter_issues.return_value = [the_pull]
         bot.req_bundle = Mock()
-        bot.req_bundle.get_updates.return_value = [("The PR", "", "", [RequirementUpdate(requirement_file="foo",
-                                                                                         requirement=the_requirement,
-                                                                                         commit_message="foo")])]
+        update = RequirementUpdate(
+            requirement_file="foo", requirement=the_requirement, commit_message="foo"
+        )
+        bot.req_bundle.get_updates.return_value = [
+            ("The PR", "", "", [update])]
         bot.apply_updates("branch", True)
 
         self.assertEqual(the_requirement.pull_request, the_pull)
@@ -104,9 +106,10 @@ class BotApplyUpdateTest(TestCase):
         bot = bot_factory()
         bot.provider.iter_issues.return_value = []
         bot.req_bundle = Mock()
-        bot.req_bundle.get_updates.return_value = [("The PR", "", "", [RequirementUpdate(requirement_file="foo",
-                                                                                         requirement=the_requirement,
-                                                                                         commit_message="foo")])]
+        update = RequirementUpdate(
+            requirement_file="foo", requirement=the_requirement, commit_message="foo"
+        )
+        bot.req_bundle.get_updates.return_value = [("The PR", "", "", [update])]
         bot.commit_and_pull = Mock()
         bot.commit_and_pull.return_value = the_pull
         bot.apply_updates("branch", True)

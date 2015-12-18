@@ -75,8 +75,10 @@ class Provider(object):
                 if item["primary"]:
                     email = item["email"]
         if email is None:
-            raise NoPermissionError("Unable to get {login}'s email adress. You may have to add the scope user:email"
-                                    .format(login=committer.login))
+            raise NoPermissionError(
+                "Unable to get {login}'s email adress. You may have to add the scope user:email"
+                .format(login=committer.login)
+            )
         return namedtuple("Committer", ["name", "email"])(name=committer.login, email=email)
 
     def create_pull_request(self, repo, title, body, base_branch, new_branch):

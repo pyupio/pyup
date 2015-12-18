@@ -2,7 +2,7 @@
 from __future__ import absolute_import, print_function, unicode_literals
 from pyup.updates import Update, RequirementUpdate, InitialUpdate, SequentialUpdate
 from unittest import TestCase
-from pyup.requirements import Requirement, RequirementFile
+from pyup.requirements import RequirementFile
 from mock import Mock, patch
 
 

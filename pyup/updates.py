@@ -66,7 +66,10 @@ class InitialUpdate(Update):
         return ""
 
 
-RequirementUpdate = namedtuple("RequirementUpdate", ["requirement_file", "requirement", "commit_message"])
+RequirementUpdate = namedtuple(
+    "RequirementUpdate",
+    ["requirement_file", "requirement", "commit_message"]
+)
 
 
 class SequentialUpdate(Update):
