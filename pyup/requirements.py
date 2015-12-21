@@ -106,7 +106,6 @@ class RequirementFile(object):
                     klass = self.get_requirement_class()
                     req = klass.parse(line, num + 1)
                     if req.package is not None:
-                        logger.warning("Unable to find package for requirement: {}".format(line))
                         self._requirements.append(req)
                 except RequirementParseError:
                     # print("can't parse", line)
