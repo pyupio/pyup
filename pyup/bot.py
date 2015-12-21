@@ -9,7 +9,6 @@ logger = logging.getLogger(__name__)
 
 
 class Bot(object):
-
     def __init__(self, repo, user_token, bot_token=None,
                  provider=GithubProvider, bundle=RequirementsBundle):
         self.bot_token = bot_token
@@ -58,7 +57,7 @@ class Bot(object):
                                                                           creator=self.bot)]
         return self._pull_requests
 
-    def update(self, branch=None, initial=True):
+    def update(self, branch=None, initial=True, pin_unpinned=False):
 
         if branch is None:
             branch = self.provider.get_default_branch(repo=self.user_repo)
@@ -66,13 +65,14 @@ class Bot(object):
         self.get_all_requirements(branch=branch)
 
         #
-        self.apply_updates(branch, initial=initial)
+        self.apply_updates(branch, initial=initial, pin_unpinned=pin_unpinned)
 
         return self.req_bundle
 
-    def apply_updates(self, branch, initial):
+    def apply_updates(self, branch, initial, pin_unpinned):
 
-        for title, body, update_branch, updates in self.req_bundle.get_updates(inital=initial):
+        for title, body, update_branch, updates in \
+                self.req_bundle.get_updates(inital=initial, pin_unpinned=pin_unpinned):
             if title not in [pr.title for pr in self.pull_requests]:
                 pull_request = self.commit_and_pull(
                     base_branch=branch,
@@ -168,6 +168,5 @@ class Bot(object):
 
 
 class DryBot(Bot):
-
     def commit_and_pull(self, base_branch, new_branch, title, body, updates):  # pragma: no cover
         return None

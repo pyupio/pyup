@@ -16,9 +16,9 @@ class RequirementsBundle(list):
     def has_file_in_path(self, path):
         return path in [req_file.path for req_file in self]
 
-    def get_updates(self, inital):
-        return self.get_initial_update_class()(self).get_updates() if inital \
-            else self.get_sequential_update_class()(self).get_updates()
+    def get_updates(self, inital, pin_unpinned):
+        return self.get_initial_update_class()(self, pin_unpinned).get_updates() if inital \
+            else self.get_sequential_update_class()(self, pin_unpinned).get_updates()
 
     @property
     def requirements(self):

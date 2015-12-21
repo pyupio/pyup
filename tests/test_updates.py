@@ -126,7 +126,7 @@ class SequentialUpdateTestGetUpdates(TestCase):
         self.assertEqual(len([u for u in update.get_updates()]), 0)
 
     def test_get_updates(self):
-        update = SequentialUpdate([])
+        update = SequentialUpdate([], pin_unpinned=True)
         req_file = Mock()
         req = Mock()
         req.key = "django"
@@ -149,7 +149,7 @@ class InitialUpdateTestGetUpdates(TestCase):
         self.assertEqual(len([u for u in update.get_updates()]), 0)
 
     def test_get_updates(self):
-        update = InitialUpdate([])
+        update = InitialUpdate([], pin_unpinned=True)
         req_file = Mock()
         req = Mock()
         req.key = "django"

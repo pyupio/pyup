@@ -95,7 +95,7 @@ class BotApplyUpdateTest(TestCase):
         )
         bot.req_bundle.get_updates.return_value = [
             ("The PR", "", "", [update])]
-        bot.apply_updates("branch", True)
+        bot.apply_updates("branch", True, True)
 
         self.assertEqual(the_requirement.pull_request, the_pull)
 
@@ -112,7 +112,7 @@ class BotApplyUpdateTest(TestCase):
         bot.req_bundle.get_updates.return_value = [("The PR", "", "", [update])]
         bot.commit_and_pull = Mock()
         bot.commit_and_pull.return_value = the_pull
-        bot.apply_updates("branch", True)
+        bot.apply_updates("branch", True, True)
 
         self.assertEqual(the_requirement.pull_request, the_pull)
 

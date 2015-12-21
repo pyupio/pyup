@@ -14,9 +14,9 @@ class Update(dict):
             key += "-" + requirement.latest_version_within_specs
         return key
 
-    def __init__(self, requirement_files):
+    def __init__(self, requirement_files, pin_unpinned=False):
         super(dict, self).__init__()
-
+        self.pin_unpinned = pin_unpinned
         for requirement_file in requirement_files:
             for requirement in requirement_file.requirements:
                 if requirement.needs_update:
@@ -46,6 +46,10 @@ class Update(dict):
             requirement.latest_version_within_specs
         )
 
+    def should_update(self, requirement):
+        # handle unpinned requirements only if pin_unpinned is set
+        return requirement.is_pinned or self.pin_unpinned
+
     def get_requirement_update_class(self):
         return RequirementUpdate
 
@@ -58,7 +62,8 @@ class InitialUpdate(Update):
                 "Initial Update",
                 self.get_body([update for updates in self.values() for update in updates]),
                 "pyup-initial-update",
-                [update for updates in self.values() for update in updates]
+                [update for updates in self.values() for update in updates if
+                 self.should_update(update.requirement)]
             )
 
     @classmethod
@@ -77,12 +82,13 @@ class SequentialUpdate(Update):
     def get_updates(self):
         for key, updates in self.items():
             requirement = updates[0].requirement
-            yield (
-                self.get_title(requirement),
-                self.get_body(requirement),
-                self.get_branch(requirement),
-                updates
-            )
+            if self.should_update(requirement):
+                yield (
+                    self.get_title(requirement),
+                    self.get_body(requirement),
+                    self.get_branch(requirement),
+                    updates
+                )
 
     @classmethod
     def get_branch(cls, requirement):
