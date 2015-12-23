@@ -59,7 +59,7 @@ class InitialUpdate(Update):
     def get_updates(self):
         if self:
             yield (
-                "Initial Update",
+                self.get_title(),
                 self.get_body([update for updates in self.values() for update in updates]),
                 "pyup-initial-update",
                 [update for updates in self.values() for update in updates if
@@ -69,6 +69,15 @@ class InitialUpdate(Update):
     @classmethod
     def get_body(cls, updates):
         return ""
+
+    @classmethod
+    def get_empty_update_body(cls):
+        return "The initial setup worked, but all your packages are up to date. You can safely " \
+               "close this issue."
+
+    @classmethod
+    def get_title(cls):
+        return "Initial Update"
 
 
 RequirementUpdate = namedtuple(

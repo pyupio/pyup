@@ -3,7 +3,7 @@ from __future__ import absolute_import, print_function, unicode_literals
 from unittest import TestCase
 from pyup.bot import Bot
 from .test_pullrequest import pullrequest_factory
-from pyup.updates import RequirementUpdate
+from pyup.updates import RequirementUpdate, InitialUpdate
 from pyup.requirements import RequirementFile
 from pyup.errors import NoPermissionError
 from mock import Mock
@@ -115,6 +115,42 @@ class BotApplyUpdateTest(TestCase):
         bot.apply_updates("branch", True, True)
 
         self.assertEqual(the_requirement.pull_request, the_pull)
+
+    def test_apply_update_initial_empty(self):
+        bot = bot_factory()
+        bot.req_bundle.get_updates = Mock()
+        bot.req_bundle.get_updates.return_value = []
+        bot.provider.create_issue.return_value = None
+        bot.apply_updates("branch", initial=True, pin_unpinned=False)
+
+        create_issue_args_list = bot.provider.create_issue.call_args_list
+        self.assertEqual(len(create_issue_args_list), 1)
+        self.assertEqual(
+            create_issue_args_list[0][1]["body"],
+            InitialUpdate.get_empty_update_body()
+        )
+        self.assertEqual(
+            create_issue_args_list[0][1]["title"],
+            InitialUpdate.get_title()
+        )
+
+    def test_apply_update_initial_pr_still_open(self):
+        initial_pr = pullrequest_factory(
+            title=InitialUpdate.get_title(),
+            state="open",
+        )
+        bot = bot_factory()
+        bot.provider.iter_issues.return_value = [initial_pr]
+        the_requirement = Mock()
+        update = RequirementUpdate(
+            requirement_file="foo", requirement=the_requirement, commit_message="foo"
+        )
+        bot.req_bundle.get_updates = Mock()
+        bot.req_bundle.get_updates.return_value = [("The PR", "", "", [update])]
+
+        bot.apply_updates("branch", initial=True, pin_unpinned=False)
+
+        self.assertEqual(bot.provider.create_pull_request.called, False)
 
 
 class BotCommitAndPullTest(TestCase):

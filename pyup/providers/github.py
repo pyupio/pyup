@@ -98,6 +98,12 @@ class Provider(object):
         except GithubException:
             raise NoPermissionError
 
+    def create_issue(self, repo, title, body):
+        return repo.create_issue(
+            title=title,
+            body=body,
+        )
+
     def iter_issues(self, repo, creator):
         for issue in repo.get_issues(creator=creator.login):
             yield self.bundle.get_pull_request_class()(

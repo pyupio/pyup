@@ -70,16 +70,31 @@ class Bot(object):
         return self.req_bundle
 
     def apply_updates(self, branch, initial, pin_unpinned):
+
+        InitialUpdateClass = self.req_bundle.get_initial_update_class()
+        update_list = [u for u in self.req_bundle.get_updates(
+            initial=initial, pin_unpinned=pin_unpinned)]
+        if initial and not update_list:
+            print("RETURN EMPTY")
+            # if this is the initial run and the update list is empty, the repo is already
+            # up to date. In this case, we create an issue letting the user know that the bot is
+            # now set up for this repo and return early.
+            self.create_issue(
+                title=InitialUpdateClass.get_title(),
+                body=InitialUpdateClass.get_empty_update_body()
+            )
+            return
+
         # check if we have an initial PR open. If this is the case, we attach the initial PR
         # to all updates and are done. The `Initial Update` has to be merged (or at least closed)
         # before we continue to do anything here.
         initial_pr = next(
-            (pr for pr in self.pull_requests if pr.title == "Initial Update" and pr.is_open),
+            (pr for pr in self.pull_requests if
+             pr.title == InitialUpdateClass.get_title() and pr.is_open),
             False
         )
 
-        for title, body, update_branch, updates in \
-                self.req_bundle.get_updates(initial=initial, pin_unpinned=pin_unpinned):
+        for title, body, update_branch, updates in update_list:
             if initial_pr:
                 pull_request = initial_pr
             elif title not in [pr.title for pr in self.pull_requests]:
@@ -133,6 +148,13 @@ class Bot(object):
             body=body,
             base_branch=base_branch,
             new_branch=new_branch
+        )
+
+    def create_issue(self, title, body):
+        return self.provider.create_issue(
+            repo=self.bot_repo if self.bot_token else self.user_repo,
+            title=title,
+            body=body,
         )
 
     def create_pull_request(self, title, body, base_branch, new_branch):
