@@ -415,6 +415,22 @@ pdfminer==20140328
             self.assertEqual(r.is_valid, True)
             self.assertEqual(r._is_valid, True)
 
+
+    def test_str(self):
+        r = RequirementFile("r.txt", "content", "asdfe")
+        self.assertEqual(
+            r.__str__(),
+            "RequirementFile(path='r.txt', sha='asdfe', content='content')"
+        )
+
+        content = "more content than 30 characters here"
+        r = RequirementFile("r.txt", content, "asdfe")
+        self.assertEqual(
+            r.__str__(),
+            "RequirementFile(path='r.txt', sha='asdfe', "
+            "content='more content than 30 character[truncated]')"
+        )
+
 class RequirementsBundleTestCase(TestCase):
     def test_has_file(self):
         reqs = RequirementsBundle()

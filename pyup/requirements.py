@@ -63,7 +63,11 @@ class RequirementFile(object):
         self._is_valid = None
 
     def __str__(self):
-        return "RequirementFile: {}".format(self.path)
+        return "RequirementFile(path='{path}', sha='{sha}', content='{content}')".format(
+            path=self.path,
+            content=self.content[:30] + "[truncated]" if len(self.content) > 30 else self.content,
+            sha=self.sha
+        )
 
     @property
     def is_valid(self):
