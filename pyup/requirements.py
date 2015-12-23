@@ -8,7 +8,6 @@ from .updates import InitialUpdate, SequentialUpdate
 from .pullrequest import PullRequest
 import logging
 from .package import Package, fetch_package
-import warnings
 
 logger = logging.getLogger(__name__)
 
