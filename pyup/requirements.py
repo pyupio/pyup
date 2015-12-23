@@ -8,6 +8,7 @@ from .updates import InitialUpdate, SequentialUpdate
 from .pullrequest import PullRequest
 import logging
 from .package import Package, fetch_package
+import warnings
 
 logger = logging.getLogger(__name__)
 
@@ -231,8 +232,11 @@ class Requirement(RequirementBase, object):
 
     @property
     def is_insecure(self):
-        # todo: implement
-        return False
+        # security is not our concern for the moment. However, it'd be nice if we had a central
+        # place where we can query for known security vulnerabilites on python packages.
+        # There's an open issue here:
+        # https://github.com/pypa/warehouse/issues/798
+        raise NotImplementedError
 
     @property
     def is_outdated(self):
