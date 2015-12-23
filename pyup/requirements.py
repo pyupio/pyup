@@ -140,6 +140,9 @@ class Requirement(RequirementBase, object):
         self._fetched_package = False
         self._package = None
 
+    def __str__(self):
+        return "Requirement.parse({line}, {lineno})".format(line=self.line, lineno=self.lineno)
+
     @property
     def is_pinned(self):
         if len(self.specs) == 1 and self.specs[0][0] == "==":

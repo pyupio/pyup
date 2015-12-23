@@ -299,6 +299,10 @@ class RequirementTestCase(TestCase):
             r = Requirement.parse("Django", 0)
             self.assertEqual(r.needs_update, True)
 
+    def test_str(self):
+        r = Requirement.parse("Django==1.9rc1", 0)
+        self.assertEqual(r.__str__(), "Requirement.parse(Django==1.9rc1, 0)")
+
 
 class RequirementsFileTestCase(TestCase):
     def test_parse_empty_line(self):
