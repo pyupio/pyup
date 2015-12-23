@@ -26,9 +26,6 @@ class RequirementsBundle(list):
             for req in req_file.requirements:
                 yield req
 
-    def __str__(self):
-        return "Requirements: {}".format(",".join([r.path for r in self]))
-
     def pull_requests(self):
         returned = []
         for pr in sorted([r.pull_request for r in self.requirements if r.pull_request is not None],
