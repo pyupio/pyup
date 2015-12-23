@@ -2,9 +2,10 @@
 from __future__ import absolute_import, print_function, unicode_literals
 from unittest import TestCase
 from pyup.requirements import Requirement
-from mock import patch, PropertyMock
+from mock import patch, PropertyMock, Mock
 from pyup.requirements import RequirementFile, RequirementsBundle
 from .test_package import package_factory
+from .test_pullrequest import pullrequest_factory
 import requests_mock
 import os
 
@@ -446,3 +447,57 @@ class RequirementsBundleTestCase(TestCase):
         self.assertEqual(reqs, [])
         reqs.append(RequirementFile(path="foo.txt", content=''))
         self.assertEqual(reqs[0].path, "foo.txt")
+
+    def test_get_updates(self):
+        with patch('pyup.requirements.Requirement.package', return_value=Mock()):
+            reqs = RequirementsBundle()
+            reqs.append(RequirementFile(path="r.txt", content='Bla'))
+            updates = [u for u in reqs.get_updates(True, True)]
+            self.assertEqual(len(updates), 1)
+            #self.assertEqual(updates[0].__class__, reqs.get_initial_update_class().__class__)
+
+            reqs = RequirementsBundle()
+            reqs.append(RequirementFile(path="r.txt", content='Bla'))
+            updates = [u for u in reqs.get_updates(False, True)]
+            self.assertEqual(len(updates), 1)
+            #self.assertEqual(updates[0].__class__, reqs.get_sequential_update_class().__class__)
+
+    def test_requirements(self):
+        with patch('pyup.requirements.Requirement.package', return_value=Mock()):
+            reqs = RequirementsBundle()
+            reqs.append(RequirementFile(path="r.txt", content='Bla\nFoo'))
+
+            self.assertEqual([
+                Requirement.parse("Bla", 1),
+                Requirement.parse("Foo", 2)
+            ],
+                [r for r in reqs.requirements]
+            )
+
+    def test_pull_requests(self):
+        pr1 = pullrequest_factory("PR1")
+        pr2 = pullrequest_factory("PR2")
+        pr3 = pullrequest_factory("PR3")
+
+        req1 = Requirement.parse("django", 0)
+        req1.pull_request = pr1
+        req2 = Requirement.parse("pyramid", 0)
+        req2.pull_request = pr1
+        req3 = Requirement.parse("flask", 0)
+        req3.pull_request = pr2
+        req4 = Requirement.parse("elixir", 0)
+        req4.pull_request = pr3
+
+        reqs = RequirementsBundle()
+
+        req_file = RequirementFile(path="foo", content='')
+        req_file._requirements = [
+            req1, req2, req3, req4
+        ]
+
+        reqs.append(req_file)
+
+        self.assertEqual(
+            [pr1, pr2, pr3],
+            [pr for pr in reqs.pull_requests()]
+        )
