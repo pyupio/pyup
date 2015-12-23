@@ -75,7 +75,6 @@ class Bot(object):
         update_list = [u for u in self.req_bundle.get_updates(
             initial=initial, pin_unpinned=pin_unpinned)]
         if initial and not update_list:
-            print("RETURN EMPTY")
             # if this is the initial run and the update list is empty, the repo is already
             # up to date. In this case, we create an issue letting the user know that the bot is
             # now set up for this repo and return early.
