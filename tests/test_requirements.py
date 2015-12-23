@@ -278,6 +278,29 @@ class RequirementTestCase(TestCase):
             r = Requirement.parse("Django", 0)
             r.is_insecure
 
+    @requests_mock.mock()
+    def test_needs_update(self, requests):
+        with open(os.path.dirname(os.path.realpath(__file__)) + "/data/django.json") as f:
+            requests.get("https://pypi.python.org/pypi/Django/json", text=f.read())
+
+            # is pinned and on latest
+            r = Requirement.parse("Django==1.9rc1", 0)
+            self.assertEqual(r.needs_update, False)
+
+            # is ranged and open
+            r = Requirement.parse("Django>=1.8", 0)
+            self.assertEqual(r.needs_update, False)
+
+            # is pinned but old
+            r = Requirement.parse("Django==1.7", 0)
+            self.assertEqual(r.needs_update, True)
+
+            # is not pinned
+            r = Requirement.parse("Django", 0)
+            self.assertEqual(r.needs_update, True)
+
+
+
 
 class RequirementsFileTestCase(TestCase):
     def test_parse_empty_line(self):
