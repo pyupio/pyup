@@ -273,6 +273,11 @@ class RequirementTestCase(TestCase):
         self.assertEqual(r._fetched_package, True)
         self.assertEqual(r._package, None)
 
+    def test_is_insecure(self):
+        with self.assertRaises(NotImplementedError):
+            r = Requirement.parse("Django", 0)
+            r.is_insecure
+
 
 class RequirementsFileTestCase(TestCase):
     def test_parse_empty_line(self):
