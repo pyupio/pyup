@@ -226,7 +226,7 @@ class Requirement(RequirementBase, object):
     @property
     def needs_update(self):
         if self.is_pinned or self.is_ranged:
-            return self.is_insecure or self.is_outdated
+            return self.is_outdated
         return True
 
     @property
