@@ -387,6 +387,33 @@ pdfminer==20140328
         )
         self.assertEqual(resolved, "production.txt")
 
+    def test_is_invalid(self):
+        content = ''
+        r = RequirementFile("r.txt", content=content)
+        self.assertEqual(r._is_valid, None)
+
+        # this triggers the _parse
+        self.assertEqual(r.is_valid, False)
+        self.assertEqual(r._is_valid, False)
+
+    def test_is_valid_other_file(self):
+        content = '-r other_file.txt'
+        r = RequirementFile("r.txt", content=content)
+        self.assertEqual(r._is_valid, None)
+
+        # this triggers the _parse
+        self.assertEqual(r.is_valid, True)
+        self.assertEqual(r._is_valid, True)
+
+    def test_is_valid_requirement(self):
+        with patch('pyup.requirements.Requirement.package', return_value=True):
+            content = 'some_package'
+            r = RequirementFile("r.txt", content=content)
+            self.assertEqual(r._is_valid, None)
+
+            # this triggers the _parse
+            self.assertEqual(r.is_valid, True)
+            self.assertEqual(r._is_valid, True)
 
 class RequirementsBundleTestCase(TestCase):
     def test_has_file(self):
