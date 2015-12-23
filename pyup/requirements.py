@@ -220,6 +220,7 @@ class Requirement(RequirementBase, object):
     def package(self):
         if not self._fetched_package:
             self._package = fetch_package(self.name)
+            self._fetched_package = True
         return self._package
 
     @property
