@@ -5,6 +5,8 @@ from pyup.requirements import Requirement
 from mock import patch, PropertyMock
 from pyup.requirements import RequirementFile, RequirementsBundle
 from .test_package import package_factory
+import requests_mock
+import os
 
 
 class RequirementUpdateContent(TestCase):
@@ -245,6 +247,31 @@ class RequirementTestCase(TestCase):
 
         r = Requirement.parse("django==1.9-b1", 0)
         self.assertEqual(r.name, "django")
+
+    @requests_mock.mock()
+    def test_package_found(self, requests):
+        with open(os.path.dirname(os.path.realpath(__file__)) + "/data/django.json") as f:
+            requests.get("https://pypi.python.org/pypi/Django/json", text=f.read())
+        r = Requirement.parse("Django==1.9rc1", 0)
+        self.assertEqual(r._fetched_package, False)
+        self.assertEqual(r._package, None)
+
+        # this triggers the fetch
+        self.assertNotEqual(r.package, None)
+        self.assertEqual(r._fetched_package, True)
+        self.assertNotEqual(r._package, None)
+
+    @requests_mock.mock()
+    def test_package_not_found(self, requests):
+        requests.get("https://pypi.python.org/pypi/Fango/json", text="404", status_code=404)
+        r = Requirement.parse("Fango", 0)
+        self.assertEqual(r._fetched_package, False)
+        self.assertEqual(r._package, None)
+
+        # this triggers the fetch
+        self.assertEqual(r.package, None)
+        self.assertEqual(r._fetched_package, True)
+        self.assertEqual(r._package, None)
 
 
 class RequirementsFileTestCase(TestCase):
