@@ -300,8 +300,6 @@ class RequirementTestCase(TestCase):
             self.assertEqual(r.needs_update, True)
 
 
-
-
 class RequirementsFileTestCase(TestCase):
     def test_parse_empty_line(self):
         content = """
