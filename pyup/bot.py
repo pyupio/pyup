@@ -70,10 +70,19 @@ class Bot(object):
         return self.req_bundle
 
     def apply_updates(self, branch, initial, pin_unpinned):
+        # check if we have an initial PR open. If this is the case, we attach the initial PR
+        # to all updates and are done. The `Initial Update` has to be merged (or at least closed)
+        # before we continue to do anything here.
+        initial_pr = next(
+            (pr for pr in self.pull_requests if pr.title == "Initial Update" and pr.is_open),
+            False
+        )
 
         for title, body, update_branch, updates in \
-                self.req_bundle.get_updates(inital=initial, pin_unpinned=pin_unpinned):
-            if title not in [pr.title for pr in self.pull_requests]:
+                self.req_bundle.get_updates(initial=initial, pin_unpinned=pin_unpinned):
+            if initial_pr:
+                pull_request = initial_pr
+            elif title not in [pr.title for pr in self.pull_requests]:
                 pull_request = self.commit_and_pull(
                     base_branch=branch,
                     new_branch=update_branch,
