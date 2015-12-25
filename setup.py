@@ -17,6 +17,7 @@ with open('HISTORY.rst') as history_file:
 requirements = [
     "requests",
     "PyGithub",
+    "click"
 ]
 
 test_requirements = [
@@ -55,6 +56,11 @@ setup(
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
     ],
+    entry_points={
+        'console_scripts': [
+            'pyup = pyup.cli:main',
+        ]
+    },
     test_suite='tests',
     tests_require=test_requirements,
     dependency_links=['git+https://github.com/jayfk/PyGithub.git@top#egg=PyGithub']
