@@ -60,3 +60,6 @@ target/
 
 # Pycharm
 .idea/
+
+# utility functions
+.util/
