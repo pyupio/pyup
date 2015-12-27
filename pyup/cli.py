@@ -4,10 +4,9 @@ from pyup import __version__
 from pyup.bot import DryBot, Bot
 from pyup.requirements import RequirementFile, RequirementsBundle
 from pyup.providers.github import Provider as GithubProvider
-from pyup.providers.testing import Provider as TestProvider
 import click
-
 from tqdm import tqdm
+
 @click.command()
 @click.version_option(__version__, '-v', '--version')
 @click.option('--repo', prompt='repository', help='')
