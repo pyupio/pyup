@@ -28,7 +28,7 @@ test_requirements = [
 ]
 
 setup(
-    name='pyup',
+    name='pyupio',
     version='0.1.0',
     description="A tool to update all your projects requirements",
     long_description=readme + '\n\n' + history,
