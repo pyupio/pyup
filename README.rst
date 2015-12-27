@@ -1,5 +1,5 @@
 ===============================
-pyup-oss
+pyup
 ===============================
 
 .. image:: https://img.shields.io/pypi/v/pyup.svg

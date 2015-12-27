@@ -36,14 +36,14 @@ is open to whoever wants to implement it.
 Write Documentation
 ~~~~~~~~~~~~~~~~~~~
 
-pyup-oss could always use more documentation, whether as part of the
-official pyup-oss docs, in docstrings, or even on the web in blog posts,
+Pyup could always use more documentation, whether as part of the
+official pyup docs, in docstrings, or even on the web in blog posts,
 articles, and such.
 
 Submit Feedback
 ~~~~~~~~~~~~~~~
 
-The best way to send feedback is to file an issue at https://github.com/pyup/pyup/issues.
+The best way to send feedback is to file an issue at https://github.com/pyupio/pyup/issues.
 
 If you are proposing a feature:
 

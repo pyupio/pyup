@@ -2,6 +2,6 @@
 Usage
 ========
 
-To use pyup-oss in a project::
+To use pyup in a project::
 
     import pyup
