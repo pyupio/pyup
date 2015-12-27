@@ -193,7 +193,7 @@ class BotCommitAndPullTest(TestCase):
             )
         ]
 
-        bot.commit_and_pull("branch", "new branch", "repo", "", updates)
+        bot.commit_and_pull(True, "branch", "new branch", "repo", "", updates)
 
         self.assertEqual(bot.provider.create_commit.called, True)
         self.assertEqual(bot.provider.create_commit.call_count, 3)
