@@ -16,7 +16,7 @@ with open('HISTORY.rst') as history_file:
 
 requirements = [
     "requests",
-    "PyGithub-dev",
+    "PyGithub",
     "click",
     "tqdm"
 ]
@@ -65,5 +65,4 @@ setup(
     },
     test_suite='tests',
     tests_require=test_requirements,
-    dependency_links=['git+https://github.com/jayfk/PyGithub.git@top#egg=PyGithub-dev']
 )

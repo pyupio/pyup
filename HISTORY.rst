@@ -3,6 +3,12 @@
 History
 -------
 
+0.1.3 (2015-12-27)
+---------------------
+
+* PyGithub should be installed as a specific dependency to keep things sane and simple until the
+changes on upstream are merged.
+
 0.1.2 (2015-12-27)
 ---------------------
 

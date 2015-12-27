@@ -2,11 +2,7 @@
 Installation
 ============
 
-At the command line::
+To install pyup, run::
 
-    $ easy_install pyup
-
-Or, if you have virtualenvwrapper installed::
-
-    $ mkvirtualenv pyup
-    $ pip install pyup
+    $ pip install pyupio
+    $ pip install -e git+https://github.com/jayfk/PyGithub.git@top#egg=PyGithub
