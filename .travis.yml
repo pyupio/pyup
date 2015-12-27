@@ -6,7 +6,7 @@ before_install:
 deploy:
   true:
     condition: $TOXENV == py27
-    repo: pyup/pyup
+    repo: pyupio/pyup
     tags: true
   distributions: sdist bdist_wheel
   password:
