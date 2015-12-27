@@ -13,7 +13,7 @@ Types of Contributions
 Report Bugs
 ~~~~~~~~~~~
 
-Report bugs at https://github.com/pyup/pyup/issues.
+Report bugs at https://github.com/pyupio/pyup/issues.
 
 If you are reporting a bug, please include:
 
@@ -100,7 +100,7 @@ Before you submit a pull request, check that it meets these guidelines:
    your new functionality into a function with a docstring, and add the
    feature to the list in README.rst.
 3. The pull request should work for Python 2.6, 2.7, 3.3, and 3.4, and for PyPy. Check
-   https://travis-ci.org/pyup/pyup/pull_requests
+   https://travis-ci.org/pyupio/pyup/pull_requests
    and make sure that the tests pass for all supported Python versions.
 
 Tips

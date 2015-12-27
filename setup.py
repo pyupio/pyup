@@ -34,7 +34,7 @@ setup(
     long_description=readme + '\n\n' + history,
     author="Jannis Gebauer",
     author_email='ja.geb@me.com',
-    url='https://github.com/pyup/pyup',
+    url='https://github.com/pyupio/pyup',
     packages=[
         'pyup',
     ],

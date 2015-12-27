@@ -5,8 +5,8 @@ pyup
 .. image:: https://img.shields.io/pypi/v/pyup.svg
         :target: https://pypi.python.org/pypi/pyup
 
-.. image:: https://img.shields.io/travis/pyup/pyup.svg
-        :target: https://travis-ci.org/pyup/pyup
+.. image:: https://img.shields.io/travis/pyupio/pyup.svg
+        :target: https://travis-ci.org/pyupio/pyup
 
 .. image:: https://readthedocs.org/projects/pyup/badge/?version=latest
         :target: https://readthedocs.org/projects/pyup/?badge=latest
