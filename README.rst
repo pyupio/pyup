@@ -14,22 +14,3 @@ pyup-oss
 
 
 A tool to update all your projects requirements
-
-* Free software: ISC license
-* Documentation: https://pyup.readthedocs.org.
-
-Features
---------
-
-* TODO
-
-Credits
----------
-
-Tools used in rendering this package:
-
-*  Cookiecutter_
-*  `cookiecutter-pypackage`_
-
-.. _Cookiecutter: https://github.com/audreyr/cookiecutter
-.. _`cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage
