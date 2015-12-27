@@ -7,6 +7,7 @@ from pyup.providers.github import Provider as GithubProvider
 import click
 from tqdm import tqdm
 
+
 @click.command()
 @click.version_option(__version__, '-v', '--version')
 @click.option('--repo', prompt='repository', help='')
