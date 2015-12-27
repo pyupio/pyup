@@ -73,8 +73,8 @@ class Bot(object):
 
         InitialUpdateClass = self.req_bundle.get_initial_update_class()
 
-        if initial and not list(self.req_bundle.get_updates(
-            initial=initial, pin_unpinned=pin_unpinned)):
+        if initial and not list(self.req_bundle.get_updates(initial=initial,
+                                                            pin_unpinned=pin_unpinned)):
             # if this is the initial run and the update list is empty, the repo is already
             # up to date. In this case, we create an issue letting the user know that the bot is
             # now set up for this repo and return early.
