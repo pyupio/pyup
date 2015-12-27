@@ -13,4 +13,8 @@ pyup-oss
         :alt: Documentation Status
 
 
+.. image:: https://codecov.io/github/pyupio/pyup/coverage.svg?branch=master
+        :target: https://codecov.io/github/pyupio/pyup?branch=master
+
+
 A tool to update all your projects requirements
