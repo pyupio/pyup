@@ -17,7 +17,8 @@ with open('HISTORY.rst') as history_file:
 requirements = [
     "requests",
     "PyGithub",
-    "click"
+    "click",
+    "tqdm"
 ]
 
 test_requirements = [
