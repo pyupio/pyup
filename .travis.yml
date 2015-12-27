@@ -34,3 +34,9 @@ deploy:
     tags: true
     repo: pyup/pyup
     condition: $TOXENV == py27
+
+before_install:
+  - pip install codecov
+
+after_success:
+  - codecov
