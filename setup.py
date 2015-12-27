@@ -46,7 +46,7 @@ setup(
     zip_safe=False,
     keywords='pyup',
     classifiers=[
-        'Development Status :: 3 - Beta',
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License (MIT)',
         'Natural Language :: English',
