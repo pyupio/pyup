@@ -72,9 +72,9 @@ class Bot(object):
     def apply_updates(self, branch, initial, pin_unpinned):
 
         InitialUpdateClass = self.req_bundle.get_initial_update_class()
-        update_list = [u for u in self.req_bundle.get_updates(
-            initial=initial, pin_unpinned=pin_unpinned)]
-        if initial and not update_list:
+
+        if initial and not list(self.req_bundle.get_updates(
+            initial=initial, pin_unpinned=pin_unpinned)):
             # if this is the initial run and the update list is empty, the repo is already
             # up to date. In this case, we create an issue letting the user know that the bot is
             # now set up for this repo and return early.
@@ -93,11 +93,12 @@ class Bot(object):
             False
         )
 
-        for title, body, update_branch, updates in update_list:
+        for title, body, update_branch, updates in self.iter_updates(initial, pin_unpinned):
             if initial_pr:
                 pull_request = initial_pr
             elif title not in [pr.title for pr in self.pull_requests]:
                 pull_request = self.commit_and_pull(
+                    initial=initial,
                     base_branch=branch,
                     new_branch=update_branch,
                     title=title,
@@ -110,7 +111,7 @@ class Bot(object):
             for update in updates:
                 update.requirement.pull_request = pull_request
 
-    def commit_and_pull(self, base_branch, new_branch, title, body, updates):
+    def commit_and_pull(self, initial, base_branch, new_branch, title, body, updates):
 
         # create new branch
         self.provider.create_branch(
@@ -120,8 +121,7 @@ class Bot(object):
         )
 
         updated_files = {}
-        for update in updates:
-
+        for update in self.iter_changes(initial, updates):
             if update.requirement_file.path in updated_files:
                 sha = updated_files[update.requirement_file.path]["sha"]
                 content = updated_files[update.requirement_file.path]["content"]
@@ -181,8 +181,17 @@ class Bot(object):
             new_branch=new_branch,
         )
 
+    def iter_git_tree(self, branch):
+        return self.provider.iter_git_tree(branch=branch, repo=self.user_repo)
+
+    def iter_updates(self, initial, pin_unpinned):
+        return self.req_bundle.get_updates(initial=initial, pin_unpinned=pin_unpinned)
+
+    def iter_changes(self, initial, updates):
+        return iter(updates)
+
     def get_all_requirements(self, branch):
-        for file_type, path in self.provider.iter_git_tree(branch=branch, repo=self.user_repo):
+        for file_type, path in self.iter_git_tree(branch):
             if file_type == "blob":
                 if "requirements" in path:
                     if path.endswith("txt") or path.endswith("pip"):

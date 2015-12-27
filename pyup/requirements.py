@@ -86,7 +86,7 @@ class RequirementFile(object):
 
     def _parse(self):
         self._requirements, self._other_files = [], []
-        for num, line in enumerate(self.content.splitlines()):
+        for num, line in enumerate(self.iter_lines()):
             line = line.strip()
             if line == '':
                 continue
@@ -96,11 +96,11 @@ class RequirementFile(object):
             elif line.startswith('-r') or line.startswith('--requirement'):
                 self._other_files.append(self.resolve_file(self.path, line))
             elif line.startswith('-f') or line.startswith('--find-links') or \
-                    line.startswith('-i') or line.startswith('--index-url') or \
-                    line.startswith('--extra-index-url') or \
-                    line.startswith('--no-index') or line.startswith('--allow-external') or \
-                    line.startswith('--allow-unverified') or \
-                    line.startswith('-Z') or line.startswith('--always-unzip'):
+                line.startswith('-i') or line.startswith('--index-url') or \
+                line.startswith('--extra-index-url') or \
+                line.startswith('--no-index') or line.startswith('--allow-external') or \
+                line.startswith('--allow-unverified') or \
+                line.startswith('-Z') or line.startswith('--always-unzip'):
                 continue
             else:
                 try:
@@ -112,6 +112,10 @@ class RequirementFile(object):
                     # print("can't parse", line)
                     continue
         self._is_valid = len(self._requirements) > 0 or len(self._other_files) > 0
+
+    def iter_lines(self):
+        for line in self.content.splitlines():
+            yield line
 
     @classmethod
     def resolve_file(cls, file_path, line):
