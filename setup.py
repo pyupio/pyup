@@ -37,6 +37,7 @@ setup(
     url='https://github.com/pyupio/pyup',
     packages=[
         'pyup',
+        'pyup.providers'
     ],
     package_dir={'pyup':
                  'pyup'},
