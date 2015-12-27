@@ -63,8 +63,6 @@ class Bot(object):
             branch = self.provider.get_default_branch(repo=self.user_repo)
 
         self.get_all_requirements(branch=branch)
-
-        #
         self.apply_updates(branch, initial=initial, pin_unpinned=pin_unpinned)
 
         return self.req_bundle
