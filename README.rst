@@ -3,7 +3,7 @@ pyup
 ===============================
 
 .. image:: https://img.shields.io/pypi/v/pyup.svg
-        :target: https://pypi.python.org/pypi/pyup
+        :target: https://pypi.python.org/pypi/pyupio
 
 .. image:: https://img.shields.io/travis/pyupio/pyup.svg
         :target: https://travis-ci.org/pyupio/pyup
