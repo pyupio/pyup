@@ -99,8 +99,8 @@ class RequirementFile(object):
                 line.startswith('-i') or line.startswith('--index-url') or \
                 line.startswith('--extra-index-url') or \
                 line.startswith('--no-index') or line.startswith('--allow-external') or \
-                line.startswith('--allow-unverified') or \
-                line.startswith('-Z') or line.startswith('--always-unzip'):
+                line.startswith('--allow-unverified') or line.startswith('-Z') or \
+                    line.startswith('--always-unzip'):
                 continue
             else:
                 try:
