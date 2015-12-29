@@ -196,7 +196,9 @@ class Bot(object):
                 if "requirements" in path:
                     if path.endswith("txt") or path.endswith("pip"):
                         self.add_requirement_file(path)
-
+    
+    # if this function gets updated, the gist at https://gist.github.com/jayfk/c6509bbaf4429052ca3f
+    # needs to be updated too
     def add_requirement_file(self, path):
         if not self.req_bundle.has_file_in_path(path):
             req_file = self.provider.get_requirement_file(path=path, repo=self.user_repo)
