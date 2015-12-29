@@ -187,7 +187,9 @@ class Bot(object):
 
     def iter_changes(self, initial, updates):
         return iter(updates)
-
+    
+    # if this function gets updated, the gist at https://gist.github.com/jayfk/45862b05836701b49b01
+    # needs to be updated too
     def get_all_requirements(self, branch):
         for file_type, path in self.iter_git_tree(branch):
             if file_type == "blob":
