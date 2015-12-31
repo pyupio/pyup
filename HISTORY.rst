@@ -3,6 +3,13 @@
 History
 -------
 
+0.1.4 (2015-12-30)
+---------------------
+
+* Fixed a bug with the github provider when committing too fast.
+* Requirement content replace function had a bug where not always the right requirement 
+was replaced
+
 0.1.3 (2015-12-27)
 ---------------------
 
