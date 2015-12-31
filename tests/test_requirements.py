@@ -84,6 +84,34 @@ class RequirementUpdateContent(TestCase):
                               '{%- endif %}\n\n'
             self.assertEqual(req.update_content(content), updated_content)
 
+    def test_update_content_with_dubious_package_name(self):
+        with patch('pyup.requirements.Requirement.latest_version', new_callable=PropertyMock,
+                   return_value="2.58.1.44"):
+            content = 'raven\n' \
+                      'ravenclient'
+            req = Requirement.parse("raven", 0)
+            updated_content = 'raven==2.58.1.44\n' \
+                              'ravenclient'
+            self.assertEqual(req.update_content(content), updated_content)
+
+    def test_update_content_ranged(self):
+        with patch('pyup.requirements.Requirement.latest_version', new_callable=PropertyMock,
+                   return_value="1.5.6"):
+            content = 'raven>=0.2\n' \
+                      'ravenclient'
+            req = Requirement.parse("raven>=0.2", 0)
+            updated_content = 'raven==1.5.6\n' \
+                              'ravenclient'
+            self.assertEqual(req.update_content(content), updated_content)
+
+    def test_update_content_unfinished_line(self):
+        with patch('pyup.requirements.Requirement.latest_version', new_callable=PropertyMock,
+                   return_value="1.5.6"):
+            content = 'raven==0.2\n'
+            req = Requirement.parse("raven==0.2", 0)
+            updated_content = 'raven==1.5.6\n'
+            self.assertEqual(req.update_content(content), updated_content)
+
 
 class RequirementTestCase(TestCase):
     def test_is_pinned(self):

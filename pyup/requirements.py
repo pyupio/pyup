@@ -253,7 +253,7 @@ class Requirement(RequirementBase, object):
         new_line = "{}=={}".format(self.project_name, self.latest_version)
         if "#" in self.line:
             new_line += " #" + "#".join(self.line.split("#")[1:])
-        regex = r"^{}".format(self.line)
+        regex = r"^{}$".format(self.line)
         return re.sub(regex, new_line, content, flags=re.MULTILINE)
 
     @classmethod
