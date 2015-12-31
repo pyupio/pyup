@@ -187,7 +187,7 @@ class Bot(object):
 
     def iter_changes(self, initial, updates):
         return iter(updates)
-    
+
     # if this function gets updated, the gist at https://gist.github.com/jayfk/45862b05836701b49b01
     # needs to be updated too
     def get_all_requirements(self, branch):
@@ -196,7 +196,7 @@ class Bot(object):
                 if "requirements" in path:
                     if path.endswith("txt") or path.endswith("pip"):
                         self.add_requirement_file(path)
-    
+
     # if this function gets updated, the gist at https://gist.github.com/jayfk/c6509bbaf4429052ca3f
     # needs to be updated too
     def add_requirement_file(self, path):
