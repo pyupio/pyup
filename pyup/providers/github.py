@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, print_function, unicode_literals
+import time
 from github import Github, GithubException
 from collections import namedtuple
 from ..errors import BranchExistsError, NoPermissionError
@@ -55,16 +56,24 @@ class Provider(object):
             ))
 
     def create_commit(self, path, branch, commit_message, content, sha, repo, committer):
-
-        commit, new_file = repo.update_content(
-            path=path,
-            message=commit_message,
-            content=content,
-            branch=branch,
-            sha=sha,
-            committer=self.get_committer_data(committer),
-        )
-        return new_file.sha
+        # there's a rare bug in the github API when committing too fast on really beefy
+        # hardware with Gigabit NICs (probably because they do some async stuff).
+        # If we encounter an error, the loop waits for 1/2/3 seconds before trying again.
+        # If the loop reaches the 4th iteration, we give up and raise the error.
+        for i in range(1, 4):
+            try:
+                commit, new_file = repo.update_content(
+                    path=path,
+                    message=commit_message,
+                    content=content,
+                    branch=branch,
+                    sha=sha,
+                    committer=self.get_committer_data(committer),
+                )
+                return new_file.sha
+            except GithubException as e:
+                time.sleep(i)
+        raise e
 
     def get_committer_data(self, committer):
         email = None
