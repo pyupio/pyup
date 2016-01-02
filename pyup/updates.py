@@ -65,7 +65,6 @@ class InitialUpdate(Update):
                 "pyup-initial-update",
                 [update for updates in self.values() for update in updates if
                  self.should_update(update.requirement)]
-                 self.should_update(update.requirement)]
             )
 
     @classmethod
