@@ -36,7 +36,7 @@ Installation
 To install pyup, run::
 
     $ pip install pyupio
-    $ pip install -e git+https://github.com/jayfk/PyGithub.git@top#egg=PyGithub
+    $ pip install -e git+https://github.com/pyupio/PyGithub#egg=PyGithub
 
 
 Obtain Token
