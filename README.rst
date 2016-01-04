@@ -1,6 +1,8 @@
 .. image:: https://pyupio.a.cdnify.io/images/logo.png
         :target: https://pyup.io
 
+|
+
 .. image:: https://img.shields.io/pypi/v/pyupio.svg
         :target: https://pypi.python.org/pypi/pyupio
 
@@ -15,15 +17,17 @@
 .. image:: https://codecov.io/github/pyupio/pyup/coverage.svg?branch=master
         :target: https://codecov.io/github/pyupio/pyup?branch=master
 
+A tool to update all your project's requirement files with a single command directly on github.
 
-A tool to update all your project's requirements directly on github.
+.. image:: https://github.com/pyupio/pyup/blob/master/demo.gif
 
 About
 -----
 
-Pyup is the open source version of the service that is running behind pyup.io. pyup.io
-is currently in closed beta. If you are interested to try it out, make sure to request an invite
-at the website.
+Pyup is the open source version of the online service that is running behind pyup.io. The online
+service comes with a user interface to manage all your project dependencies at a single place and a
+lot of additional features. It's currently in closed beta. If you are interested to try it out,
+make sure to request an invite at https://pyup.io
 
 
 Installation
@@ -57,7 +61,3 @@ This will check all your requirement files and search for new package versions. 
 updates available, pyup will create a new branch on your repository and create a new commit for
 every single update. Once all files are up to date, pyup will create a single pull request containing
 all commits.
-
-
-
-
