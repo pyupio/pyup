@@ -1,6 +1,5 @@
-===============================
-pyup
-===============================
+.. image:: https://pyupio.a.cdnify.io/images/logo.png
+        :target: https://pyup.io
 
 .. image:: https://img.shields.io/pypi/v/pyupio.svg
         :target: https://pypi.python.org/pypi/pyupio
@@ -17,13 +16,48 @@ pyup
         :target: https://codecov.io/github/pyupio/pyup?branch=master
 
 
-A tool to update all your projects requirements
+A tool to update all your project's requirements directly on github.
+
+About
+-----
+
+Pyup is the open source version of the service that is running behind pyup.io. pyup.io
+is currently in closed beta. If you are interested to try it out, make sure to request an invite
+at the website.
 
 
-Quickstart
-----------
+Installation
+------------
 
 To install pyup, run::
 
     $ pip install pyupio
     $ pip install -e git+https://github.com/jayfk/PyGithub.git@top#egg=PyGithub
+
+
+Obtain Token
+------------
+
+In order to communicate with the github API, you need to create an oauth token for your account:
+
+* Log in to your github account
+* Click on settings -> Personal access tokens
+* Click on Generate new token
+* Make sure to check 'repo' and click on Generate token
+
+Run your first Update
+---------------------
+
+Run::
+
+    $ pyup --repo=username/repo --user-token=<YOUR_TOKEN> --initial
+
+
+This will check all your requirement files and search for new package versions. If there are
+updates available, pyup will create a new branch on your repository and create a new commit for
+every single update. Once all files are up to date, pyup will create a single pull request containing
+all commits.
+
+
+
+
