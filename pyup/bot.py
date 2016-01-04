@@ -53,8 +53,8 @@ class Bot(object):
     @property
     def pull_requests(self):
         if self._pull_requests is None:
-            self._pull_requests = [pr for pr in self.provider.iter_issues(repo=self.user_repo,
-                                                                          creator=self.bot)]
+            self._pull_requests = [pr for pr in self.provider.iter_issues(
+                repo=self.user_repo, creator=self.bot if self.bot_token else self.user)]
         return self._pull_requests
 
     def update(self, branch=None, initial=True, pin_unpinned=False):
