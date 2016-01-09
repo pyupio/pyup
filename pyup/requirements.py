@@ -87,10 +87,17 @@ class RequirementFile(object):
     def _parse(self):
         self._requirements, self._other_files = [], []
         for num, line in enumerate(self.iter_lines()):
+            print(num, line)
             line = line.strip()
             if line == '':
                 continue
-            elif not line or line.startswith('#'):
+            elif not line:
+                continue
+            elif "pyup: ignore file" in line and num in [0, 1]:
+                # don't process this file, filter rule match to completely ignore it
+                self._is_valid = False
+                return
+            if line.startswith('#'):
                 # comments are lines that start with # only
                 continue
             elif line.startswith('-r') or line.startswith('--requirement'):
@@ -104,6 +111,9 @@ class RequirementFile(object):
                 continue
             else:
                 try:
+                    if "pyup: ignore" in line:
+                        # filter rule match to completely ignore this requirement
+                        continue
                     klass = self.get_requirement_class()
                     req = klass.parse(line, num + 1)
                     if req.package is not None:
@@ -160,9 +170,14 @@ class Requirement(RequirementBase, object):
 
     @property
     def filter(self):
+        rqfilter = False
         if "rq.filter:" in self.line:
+            rqfilter = self.line.split("rq.filter:")[1]
+        elif "pyup:" in self.line:
+            rqfilter = self.line.split("pyup:")[1]
+
+        if rqfilter:
             try:
-                rqfilter = self.line.split("rq.filter:")[1]
                 rqfilter, = parse_requirements("filter " + rqfilter)
                 if len(rqfilter.specs) > 0:
                     return rqfilter.specs
