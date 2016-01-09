@@ -146,7 +146,7 @@ class RequirementTestCase(TestCase):
         req = Requirement.parse("Django==1.4", 0)
         self.assertEqual(req.is_loose, False)
 
-    def test_filter(self):
+    def test_package_filter_present(self):
         req = Requirement.parse("Django", 0)
         self.assertEqual(req.filter, False)
 
@@ -163,6 +163,24 @@ class RequirementTestCase(TestCase):
         self.assertEqual(req.filter, False)
 
         req = Requirement.parse("bliss #rq.filter:", 0)
+        self.assertEqual(req.filter, False)
+
+        req = Requirement.parse("Django", 0)
+        self.assertEqual(req.filter, False)
+
+        req = Requirement.parse("Django #pyup:", 0)
+        self.assertEqual(req.filter, False)
+
+        req = Requirement.parse("Django #pyup: >=1.4,<1.5", 0)
+        self.assertEqual(req.filter, [('>=', '1.4'), ('<', '1.5')])
+
+        req = Requirement.parse("Django #pyup:!=1.2", 0)
+        self.assertEqual(req.filter, [('!=', '1.2')])
+
+        req = Requirement.parse("Django #pyup:foo", 0)
+        self.assertEqual(req.filter, False)
+
+        req = Requirement.parse("bliss #pyup:", 0)
         self.assertEqual(req.filter, False)
 
     def test_get_latest_version_within_specs(self):
@@ -229,14 +247,32 @@ class RequirementTestCase(TestCase):
             self.assertEqual(r.version, "1.4.3")
 
         with patch('pyup.requirements.Requirement.package', new_callable=PropertyMock,
+                   return_value=package_factory(
+                       name="django",
+                       versions=["1.4.3", "1.5", "1.4.2", "1.4.1", ])):
+            r = Requirement.parse("Django  # pyup: >=1.4,<1.5", 0)
+            self.assertEqual(r.version, "1.4.3")
+
+        with patch('pyup.requirements.Requirement.package', new_callable=PropertyMock,
                    return_value=package_factory(name="django", versions=["1.8.1", "1.8"])):
             r = Requirement.parse("Django  # rq.filter: != 1.8.1", 0)
+            self.assertEqual(r.version, "1.8")
+
+        with patch('pyup.requirements.Requirement.package', new_callable=PropertyMock,
+                   return_value=package_factory(name="django", versions=["1.8.1", "1.8"])):
+            r = Requirement.parse("Django  # pyup: != 1.8.1", 0)
             self.assertEqual(r.version, "1.8")
 
         with patch('pyup.requirements.Requirement.package', new_callable=PropertyMock,
                    return_value=package_factory(name="django",
                                                 versions=["1.9rc1", "1.9.1", "1.8", ])):
             r = Requirement.parse("django  # rq.filter: bogus", 0)
+            self.assertEqual(r.version, "1.9.1")
+
+        with patch('pyup.requirements.Requirement.package', new_callable=PropertyMock,
+                   return_value=package_factory(name="django",
+                                                versions=["1.9rc1", "1.9.1", "1.8", ])):
+            r = Requirement.parse("django  # pyup: bogus", 0)
             self.assertEqual(r.version, "1.9.1")
 
     def test_version_pinned(self):
@@ -396,6 +432,34 @@ pdfminer==20140328
                 Requirement.parse("pycrypto>=2.6", 4),
                 Requirement.parse("distribute>=0.6.28, <0.7", 6),
                 Requirement.parse("pdfminer==20140328", 3),
+            ]
+        )
+
+    @patch("pyup.requirements.Requirement.package")
+    def test_ignore_file(self, package):
+        package.return_value = True
+        content = """# pyup: ignore file
+foo
+bar
+baz"""
+        r = RequirementFile("r.txt", content=content)
+        self.assertEqual(r.requirements, [])
+        self.assertEqual(r._other_files, [])
+        self.assertEqual(r.is_valid, False)
+
+    @patch("pyup.requirements.Requirement.package")
+    def test_ignore_requirement(self, package):
+        package.return_value = True
+
+        content = """foo
+bar # pyup: ignore
+baz"""
+        r = RequirementFile("r.txt", content=content)
+        self.assertEqual(len(r.requirements), 2)
+        self.assertEquals(
+            r.requirements, [
+                Requirement.parse("foo", 0),
+                Requirement.parse("baz", 2)
             ]
         )
 

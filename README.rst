@@ -61,3 +61,29 @@ This will check all your requirement files and search for new package versions. 
 updates available, pyup will create a new branch on your repository and create a new commit for
 every single update. Once all files are up to date, pyup will create a single pull request containing
 all commits.
+
+Filtering
+---------
+
+You may don't want to update all your requirements to latest, completely ignore
+some of them or exclude whole files. That's what filters are for.
+
+To exclude a whole file, add this to the first line::
+
+    # pyup: ignore file
+
+
+To ignore a package, append the `# pyup: ignore` filter::
+
+    flask # pyup: ignore
+
+
+If you want to use e.g. the long term support version of Django, which is 1.8 currently, without
+updating to the latest version 1.9, just add this filter::
+
+    Django # pyup: >=1.8,<1.9
+
+This tells pyup to use a version that is greater or equal to `1.8` but smaller than `1.9`.
+
+If you are a user of requires.io and you are using the `rq.filter` directive in your files: Pyup
+supports that, too.
