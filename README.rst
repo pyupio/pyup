@@ -3,8 +3,8 @@
 
 |
 
-.. image:: https://pyup.io/repos/github/jayfk/pyupio/shield.svg?token=6700d17d-5f94-49f8-a37f-6b966e9a163f
-     :target: https://pyup.io/repos/github/jayfk/pyupio/
+.. image:: https://pyup.io/repos/github/pyupio/pyup/shield.svg
+     :target: https://pyup.io/repos/github/pyupio/pyup/
      :alt: Updates
 
 .. image:: https://img.shields.io/pypi/v/pyupio.svg
