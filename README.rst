@@ -71,7 +71,7 @@ flag and run::
 
     $ pyup --repo=username/repo --user-token=<YOUR_TOKEN>
     
-This will create a pull request for every single update. Run a cronjob or a scheduled task somewhere 
+This will create a new branch and a pull request for every single update. Run a cronjob or a scheduled task somewhere 
 that auto-updates your repository once in a while (e.g. every day) to stay on latest.
 
 Filtering
