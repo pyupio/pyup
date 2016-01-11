@@ -66,6 +66,14 @@ updates available, pyup will create a new branch on your repository and create a
 every single update. Once all files are up to date, pyup will create a single pull request containing
 all commits.
 
+Once your repository is up to date and the initial update is merged in, remove the `--initial` 
+flag and run::
+
+    $ pyup --repo=username/repo --user-token=<YOUR_TOKEN>
+    
+This will create a pull request for every single update. Run a cronjob or a scheduled task somewhere 
+that auto-updates your repository once in a while (e.g. every day) to stay on latest.
+
 Filtering
 ---------
 
