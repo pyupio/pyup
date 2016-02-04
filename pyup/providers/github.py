@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, print_function, unicode_literals
 import time
+import logging
 from github import Github, GithubException
 from collections import namedtuple
 from ..errors import BranchExistsError, NoPermissionError
+
+logger = logging.getLogger(__name__)
 
 
 class Provider(object):
@@ -26,10 +29,12 @@ class Provider(object):
         try:
             return repo.add_to_collaborators(user.login)
         except GithubException:
-            raise NoPermissionError("Unable to add {login} as a collaborator on {repo}.".format(
+            msg = "Unable to add {login} as a collaborator on {repo}.".format(
                 login=user.login,
                 repo=repo.full_name
-            ))
+            )
+            logger.error(msg, exc_info=True)
+            raise NoPermissionError(msg)
 
     def iter_git_tree(self, repo, branch):
         for item in repo.get_git_tree(branch, recursive=True).tree:
@@ -44,6 +49,11 @@ class Provider(object):
                 sha=contentfile.sha
             )
         except GithubException:
+            msg = "Unable to get {path} on {repo}".format(
+                path=path,
+                repo=repo,
+            )
+            logger.error(msg, exc_info=True)
             return None
 
     def create_branch(self, repo, base_branch, new_branch):
@@ -72,8 +82,13 @@ class Provider(object):
                 )
                 return new_file.sha
             except GithubException as e:
+                if i == 3:
+                    logger.error("Unable to create commit on {repo} for path {path}".format(
+                        repo=repo,
+                        path=path
+                    ), exc_info=True)
+                    raise e
                 time.sleep(i)
-        raise e
 
     def get_committer_data(self, committer):
         email = None
@@ -84,10 +99,9 @@ class Provider(object):
                 if item["primary"]:
                     email = item["email"]
         if email is None:
-            raise NoPermissionError(
-                "Unable to get {login}'s email adress. You may have to add the scope user:email"
-                .format(login=committer.login)
-            )
+            msg = "Unable to get {login}'s email adress. " \
+                  "You may have to add the scope user:email".format(login=committer.login)
+            raise NoPermissionError(msg)
         return namedtuple("Committer", ["name", "email"])(name=committer.login, email=email)
 
     def create_pull_request(self, repo, title, body, base_branch, new_branch):
@@ -105,7 +119,9 @@ class Provider(object):
                 created_at=pr.created_at,
             )
         except GithubException:
-            raise NoPermissionError
+            msg = "Unable to create pull request on {repo}".format(repo=repo)
+            logger.error(msg, exc_info=True)
+            raise NoPermissionError(msg)
 
     def create_issue(self, repo, title, body):
         return repo.create_issue(
