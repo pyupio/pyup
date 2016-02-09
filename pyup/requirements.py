@@ -87,7 +87,7 @@ class RequirementFile(object):
     def _parse(self):
         self._requirements, self._other_files = [], []
         for num, line in enumerate(self.iter_lines()):
-            print(num, line)
+            #print(num, line)
             line = line.strip()
             if line == '':
                 continue
