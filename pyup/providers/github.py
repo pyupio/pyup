@@ -2,9 +2,9 @@
 from __future__ import absolute_import, print_function, unicode_literals
 import time
 import logging
-from github import Github, GithubException
+from github import Github, GithubException, UnknownObjectException
 from collections import namedtuple
-from ..errors import BranchExistsError, NoPermissionError
+from ..errors import BranchExistsError, NoPermissionError, RepoDoesNotExistError
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +23,14 @@ class Provider(object):
         return self._api(token).get_repo(name)
 
     def get_default_branch(self, repo):
-        return repo.default_branch
+        try:
+            return repo.default_branch
+        except UnknownObjectException:
+            # we can't use repo.name here because the repo object is lazy!
+            # If we try to access one of the properties that is not completed,
+            # we'll run into the next exception.
+            logger.error("Repo does not exist", exc_info=True)
+            raise RepoDoesNotExistError()
 
     def get_pull_request_permissions(self, user, repo):
         try:
