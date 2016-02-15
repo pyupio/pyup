@@ -59,8 +59,10 @@ class Bot(object):
 
     def update(self, branch=None, initial=True, pin_unpinned=False):
 
+        default_branch = self.provider.get_default_branch(repo=self.user_repo)
+
         if branch is None:
-            branch = self.provider.get_default_branch(repo=self.user_repo)
+            branch = default_branch
 
         self.get_all_requirements(branch=branch)
         self.apply_updates(branch, initial=initial, pin_unpinned=pin_unpinned)
