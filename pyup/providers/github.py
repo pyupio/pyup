@@ -32,7 +32,6 @@ class Provider(object):
             logger.error("Repo does not exist", exc_info=True)
             raise RepoDoesNotExistError()
 
-
     def get_pull_request_permissions(self, user, repo):
         try:
             return repo.add_to_collaborators(user.login)
