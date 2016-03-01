@@ -154,7 +154,10 @@ class RequirementTestCase(TestCase):
         self.assertEqual(req.filter, False)
 
         req = Requirement.parse("Django #rq.filter: >=1.4,<1.5", 0)
-        self.assertEqual(req.filter, [('>=', '1.4'), ('<', '1.5')])
+        self.assertEqual(
+            sorted(req.filter, key=lambda i: i[0]),
+            sorted([('>=', '1.4'), ('<', '1.5')], key=lambda i: i[0])
+        )
 
         req = Requirement.parse("Django #rq.filter:!=1.2", 0)
         self.assertEqual(req.filter, [('!=', '1.2')])
@@ -172,7 +175,11 @@ class RequirementTestCase(TestCase):
         self.assertEqual(req.filter, False)
 
         req = Requirement.parse("Django #pyup: >=1.4,<1.5", 0)
-        self.assertEqual(req.filter, [('>=', '1.4'), ('<', '1.5')])
+        self.assertEqual(
+            sorted(req.filter, key=lambda i: i[0]),
+            sorted([('>=', '1.4'), ('<', '1.5')], key=lambda i: i[0])
+        )
+
 
         req = Requirement.parse("Django #pyup:!=1.2", 0)
         self.assertEqual(req.filter, [('!=', '1.2')])
