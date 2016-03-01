@@ -2,7 +2,6 @@ from __future__ import unicode_literals
 import re
 from pkg_resources import Requirement as RequirementBase, parse_requirements
 from pkg_resources import parse_version
-from pkg_resources import RequirementParseError
 from pkg_resources._vendor.packaging.specifiers import SpecifierSet
 from .updates import InitialUpdate, SequentialUpdate
 from .pullrequest import PullRequest
@@ -117,7 +116,7 @@ class RequirementFile(object):
                     req = klass.parse(line, num + 1)
                     if req.package is not None:
                         self._requirements.append(req)
-                except RequirementParseError:
+                except ValueError:
                     # print("can't parse", line)
                     continue
         self._is_valid = len(self._requirements) > 0 or len(self._other_files) > 0
@@ -180,7 +179,7 @@ class Requirement(RequirementBase, object):
                 rqfilter, = parse_requirements("filter " + rqfilter)
                 if len(rqfilter.specs) > 0:
                     return rqfilter.specs
-            except RequirementParseError:
+            except ValueError:
                 pass
         return False
 
