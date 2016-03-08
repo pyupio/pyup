@@ -119,7 +119,7 @@ class BotApplyUpdateTest(TestCase):
     def test_apply_update_initial_empty(self):
         bot = bot_factory()
         bot.req_bundle.get_updates = Mock()
-        bot.req_bundle.get_updates.return_value = []
+        bot.req_bundle.get_updates.return_value = [("", "", "", [])]
         bot.provider.create_issue.return_value = None
         bot.apply_updates("branch", initial=True, pin_unpinned=False)
 
