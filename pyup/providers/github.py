@@ -54,7 +54,6 @@ class Provider(object):
             if e.status != 409:
                 raise
 
-
     def get_requirement_file(self, repo, path):
         try:
             contentfile = repo.get_contents(path)
