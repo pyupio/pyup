@@ -44,8 +44,16 @@ class Provider(object):
             raise NoPermissionError(msg)
 
     def iter_git_tree(self, repo, branch):
-        for item in repo.get_git_tree(branch, recursive=True).tree:
-            yield item.type, item.path
+        try:
+            for item in repo.get_git_tree(branch, recursive=True).tree:
+                yield item.type, item.path
+        except GithubException as e:
+            # a 409 status code means the repo is empty. In this case we just
+            # do nothing because this function shouldn't fail with an exception
+            # just because there are no files to iterate over.
+            if e.status != 409:
+                raise
+
 
     def get_requirement_file(self, repo, path):
         try:
