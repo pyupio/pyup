@@ -139,10 +139,17 @@ class Provider(object):
             raise NoPermissionError(msg)
 
     def create_issue(self, repo, title, body):
-        return repo.create_issue(
-            title=title,
-            body=body,
-        )
+        try:
+            return repo.create_issue(
+                title=title,
+                body=body,
+            )
+        except GithubException as e:
+            # a 410 status code means the repo has issues disabled, return
+            # false instead of raising an exception for that
+            if e.status == 410:
+                return False
+            raise
 
     def iter_issues(self, repo, creator):
         for issue in repo.get_issues(creator=creator.login):

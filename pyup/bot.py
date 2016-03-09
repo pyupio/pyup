@@ -75,9 +75,14 @@ class Bot(object):
 
         if initial:
             # get the list of pending updates
-            _, _, _, updates = list(
-                self.req_bundle.get_updates(initial=initial, pin_unpinned=pin_unpinned)
-            )[0]
+            try:
+                _, _, _, updates = list(
+                    self.req_bundle.get_updates(initial=initial, pin_unpinned=pin_unpinned)
+                )[0]
+            except IndexError:
+                # need to catch the index error here in case the intial update is completely
+                # empty
+                updates = False
             # if this is the initial run and the update list is empty, the repo is already
             # up to date. In this case, we create an issue letting the user know that the bot is
             # now set up for this repo and return early.
