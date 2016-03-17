@@ -270,7 +270,7 @@ class Requirement(object):
         return parse_version(self.version) < parse_version(self.latest_version_within_specs)
 
     def update_content(self, content):
-        new_line = "{}=={}".format(self.name, self.latest_version)
+        new_line = "{}=={}".format(self.name, self.latest_version_within_specs)
         if "#" in self.line:
             new_line += " #" + "#".join(self.line.split("#")[1:])
         regex = r"^{}$".format(self.line)
