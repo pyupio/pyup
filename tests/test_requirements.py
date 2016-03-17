@@ -26,6 +26,15 @@ class RequirementUpdateContent(TestCase):
 
             self.assertEqual(req.update_content(content), "django==1.4.2")
 
+    def test_latest_version_within_specs_called(self):
+
+        with patch('pyup.requirements.Requirement.latest_version_within_specs',
+                   new_callable=PropertyMock, return_value="1.4.2") as mocked:
+            content = "django==1.4.1"
+            req = Requirement.parse(content, 0)
+            self.assertEqual(req.update_content(content), "django==1.4.2")
+            mocked.assert_called_with()
+
     def test_update_content_simple_unpinned(self):
         with patch('pyup.requirements.Requirement.latest_version', new_callable=PropertyMock,
                    return_value="1.4.2"):
