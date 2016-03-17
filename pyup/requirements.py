@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 import re
-from pkg_resources import Requirement as RequirementBase, parse_requirements
+from pkg_resources import parse_requirements
 from pkg_resources import parse_version
 from pkg_resources._vendor.packaging.specifiers import SpecifierSet
 from .updates import InitialUpdate, SequentialUpdate
@@ -139,15 +139,26 @@ class RequirementFile(object):
         return Requirement
 
 
-# inherit from object to make this a new style class for older versions of pip
-class Requirement(RequirementBase, object):
-    def __init__(self, project_name, specs, extras, line, lineno, pull_request=None):
-        super(Requirement, self).__init__(project_name, specs, extras)
+class Requirement(object):
+    def __init__(self, name, specs, hashCmp, line, lineno):
+        self.name = name
+        self.key = name.lower()
+        self.specs = specs
+        self.hashCmp = hashCmp
         self.line = line
         self.lineno = lineno
-        self.pull_request = pull_request
+        self.pull_request = None
         self._fetched_package = False
         self._package = None
+
+    def __eq__(self, other):
+        return (
+            isinstance(other, Requirement) and
+            self.hashCmp == other.hashCmp
+        )
+
+    def __ne__(self, other):
+        return not self == other
 
     def __str__(self):
         return "Requirement.parse({line}, {lineno})".format(line=self.line, lineno=self.lineno)
@@ -234,10 +245,6 @@ class Requirement(RequirementBase, object):
         return None
 
     @property
-    def name(self):
-        return self.project_name
-
-    @property
     def package(self):
         if not self._fetched_package:
             self._package = fetch_package(self.name)
@@ -263,7 +270,7 @@ class Requirement(RequirementBase, object):
         return parse_version(self.version) < parse_version(self.latest_version_within_specs)
 
     def update_content(self, content):
-        new_line = "{}=={}".format(self.project_name, self.latest_version_within_specs)
+        new_line = "{}=={}".format(self.name, self.latest_version_within_specs)
         if "#" in self.line:
             new_line += " #" + "#".join(self.line.split("#")[1:])
         regex = r"^{}$".format(self.line)
@@ -273,11 +280,11 @@ class Requirement(RequirementBase, object):
     def parse(cls, s, lineno):
         parsed, = parse_requirements(s)
         return cls(
-            project_name=parsed.project_name,
+            name=parsed.project_name,
             specs=parsed.specs,
-            extras=parsed.extras,
             line=s,
             lineno=lineno,
+            hashCmp=parsed.hashCmp
         )
 
     def get_package_class(self):  # pragma: no cover
