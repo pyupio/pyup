@@ -13,6 +13,10 @@ class Provider(object):
     def __init__(self, bundle):
         self.bundle = bundle
 
+    @classmethod
+    def is_same_user(cls, this, that):
+        return this.login == that.login
+
     def _api(self, token):
         return Github(token)
 
@@ -118,6 +122,27 @@ class Provider(object):
             raise NoPermissionError(msg)
         return namedtuple("Committer", ["name", "email"])(name=committer.login, email=email)
 
+    def get_pull_request_committer(self, repo, pull_request):
+        try:
+            return [
+                commit.committer
+                for commit in repo.get_pull(pull_request.number).get_commits()
+            ]
+        except UnknownObjectException:
+            return []
+
+    def close_pull_request(self, bot_repo, user_repo, pull_request, comment):
+        try:
+            pull_request = bot_repo.get_pull(pull_request.number)
+            pull_request.create_issue_comment(comment)
+            pull_request.edit(state="closed")
+            # make sure that the name of the branch begins with pyup.
+            assert pull_request.head.ref.startswith("pyup-")
+            ref = user_repo.get_git_ref("/".join(["heads", pull_request.head.ref]))
+            ref.delete()
+        except UnknownObjectException:
+            return False
+
     def create_pull_request(self, repo, title, body, base_branch, new_branch):
         try:
             pr = repo.create_pull(
@@ -131,6 +156,8 @@ class Provider(object):
                 title=pr.title,
                 url=pr.html_url,
                 created_at=pr.created_at,
+                number=pr.number,
+                issue=False
             )
         except GithubException:
             msg = "Unable to create pull request on {repo}".format(repo=repo)
@@ -157,4 +184,6 @@ class Provider(object):
                 title=issue.title,
                 url=issue.html_url,
                 created_at=issue.created_at,
+                number=issue.number,
+                issue=issue.pull_request is not None,
             )

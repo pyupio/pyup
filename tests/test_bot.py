@@ -116,6 +116,44 @@ class BotApplyUpdateTest(TestCase):
 
         self.assertEqual(the_requirement.pull_request, the_pull)
 
+    def test_close_stale_prs_not_called_by_default(self):
+        the_requirement = Mock()
+        the_pull = pullrequest_factory("The PR")
+
+        bot = bot_factory()
+        bot.close_stale_prs = Mock()
+        bot.provider.iter_issues.return_value = []
+        bot.req_bundle = Mock()
+        update = RequirementUpdate(
+            requirement_file="foo", requirement=the_requirement, commit_message="foo"
+        )
+        bot.req_bundle.get_updates.return_value = [("The PR", "", "", [update])]
+        bot.commit_and_pull = Mock()
+        bot.commit_and_pull.return_value = the_pull
+        bot.apply_updates("branch", False, True)
+
+        self.assertEqual(the_requirement.pull_request, the_pull)
+        bot.close_stale_prs.assert_not_called()
+
+    def test_close_stall_prs_called(self):
+        the_requirement = Mock()
+        the_pull = pullrequest_factory("The PR")
+
+        bot = bot_factory()
+        bot.close_stale_prs = Mock()
+        bot.provider.iter_issues.return_value = []
+        bot.req_bundle = Mock()
+        update = RequirementUpdate(
+            requirement_file="foo", requirement=the_requirement, commit_message="foo"
+        )
+        bot.req_bundle.get_updates.return_value = [("The PR", "", "", [update])]
+        bot.commit_and_pull = Mock()
+        bot.commit_and_pull.return_value = the_pull
+        bot.apply_updates("branch", False, True, True)
+
+        self.assertEqual(the_requirement.pull_request, the_pull)
+        bot.close_stale_prs.assert_called_once_with(update, the_pull)
+
     def test_apply_update_initial_empty(self):
         bot = bot_factory()
         bot.req_bundle.get_updates = Mock()
@@ -376,3 +414,123 @@ class BotCreatePullRequestTest(TestCase):
             "body": "body",
             "title": "title",
         })
+
+
+class CloseStalePRsTestCase(TestCase):
+
+    def setUp(self):
+
+        self.pr = Mock()
+        self.pr.title = "First PR"
+        self.pr.number = 100
+
+        self.update = Mock()
+        self.update.requirement.key = "some-req"
+
+        self.other_pr = Mock()
+        self.other_pr.type = "update"
+        self.other_pr.is_open = True
+        self.other_pr.title = "Second PR"
+        self.other_pr.requirement = "some-req"
+
+    def test_no_bot_token(self):
+        bot = bot_factory()
+
+        bot.close_stale_prs(self.update, self.pr)
+
+        self.pr.type.assert_not_called()
+
+    def test_no_pull_requests(self):
+        bot = bot_factory(bot_token="foo")
+        bot._pull_requests = []
+
+        bot.close_stale_prs(self.update, self.pr)
+
+        bot.provider.get_pull_request_committer.assert_not_called()
+
+    def test_close_success(self):
+        bot = bot_factory(bot_token="foo")
+        bot._pull_requests = [self.other_pr]
+        commiter = Mock()
+        bot.provider.get_pull_request_committer.return_value = [commiter]
+
+        bot.close_stale_prs(self.update, self.pr)
+
+        bot.provider.get_pull_request_committer.assert_called_once_with(bot.user_repo, self.other_pr)
+        bot.provider.close_pull_request.assert_called_once_with(
+            bot_repo=bot.bot_repo,
+            user_repo=bot.user_repo,
+            pull_request=self.other_pr,
+            comment="Closing this in favor of #100"
+        )
+
+    def test_wrong_pr_type(self):
+        bot = bot_factory(bot_token="foo")
+        self.other_pr.type = "foo"
+        bot._pull_requests = [self.other_pr]
+        commiter = Mock()
+        bot.provider.get_pull_request_committer.return_value = [commiter]
+
+        bot.close_stale_prs(self.update, self.pr)
+
+        bot.provider.get_pull_request_committer.assert_not_called()
+        bot.provider.close_pull_request.assert_not_called()
+
+    def test_pr_closed(self):
+        bot = bot_factory(bot_token="foo")
+        self.other_pr.is_open = False
+        bot._pull_requests = [self.other_pr]
+        commiter = Mock()
+        bot.provider.get_pull_request_committer.return_value = [commiter]
+
+        bot.close_stale_prs(self.update, self.pr)
+
+        bot.provider.get_pull_request_committer.assert_not_called()
+        bot.provider.close_pull_request.assert_not_called()
+
+    def test_same_title(self):
+        bot = bot_factory(bot_token="foo")
+        self.other_pr.title = "First PR"
+        bot._pull_requests = [self.other_pr]
+        commiter = Mock()
+        bot.provider.get_pull_request_committer.return_value = [commiter]
+
+        bot.close_stale_prs(self.update, self.pr)
+
+        bot.provider.get_pull_request_committer.assert_not_called()
+        bot.provider.close_pull_request.assert_not_called()
+
+    def test_requirement_doesnt_match(self):
+        bot = bot_factory(bot_token="foo")
+        self.other_pr.requirement = "other-req"
+        bot._pull_requests = [self.other_pr]
+        commiter = Mock()
+        bot.provider.get_pull_request_committer.return_value = [commiter]
+
+        bot.close_stale_prs(self.update, self.pr)
+
+        bot.provider.get_pull_request_committer.assert_not_called()
+        bot.provider.close_pull_request.assert_not_called()
+
+    def test_more_than_one_committer(self):
+        bot = bot_factory(bot_token="foo")
+        bot._pull_requests = [self.other_pr]
+        commiter = Mock()
+        bot.provider.get_pull_request_committer.return_value = [commiter, commiter]
+
+        bot.close_stale_prs(self.update, self.pr)
+
+        bot.provider.get_pull_request_committer.assert_called_once_with(bot.user_repo, self.other_pr)
+        bot.provider.close_pull_request.assert_not_called()
+
+    def test_committer_is_not_bot_user(self):
+        bot = bot_factory(bot_token="foo")
+        bot._pull_requests = [self.other_pr]
+        commiter = Mock()
+        bot.provider.get_pull_request_committer.return_value = [commiter]
+        bot.provider.is_same_user.return_value = False
+
+        bot.close_stale_prs(self.update, self.pr)
+
+        bot.provider.get_pull_request_committer.assert_called_once_with(bot.user_repo, self.other_pr)
+        bot.provider.close_pull_request.assert_not_called()
