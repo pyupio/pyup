@@ -56,3 +56,22 @@ class PullRequestStateTest(TestCase):
         self.assertEqual(pr.is_open, False)
         pr.state = "open"
         self.assertEqual(pr.is_open, True)
+
+
+class PullRequestRequirementTestCase(TestCase):
+
+    def test_initial_non(self):
+        pr = pullrequest_factory(title="Initial PR")
+        self.assertEqual(pr.requirement, None)
+
+    def test_pin(self):
+        pr = pullrequest_factory(title="Pin django")
+        self.assertEqual(pr.requirement, "django")
+
+    def test_update(self):
+        pr = pullrequest_factory(title="Update django")
+        self.assertEqual(pr.requirement, "django")
+
+    def test_some_bogus(self):
+        pr = pullrequest_factory(title="Uhm?")
+        self.assertEqual(pr.requirement, None)

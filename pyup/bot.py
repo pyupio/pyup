@@ -57,7 +57,7 @@ class Bot(object):
                 repo=self.user_repo, creator=self.bot if self.bot_token else self.user)]
         return self._pull_requests
 
-    def update(self, branch=None, initial=True, pin_unpinned=False):
+    def update(self, branch=None, initial=True, pin_unpinned=False, close_stale_prs=False):
 
         default_branch = self.provider.get_default_branch(repo=self.user_repo)
 
@@ -65,11 +65,16 @@ class Bot(object):
             branch = default_branch
 
         self.get_all_requirements(branch=branch)
-        self.apply_updates(branch, initial=initial, pin_unpinned=pin_unpinned)
+        self.apply_updates(
+            branch,
+            initial=initial,
+            pin_unpinned=pin_unpinned,
+            close_stale_prs=close_stale_prs
+        )
 
         return self.req_bundle
 
-    def apply_updates(self, branch, initial, pin_unpinned):
+    def apply_updates(self, branch, initial, pin_unpinned, close_stale_prs=False):
 
         InitialUpdateClass = self.req_bundle.get_initial_update_class()
 
@@ -119,6 +124,39 @@ class Bot(object):
 
             for update in updates:
                 update.requirement.pull_request = pull_request
+                if close_stale_prs and pull_request and not initial:
+                    self.close_stale_prs(update, pull_request)
+
+    def close_stale_prs(self, update, pull_request):
+        """
+        Closes stale pull requests for the given update, links to the new pull request and deletes
+        the stale branch.
+        A stale PR is a PR that:
+         - Is not merged
+         - Is not closed
+         - Has no commits (except the bot commit)
+        :param update:
+        :param pull_request:
+        """
+        if self.bot_token and pull_request.type != "initial":
+            for pr in self.pull_requests:
+                # check that, the pr is an update, is open, the titles are not equal and that
+                # the requirement matches
+                if pr.type == "update" and \
+                    pr.is_open and \
+                        pr.title != pull_request.title and \
+                        pr.requirement == update.requirement.key:
+                    committer = self.provider.get_pull_request_committer(
+                        self.user_repo, pr)
+                    # check that there's exactly one committer in this PRs commit history and
+                    # that the committer is the bot
+                    if len(committer) == 1 and self.provider.is_same_user(self.bot, committer[0]):
+                        self.provider.close_pull_request(
+                            bot_repo=self.bot_repo,
+                            user_repo=self.user_repo,
+                            pull_request=pr,
+                            comment="Closing this in favor of #{}".format(pull_request.number)
+                        )
 
     def commit_and_pull(self, initial, base_branch, new_branch, title, body, updates):
 
