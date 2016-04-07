@@ -171,9 +171,9 @@ class Provider(object):
                 body=body,
             )
         except GithubException as e:
-            # a 410 status code means the repo has issues disabled, return
+            # a 404/410 status code means the repo has issues disabled, return
             # false instead of raising an exception for that
-            if e.status == 410:
+            if e.status in [404, 410]:
                 return False
             raise
 
