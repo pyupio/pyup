@@ -167,7 +167,7 @@ class Bot(object):
                 new_branch=new_branch,
                 repo=self.user_repo
             )
-        except BranchExistsError as e:
+        except BranchExistsError:
             # instead of failing loud if the branch already exists, we are going to return
             # None here and handle this case on a different layer.
             return None
