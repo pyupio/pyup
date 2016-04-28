@@ -3,7 +3,7 @@ from __future__ import absolute_import, print_function, unicode_literals
 import logging
 from .requirements import RequirementsBundle
 from .providers.github import Provider as GithubProvider
-from .errors import NoPermissionError
+from .errors import NoPermissionError, BranchExistsError
 
 logger = logging.getLogger(__name__)
 
@@ -160,12 +160,17 @@ class Bot(object):
 
     def commit_and_pull(self, initial, base_branch, new_branch, title, body, updates):
 
-        # create new branch
-        self.provider.create_branch(
-            base_branch=base_branch,
-            new_branch=new_branch,
-            repo=self.user_repo
-        )
+        try:
+            # create new branch
+            self.provider.create_branch(
+                base_branch=base_branch,
+                new_branch=new_branch,
+                repo=self.user_repo
+            )
+        except BranchExistsError as e:
+            # instead of failing loud if the branch already exists, we are going to return
+            # None here and handle this case on a different layer.
+            return None
 
         updated_files = {}
         for update in self.iter_changes(initial, updates):
