@@ -83,8 +83,18 @@ class RequirementFile(object):
             self._parse()
         return self._other_files
 
+    @staticmethod
+    def parse_index_server(line):
+        try:
+            line = line.split("#")[0]  # removes comments
+            url = line.split(" ")[1].strip()
+            return url if url.endswith("/") else url + "/"
+        except IndexError:
+            return None
+
     def _parse(self):
         self._requirements, self._other_files = [], []
+        index_server = None
         for num, line in enumerate(self.iter_lines()):
             line = line.strip()
             if line == '':
@@ -98,11 +108,15 @@ class RequirementFile(object):
             if line.startswith('#'):
                 # comments are lines that start with # only
                 continue
+            if line.startswith('-i') or \
+                line.startswith('--index-url') or \
+                    line.startswith('--extra-index-url'):
+                # this file is using a private index server, try to parse it
+                index_server = self.parse_index_server(line)
+                continue
             elif line.startswith('-r') or line.startswith('--requirement'):
                 self._other_files.append(self.resolve_file(self.path, line))
             elif line.startswith('-f') or line.startswith('--find-links') or \
-                line.startswith('-i') or line.startswith('--index-url') or \
-                line.startswith('--extra-index-url') or \
                 line.startswith('--no-index') or line.startswith('--allow-external') or \
                 line.startswith('--allow-unverified') or line.startswith('-Z') or \
                     line.startswith('--always-unzip'):
@@ -113,7 +127,7 @@ class RequirementFile(object):
                         # filter rule match to completely ignore this requirement
                         continue
                     klass = self.get_requirement_class()
-                    req = klass.parse(line, num + 1)
+                    req = klass.parse(line, num + 1, index_server=index_server)
                     if req.package is not None:
                         self._requirements.append(req)
                 except ValueError:
@@ -140,13 +154,14 @@ class RequirementFile(object):
 
 
 class Requirement(object):
-    def __init__(self, name, specs, hashCmp, line, lineno):
+    def __init__(self, name, specs, hashCmp, line, lineno, index_server):
         self.name = name
         self.key = name.lower()
         self.specs = specs
         self.hashCmp = hashCmp
         self.line = line
         self.lineno = lineno
+        self.index_server = index_server
         self.pull_request = None
         self._fetched_package = False
         self._package = None
@@ -247,7 +262,7 @@ class Requirement(object):
     @property
     def package(self):
         if not self._fetched_package:
-            self._package = fetch_package(self.name)
+            self._package = fetch_package(self.name, self.index_server)
             self._fetched_package = True
         return self._package
 
@@ -277,14 +292,15 @@ class Requirement(object):
         return re.sub(regex, new_line, content, flags=re.MULTILINE)
 
     @classmethod
-    def parse(cls, s, lineno):
+    def parse(cls, s, lineno, index_server=None):
         parsed, = parse_requirements(s)
         return cls(
             name=parsed.project_name,
             specs=parsed.specs,
             line=s,
             lineno=lineno,
-            hashCmp=parsed.hashCmp
+            hashCmp=parsed.hashCmp,
+            index_server=index_server
         )
 
     def get_package_class(self):  # pragma: no cover

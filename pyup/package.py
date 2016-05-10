@@ -4,15 +4,18 @@ from pkg_resources import parse_version
 import requests
 
 
-def fetch_package(name):
-    r = requests.get("https://pypi.python.org/pypi/{name}/json".format(name=name), timeout=3)
+def fetch_package(name, index_server=None):
+    url = index_server + name if index_server else \
+        "https://pypi.python.org/pypi/{name}/json".format(name=name)
+    r = requests.get(url, timeout=3)
     if r.status_code != 200:
         return None
     json = r.json()
-    return Package(
-        name,
-        sorted(json["releases"].keys(), key=lambda v: parse_version(v), reverse=True)
-    )
+    if index_server:
+        releases = sorted(json["result"].keys(), key=lambda v: parse_version(v), reverse=True)
+    else:
+        releases = sorted(json["releases"].keys(), key=lambda v: parse_version(v), reverse=True)
+    return Package(name, releases)
 
 
 class Package(object):
