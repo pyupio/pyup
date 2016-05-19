@@ -11,6 +11,20 @@ import os
 
 
 class RequirementUpdateContent(TestCase):
+
+    def test_update_content_tabbed(self):
+        with patch('pyup.requirements.Requirement.latest_version', new_callable=PropertyMock,
+                   return_value="1.4.2"):
+            content = "Django==1.4.1\t\t# some foo"
+            req = Requirement.parse(content, 0)
+
+            self.assertEqual(req.update_content(content), "Django==1.4.2 # some foo")
+
+            content = "Django==1.4.1\t\t# pyup: <1.4.2"
+            req = Requirement.parse(content, 0)
+
+            self.assertEqual(req.update_content(content), "Django==1.4.1 # pyup: <1.4.2")
+
     def test_update_content_simple_pinned(self):
         with patch('pyup.requirements.Requirement.latest_version', new_callable=PropertyMock,
                    return_value="1.4.2"):
@@ -123,6 +137,12 @@ class RequirementUpdateContent(TestCase):
 
 
 class RequirementTestCase(TestCase):
+
+    def test_tabbed(self):
+        req = Requirement.parse("Django==1.5\t\t#some-comment", 0)
+        self.assertEqual(req.is_pinned, True)
+        self.assertEqual(req.version, "1.5")
+
     def test_is_pinned(self):
         req = Requirement.parse("Django", 0)
         self.assertEqual(req.is_pinned, False)

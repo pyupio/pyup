@@ -293,7 +293,11 @@ class Requirement(object):
 
     @classmethod
     def parse(cls, s, lineno, index_server=None):
-        parsed, = parse_requirements(s)
+        # setuptools requires a space before the comment. If this isn't the case, add it.
+        if "\t#" in s:
+            parsed, = parse_requirements(s.replace("\t#", "\t #"))
+        else:
+            parsed, = parse_requirements(s)
         return cls(
             name=parsed.project_name,
             specs=parsed.specs,
