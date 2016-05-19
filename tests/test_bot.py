@@ -293,7 +293,7 @@ class BotAddRequirementFileTest(TestCase):
         bot.req_bundle.append = Mock()
         bot.req_bundle.has_file_in_path.return_value = True
 
-        bot.add_requirement_file("path")
+        bot.add_requirement_file("path", "dev")
 
         self.assertEqual(bot.provider.get_requirement_file.called, False)
         self.assertEqual(bot.req_bundle.append.called, False)
@@ -305,7 +305,7 @@ class BotAddRequirementFileTest(TestCase):
         bot.provider.get_requirement_file.return_value = None
         bot.req_bundle.has_file_in_path.return_value = False
 
-        bot.add_requirement_file("path")
+        bot.add_requirement_file("path", "dev")
 
         self.assertEqual(bot.provider.get_requirement_file.called, True)
         self.assertEqual(bot.req_bundle.append.called, False)
@@ -319,7 +319,7 @@ class BotAddRequirementFileTest(TestCase):
 
         bot.req_bundle.has_file_in_path.return_value = False
 
-        bot.add_requirement_file("path")
+        bot.add_requirement_file("path", "master")
 
         self.assertEqual(bot.provider.get_requirement_file.called, True)
         self.assertEqual(bot.req_bundle.append.called, True)
@@ -333,7 +333,7 @@ class BotAddRequirementFileTest(TestCase):
 
         bot.req_bundle.has_file_in_path.return_value = False
 
-        bot.add_requirement_file("path")
+        bot.add_requirement_file("path", "master")
 
         self.assertEqual(bot.provider.get_requirement_file.called, True)
         self.assertEqual(bot.req_bundle.append.called, True)
