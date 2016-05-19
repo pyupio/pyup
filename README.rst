@@ -1,4 +1,4 @@
-.. image:: https://pyupio.a.cdnify.io/images/logo.png
+.. image:: https://pyup.io/static/images/logo.png
         :target: https://pyup.io
 
 |
