@@ -386,6 +386,50 @@ class RequirementTestCase(TestCase):
 
 
 class RequirementsFileTestCase(TestCase):
+
+    def test_parse_index_server(self):
+        line = "--index-url https://some.foo/"
+        self.assertEqual(
+            RequirementFile.parse_index_server(line),
+            "https://some.foo/"
+        )
+
+        line = "-i https://some.foo/"
+        self.assertEqual(
+            RequirementFile.parse_index_server(line),
+            "https://some.foo/"
+        )
+
+        line = "--extra-index-url https://some.foo/"
+        self.assertEqual(
+            RequirementFile.parse_index_server(line),
+            "https://some.foo/"
+        )
+
+        line = "--extra-index-url https://some.foo"
+        self.assertEqual(
+            RequirementFile.parse_index_server(line),
+            "https://some.foo/"
+        )
+
+        line = "--extra-index-url https://some.foo # some lousy comment"
+        self.assertEqual(
+            RequirementFile.parse_index_server(line),
+            "https://some.foo/"
+        )
+
+        line = "-i\t\t https://some.foo \t\t    # some lousy comment"
+        self.assertEqual(
+            RequirementFile.parse_index_server(line),
+            "https://some.foo/"
+        )
+
+    @patch("pyup.requirements.Requirement.package")
+    def test_parse_package_with_index_server(self, package):
+        content = """-i https://some.foo/\ndjango"""
+        r = RequirementFile("r.txt", content=content)
+        self.assertEqual(r.requirements[0].index_server, "https://some.foo/")
+
     def test_parse_empty_line(self):
         content = """
         """

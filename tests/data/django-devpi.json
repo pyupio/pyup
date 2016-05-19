@@ -1,0 +1,1267 @@
+{
+  "type": "projectconfig",
+  "result": {
+    "1.1.4": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/e81/8668acc4de944/Django-1.1.4.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.1.4"
+    },
+    "1.2.2": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/9cd/bf79a31988ace/Django-1.2.2.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.2.2"
+    },
+    "1.3.2": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/b84/09b8f061e6c7a/Django-1.3.2.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.3.2"
+    },
+    "1.5.8": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/675/fc736e2c29090/Django-1.5.8.tar.gz"
+        },
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/1e3/418bd1d6f9725/Django-1.5.8-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.5.8"
+    },
+    "1.2.4": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/b0e/67d3d6447f7eb/Django-1.2.4.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.2.4"
+    },
+    "1.6.3": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/727/fec03f15db8f8/Django-1.6.3.tar.gz"
+        },
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/e59/37a962ce1298a/Django-1.6.3-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.6.3"
+    },
+    "1.6.9": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/038/93cd1232f6cf7/Django-1.6.9.tar.gz"
+        },
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/279/bc0f844c64493/Django-1.6.9-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.6.9"
+    },
+    "1.4.13": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/9e2/8e33680f28b02/Django-1.4.13.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.4.13"
+    },
+    "1.7.3": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/ea9/a3fe7eca2280b/Django-1.7.3.tar.gz"
+        },
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/bd2/4beec81e161d3/Django-1.7.3-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.7.3"
+    },
+    "1.8.11": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/1c8/5d0d582dc211a/Django-1.8.11.tar.gz"
+        },
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/7d8/f0eeb83c497a9/Django-1.8.11-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.8.11"
+    },
+    "1.5.9": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/4c6/f03748043a320/Django-1.5.9.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.5.9"
+    },
+    "1.6.2": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/45d/974c623b3bfbf/Django-1.6.2.tar.gz"
+        },
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/3bd/014923e85df77/Django-1.6.2-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.6.2"
+    },
+    "1.6.10": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/d71/23f14ac19ae00/Django-1.6.10.tar.gz"
+        },
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/f83/dcaec9e3b7d95/Django-1.6.10-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.6.10"
+    },
+    "1.9a1": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/631/e2bc72c996cba/Django-1.9a1-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.9a1"
+    },
+    "1.6": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/65d/b1bc313124c37/Django-1.6.tar.gz"
+        },
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/107/8059a13d83a09/Django-1.6-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.6"
+    },
+    "1.3.5": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/ec0/ae9edb2ed6f9f/Django-1.3.5.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.3.5"
+    },
+    "1.4.9": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/cc0/c9752b46de362/Django-1.4.9.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.4.9"
+    },
+    "1.4.12": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/9dc/17c3f5409f9a4/Django-1.4.12.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.4.12"
+    },
+    "1.5.7": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/a2c/127e85a34c2eb/Django-1.5.7.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.5.7"
+    },
+    "1.8.9": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/49f/6863b1c83825f/Django-1.8.9.tar.gz"
+        },
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/24f/a1e0a2aa82d9e/Django-1.8.9-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.8.9"
+    },
+    "1.9.1": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/027/54aa2d5c9c171/Django-1.9.1.tar.gz"
+        },
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/fe0/1a2b006be4a4f/Django-1.9.1-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.9.1"
+    },
+    "1.4.4": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/833/f531479948201/Django-1.4.4.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.4.4"
+    },
+    "1.7.2": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/855/a53a9a5581c62/Django-1.7.2.tar.gz"
+        },
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/b57/f9a2dec214b60/Django-1.7.2-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.7.2"
+    },
+    "1.8b1": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/523/9ff2f5a6901e1/Django-1.8b1-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.8b1"
+    },
+    "1.4.18": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/d82/b2219052bb47b/Django-1.4.18.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.4.18"
+    },
+    "1.9rc2": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/9bf/8fba95db2ad30/Django-1.9rc2-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.9rc2"
+    },
+    "1.8.10": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/8be/1858dfee48787/Django-1.8.10.tar.gz"
+        },
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/589/ccb8fe8d75c1c/Django-1.8.10-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.8.10"
+    },
+    "1.2.3": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/10b/fb5831bcb4d3b/Django-1.2.3.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.2.3"
+    },
+    "1.8.2": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/ec4/330cd275dd6ce/Django-1.8.2.tar.gz"
+        },
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/ef4/e1c047ec900ae/Django-1.8.2-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.8.2"
+    },
+    "1.6.6": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/d14/fd332f31799ff/Django-1.6.6.tar.gz"
+        },
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/74f/fe011439efffc/Django-1.6.6-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.6.6"
+    },
+    "1.8.12": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/905/c4b8eeb180c17/Django-1.8.12.tar.gz"
+        },
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/c8f/867d0aaf25e50/Django-1.8.12-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.8.12"
+    },
+    "1.2": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/98f/a833fdabcdd78/Django-1.2.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.2"
+    },
+    "1.4.21": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/87f/69cbc6e189895/Django-1.4.21.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.4.21"
+    },
+    "1.4.3": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/0b1/34c44b6dc8eb3/Django-1.4.3.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.4.3"
+    },
+    "1.6.8": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/b00/f9f73535db7c9/Django-1.6.8.tar.gz"
+        },
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/1cb/6951502104332/Django-1.6.8-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.6.8"
+    },
+    "1.8.7": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/44c/01355b5efa019/Django-1.8.7.tar.gz"
+        },
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/b0a/d232d645c0183/Django-1.8.7-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.8.7"
+    },
+    "1.7.4": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/f8d/b10520f026874/Django-1.7.4.tar.gz"
+        },
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/f46/5b25daeaa559f/Django-1.7.4-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.7.4"
+    },
+    "1.8.6": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/12b/a7b57a1f5268f/Django-1.8.6.tar.gz"
+        },
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/8d3/e35eb13674c1f/Django-1.8.6-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.8.6"
+    },
+    "1.3.4": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/9a6/10a40ee5fcc4c/Django-1.3.4.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.3.4"
+    },
+    "1.4.1": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/e34/5268dacff1287/Django-1.4.1.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.4.1"
+    },
+    "1.8b2": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/f58/5d674396cde01/Django-1.8b2-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.8b2"
+    },
+    "1.8.8": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/08e/cf83b7e9d064e/Django-1.8.8.tar.gz"
+        },
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/973/34c82efbac0f9/Django-1.8.8-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.8.8"
+    },
+    "1.7.10": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/903/15a9bec9b073a/Django-1.7.10.tar.gz"
+        },
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/ba5/adcf08d8b60bf/Django-1.7.10-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.7.10"
+    },
+    "1.3.1": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/62d/8642fd06b9a0b/Django-1.3.1.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.3.1"
+    },
+    "1.4.17": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/8dd/1133b718ce23a/Django-1.4.17.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.4.17"
+    },
+    "1.7": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/03e/dab6828119aa9/Django-1.7.tar.gz"
+        },
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/15e/fe093b40d058a/Django-1.7-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.7"
+    },
+    "1.5.2": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/26e/83e6394a15a86/Django-1.5.2.tar.gz"
+        },
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/07f/0d2d42162945d/Django-1.5.2-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.5.2"
+    },
+    "1.4.7": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/28d/a2e8111ff951a/Django-1.4.7.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.4.7"
+    },
+    "1.7.5": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/e76/c70a5dd7d56a5/Django-1.7.5.tar.gz"
+        },
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/d6b/529414f3093c8/Django-1.7.5-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.7.5"
+    },
+    "1.4.6": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/5c2/22ba388f87291/Django-1.4.6.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.4.6"
+    },
+    "1.7.7": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/a62/d6598966947d1/Django-1.7.7.tar.gz"
+        },
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/529/19e0b00a22853/Django-1.7.7-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.7.7"
+    },
+    "1.3.3": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/cbd/d86f553b26459/Django-1.3.3.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.3.3"
+    },
+    "1.6.4": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/0d2/3bf836d3a52d9/Django-1.6.4.tar.gz"
+        },
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/809/3262e13535869/Django-1.6.4-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.6.4"
+    },
+    "1.6.11": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/3bf/6086c3b923876/Django-1.6.11.tar.gz"
+        },
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/e43/d8c4147a82120/Django-1.6.11-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.6.11"
+    },
+    "1.7.1": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/81d/ae89f21647b9a/Django-1.7.1.tar.gz"
+        },
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/83b/d3e5cfba6d6d2/Django-1.7.1-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.7.1"
+    },
+    "1.4.2": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/6ff/ecdc01ad360e1/Django-1.4.2.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.4.2"
+    },
+    "1.5.12": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/0e0/b48cd0bb59cbc/Django-1.5.12.tar.gz"
+        },
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/c35/cb78bbf20a8ef/Django-1.5.12-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.5.12"
+    },
+    "1.5.5": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/e33/355ee4bb2cbb4/Django-1.5.5.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.5.5"
+    },
+    "1.4.8": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/707/5e08ef06155e0/Django-1.4.8.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.4.8"
+    },
+    "1.5.1": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/746/5f6383264ba16/Django-1.5.1.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.5.1"
+    },
+    "1.3.7": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/f67/20daa392d73d4/Django-1.3.7.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.3.7"
+    },
+    "1.4.22": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/12d/c09e5909ce4da/Django-1.4.22.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.4.22"
+    },
+    "1.9.4": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/e8d/389532e248174/Django-1.9.4.tar.gz"
+        },
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/894/81f08178f7d28/Django-1.9.4-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.9.4"
+    },
+    "1.2.1": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/235/1efb20f6b7b5d/Django-1.2.1.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.2.1"
+    },
+    "1.5.10": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/b05/5361f04c0b8e8/Django-1.5.10.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.5.10"
+    },
+    "1.5": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/fac/09e1e0f11bb83/Django-1.5.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.5"
+    },
+    "1.7.6": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/e73/ec0ba059a5f24/Django-1.7.6.tar.gz"
+        },
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/9ed/e80f1a893835f/Django-1.7.6-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.7.6"
+    },
+    "1.8c1": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/628/8c878e8d64303/Django-1.8c1-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.8c1"
+    },
+    "1.9.3": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/475/1d0ebf323083e/Django-1.9.3.tar.gz"
+        },
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/dff/96b62225f29aa/Django-1.9.3-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.9.3"
+    },
+    "1.5.3": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/158/1e28b4aeb269c/Django-1.5.3.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.5.3"
+    },
+    "1.4.15": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/848/37da82df11d0e/Django-1.4.15.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.4.15"
+    },
+    "1.7.9": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/6ea/69f3ebb73755b/Django-1.7.9.tar.gz"
+        },
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/2df/76c90453477a9/Django-1.7.9-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.7.9"
+    },
+    "1.5.4": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/b26/85469bb4d1fbb/Django-1.5.4.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.5.4"
+    },
+    "1.5.11": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/6e8/8cab476e51498/Django-1.5.11.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.5.11"
+    },
+    "1.4.19": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/8eb/da674e81c3886/Django-1.4.19.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.4.19"
+    },
+    "1.8.13": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/a77/e1ba9991f762d/Django-1.8.13.tar.gz"
+        },
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/da9/f8cec98670fc2/Django-1.8.13-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.8.13"
+    },
+    "1.4.5": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/851/d00905eb70e4a/Django-1.4.5.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.4.5"
+    },
+    "1.8.1": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/0f0/a677a2cd56b9a/Django-1.8.1.tar.gz"
+        },
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/0a1/6060bf7e3e9ad/Django-1.8.1-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.8.1"
+    },
+    "1.3": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/1b8/f76e91c275647/Django-1.3.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.3"
+    },
+    "1.4.11": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/9cd/5913b038ebc95/Django-1.4.11.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.4.11"
+    },
+    "1.3.6": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/357/dbedf41ba6db9/Django-1.3.6.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.3.6"
+    },
+    "1.2.5": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/e03/1ea3d00996035/Django-1.2.5.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.2.5"
+    },
+    "1.8.5": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/024/26a28fb356e52/Django-1.8.5.tar.gz"
+        },
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/3c1/82cf9de00382e/Django-1.8.5-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.8.5"
+    },
+    "1.4.14": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/80d/c1b9866487afc/Django-1.4.14.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.4.14"
+    },
+    "1.9b1": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/d31/09c26215da8ec/Django-1.9b1-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.9b1"
+    },
+    "1.1.3": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/528/48c23dbc120fe/Django-1.1.3.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.1.3"
+    },
+    "1.9": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/110/389cf89196334/Django-1.9.tar.gz"
+        },
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/f98/b94b9911b397e/Django-1.9-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.9"
+    },
+    "1.9rc1": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/b97/1686521ea09b4/Django-1.9rc1.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.9rc1"
+    },
+    "1.9.6": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/07d/9b3883198caa8/Django-1.9.6.tar.gz"
+        },
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/706/87b2d4a2dfa51/Django-1.9.6-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.9.6"
+    },
+    "1.4.20": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/4a3/710921fb51422/Django-1.4.20.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.4.20"
+    },
+    "1.8a1": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/f76/19792a8d8028c/Django-1.8a1-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.8a1"
+    },
+    "1.4.10": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/d32/4aecc37ce5430/Django-1.4.10.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.4.10"
+    },
+    "1.8": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/9a8/11faf67ca0f3e/Django-1.8.tar.gz"
+        },
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/6f3/df764d5826f92/Django-1.8-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.8"
+    },
+    "1.2.7": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/902/fe294a2f7b16e/Django-1.2.7.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.2.7"
+    },
+    "1.4.16": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/132/d088d9e2cbcf4/Django-1.4.16.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.4.16"
+    },
+    "1.7.8": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/cee/d714b0d69983d/Django-1.7.8.tar.gz"
+        },
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/709/db47978acf982/Django-1.7.8-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.7.8"
+    },
+    "1.2.6": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/bff/9fc7d871c0b5e/Django-1.2.6.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.2.6"
+    },
+    "1.5.6": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/b46/fe29c7d26310d/Django-1.5.6.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.5.6"
+    },
+    "1.6.7": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/f31/e2f953feb258e/Django-1.6.7.tar.gz"
+        },
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/72a/2df8d67a97620/Django-1.6.7-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.6.7"
+    },
+    "1.8.4": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/8eb/569a5b9d984d9/Django-1.8.4.tar.gz"
+        },
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/3a5/86ed7da0715ea/Django-1.8.4-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.8.4"
+    },
+    "1.4": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/ba8/e86198a93c196/Django-1.4.tar.gz"
+        }
+      ],
+      "name": "django",
+      "version": "1.4"
+    },
+    "1.7.11": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/030/b2f9c99a6e4e0/Django-1.7.11.tar.gz"
+        },
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/9a1/e3e2767c5800a/Django-1.7.11-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.7.11"
+    },
+    "1.6.1": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/3ea/7a00ea9e7a014/Django-1.6.1.tar.gz"
+        },
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/c7b/7a4437b36400f/Django-1.6.1-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.6.1"
+    },
+    "1.6.5": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/e4c/5b2d35ecb3807/Django-1.6.5.tar.gz"
+        },
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/2bc/db4729f9f358b/Django-1.6.5-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.6.5"
+    },
+    "1.9.5": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/419/835cef8d42a1a/Django-1.9.5.tar.gz"
+        },
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/849/713c2687bbd57/Django-1.9.5-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.9.5"
+    },
+    "1.9.2": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/ee9/0280973d435a1/Django-1.9.2.tar.gz"
+        },
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/723/17fd693fe1c95/Django-1.9.2-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.9.2"
+    },
+    "1.8.3": {
+      "+links": [
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/317/60322115c3ae5/Django-1.8.3.tar.gz"
+        },
+        {
+          "rel": "releasefile",
+          "href": "http://localhost:3141/root/pypi/+f/a5d/397c65a880228/Django-1.8.3-py2.py3-none-any.whl"
+        }
+      ],
+      "name": "django",
+      "version": "1.8.3"
+    }
+  }
+}
