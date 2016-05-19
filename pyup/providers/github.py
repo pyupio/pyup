@@ -58,9 +58,9 @@ class Provider(object):
             if e.status != 409:
                 raise
 
-    def get_requirement_file(self, repo, path):
+    def get_requirement_file(self, repo, path, branch):
         try:
-            contentfile = repo.get_contents(path)
+            contentfile = repo.get_contents(path, ref=branch)
             return self.bundle.get_requirement_file_class()(
                 path=path,
                 content=contentfile.decoded_content.decode('utf-8'),
