@@ -288,7 +288,7 @@ class Requirement(object):
         new_line = "{}=={}".format(self.name, self.latest_version_within_specs)
         if "#" in self.line:
             new_line += " #" + "#".join(self.line.split("#")[1:])
-        regex = r"^{}$".format(self.line)
+        regex = r"^{}$".format(re.escape(self.line))
         return re.sub(regex, new_line, content, flags=re.MULTILINE)
 
     @classmethod

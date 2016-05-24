@@ -25,6 +25,13 @@ class RequirementUpdateContent(TestCase):
 
             self.assertEqual(req.update_content(content), "Django==1.4.1 # pyup: <1.4.2")
 
+    def test_something_else(self):
+        with patch('pyup.requirements.Requirement.latest_version', new_callable=PropertyMock,
+                   return_value="0.13.1"):
+            content = "some-package==0.12.2+tmf"
+            req = Requirement.parse(content, 0)
+            self.assertEqual(req.update_content(content), "django-tastypie==0.13.1")
+
     def test_update_content_simple_pinned(self):
         with patch('pyup.requirements.Requirement.latest_version', new_callable=PropertyMock,
                    return_value="1.4.2"):
