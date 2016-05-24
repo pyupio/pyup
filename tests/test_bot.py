@@ -234,12 +234,11 @@ class BotCommitAndPullTest(TestCase):
         bot.commit_and_pull(True, "branch", "new branch", "repo", "", updates)
 
         self.assertEqual(bot.provider.create_commit.called, True)
-        self.assertEqual(bot.provider.create_commit.call_count, 3)
+        self.assertEqual(bot.provider.create_commit.call_count, 2)
         create_commit_calls = bot.provider.create_commit.call_args_list
         # we're looking for the sha here. Make sure that the sha got updated with the new content
         self.assertEqual(create_commit_calls[0][1]["sha"], "abcd")
-        self.assertEqual(create_commit_calls[1][1]["sha"], "sha1")
-        self.assertEqual(create_commit_calls[2][1]["sha"], "xyz")
+        self.assertEqual(create_commit_calls[1][1]["sha"], "xyz")
 
 
 class BotGetAllRequirementsTest(TestCase):

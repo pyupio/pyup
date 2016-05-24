@@ -180,26 +180,32 @@ class Bot(object):
             else:
                 sha = update.requirement_file.sha
                 content = update.requirement_file.content
-
+            old_content = content
             content = update.requirement.update_content(content)
-            new_sha = self.provider.create_commit(
-                repo=self.user_repo,
-                path=update.requirement_file.path,
-                branch=new_branch,
-                content=content,
-                commit_message=update.commit_message,
-                sha=sha,
-                committer=self.bot if self.bot_token else self.user,
+            if content != old_content:
+                new_sha = self.provider.create_commit(
+                    repo=self.user_repo,
+                    path=update.requirement_file.path,
+                    branch=new_branch,
+                    content=content,
+                    commit_message=update.commit_message,
+                    sha=sha,
+                    committer=self.bot if self.bot_token else self.user,
+                )
+                updated_files[update.requirement_file.path] = {"sha": new_sha, "content": content}
+            else:
+                logger.error("Empty commit at {repo}, unable to update {title}.".format(
+                    repo=self.user_repo.full_name, title=title)
+                )
+
+        if updated_files:
+            return self.create_pull_request(
+                title=title,
+                body=body,
+                base_branch=base_branch,
+                new_branch=new_branch
             )
-
-            updated_files[update.requirement_file.path] = {"sha": new_sha, "content": content}
-
-        return self.create_pull_request(
-            title=title,
-            body=body,
-            base_branch=base_branch,
-            new_branch=new_branch
-        )
+        return None
 
     def create_issue(self, title, body):
         return self.provider.create_issue(
