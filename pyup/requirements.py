@@ -196,9 +196,9 @@ class Requirement(object):
     def filter(self):
         rqfilter = False
         if "rq.filter:" in self.line:
-            rqfilter = self.line.split("rq.filter:")[1]
+            rqfilter = self.line.split("rq.filter:")[1].strip().split(" ")[0]
         elif "pyup:" in self.line:
-            rqfilter = self.line.split("pyup:")[1]
+            rqfilter = self.line.split("pyup:")[1].strip().split(" ")[0]
 
         if rqfilter:
             try:

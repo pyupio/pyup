@@ -219,6 +219,9 @@ class RequirementTestCase(TestCase):
         req = Requirement.parse("bliss #pyup:", 0)
         self.assertEqual(req.filter, False)
 
+        req = Requirement.parse("some-package==1.9.3 # rq.filter: <1.10 some comment here", 0)
+        self.assertEqual(req.filter, [("<", "1.10")])
+
     def test_get_latest_version_within_specs(self):
         latest = Requirement.get_latest_version_within_specs(
             (("==", "1.2"), ("!=", "1.2")),
@@ -291,12 +294,12 @@ class RequirementTestCase(TestCase):
 
         with patch('pyup.requirements.Requirement.package', new_callable=PropertyMock,
                    return_value=package_factory(name="django", versions=["1.8.1", "1.8"])):
-            r = Requirement.parse("Django  # rq.filter: != 1.8.1", 0)
+            r = Requirement.parse("Django  # rq.filter: !=1.8.1", 0)
             self.assertEqual(r.version, "1.8")
 
         with patch('pyup.requirements.Requirement.package', new_callable=PropertyMock,
                    return_value=package_factory(name="django", versions=["1.8.1", "1.8"])):
-            r = Requirement.parse("Django  # pyup: != 1.8.1", 0)
+            r = Requirement.parse("Django  # pyup: !=1.8.1", 0)
             self.assertEqual(r.version, "1.8")
 
         with patch('pyup.requirements.Requirement.package', new_callable=PropertyMock,
