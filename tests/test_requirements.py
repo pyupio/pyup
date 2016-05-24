@@ -30,7 +30,7 @@ class RequirementUpdateContent(TestCase):
                    return_value="0.13.1"):
             content = "some-package==0.12.2+tmf"
             req = Requirement.parse(content, 0)
-            self.assertEqual(req.update_content(content), "django-tastypie==0.13.1")
+            self.assertEqual(req.update_content(content), "some-package==0.13.1")
 
     def test_update_content_simple_pinned(self):
         with patch('pyup.requirements.Requirement.latest_version', new_callable=PropertyMock,
