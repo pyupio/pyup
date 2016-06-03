@@ -213,7 +213,7 @@ class Bot(object):
 
     def commit_and_pull(self, initial, base_branch, new_branch, title, body, updates):
         logger.info("Preparing commit {}".format(title))
-        if self.create_branch(base_branch, new_branch, delete_empty=True):
+        if self.create_branch(base_branch, new_branch, delete_empty=False):
             updated_files = {}
             for update in self.iter_changes(initial, updates):
                 if update.requirement_file.path in updated_files:
