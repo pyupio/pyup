@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, print_function, unicode_literals
 try:  # pragma: no cover
-  basestring
+    basestring
 except NameError:  # pragma: no cover
-  basestring = str
+    basestring = str
 
 
 class Config(object):
