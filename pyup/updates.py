@@ -14,13 +14,14 @@ class Update(dict):
             key += "-" + requirement.latest_version_within_specs
         return key
 
-    def __init__(self, requirement_files, pin_unpinned=False):
+    def __init__(self, requirement_files, config):
         super(dict, self).__init__()
-        self.pin_unpinned = pin_unpinned
+        self.config = config
         for requirement_file in requirement_files:
-            for requirement in requirement_file.requirements:
-                if requirement.needs_update:
-                    self.add(requirement, requirement_file)
+            if self.config.pin_file(requirement_file.path):
+                for requirement in requirement_file.requirements:
+                    if requirement.needs_update:
+                        self.add(requirement, requirement_file)
 
     def add(self, requirement, requirement_file):
         key = self.create_update_key(requirement)
@@ -46,25 +47,25 @@ class Update(dict):
             requirement.latest_version_within_specs
         )
 
-    def should_update(self, requirement):
-        # handle unpinned requirements only if pin_unpinned is set
-        return requirement.is_pinned or self.pin_unpinned
+    def should_update(self, requirement, requirement_file):
+        # handle unpinned requirements only if pin is set
+        return self.config.pin_file(requirement_file.path)
 
     def get_requirement_update_class(self):
         return RequirementUpdate
 
 
 class InitialUpdate(Update):
-
     def get_updates(self):
         if self:
             yield (
                 self.get_title(),
                 self.get_body([update for updates in self.values() for update in updates
-                               if self.should_update(update.requirement)]),
+                               if
+                               self.should_update(update.requirement, update.requirement_file)]),
                 "pyup-initial-update",
                 [update for updates in self.values() for update in updates if
-                 self.should_update(update.requirement)]
+                 self.should_update(update.requirement, update.requirement_file)]
             )
 
     @classmethod
@@ -91,8 +92,8 @@ class SequentialUpdate(Update):
 
     def get_updates(self):
         for key, updates in self.items():
-            requirement = updates[0].requirement
-            if self.should_update(requirement):
+            requirement, req_file = updates[0].requirement, updates[0].requirement_file
+            if self.should_update(requirement, req_file):
                 yield (
                     self.get_title(requirement),
                     self.get_body(requirement),

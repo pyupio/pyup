@@ -18,7 +18,8 @@ from tqdm import tqdm
 @click.option('--branch', help='', default=None)
 @click.option('--initial', help='', default=False, is_flag=True)
 @click.option('--pin', help='', default=True)
-def main(repo, user_token, bot_token, provider, dry, branch, initial, pin):
+@click.option('--close-prs', help='Tell the bot to close stale pull requests', default=True)
+def main(repo, user_token, bot_token, provider, dry, branch, initial, pin, close_prs):
 
     if provider == 'github':
         ProviderClass = GithubProvider
@@ -37,7 +38,7 @@ def main(repo, user_token, bot_token, provider, dry, branch, initial, pin):
         provider=ProviderClass
     )
 
-    bot.update(branch=branch, initial=initial, pin_unpinned=pin)
+    bot.update(branch=branch, initial=initial, pin=pin, close_prs=close_prs)
 
 if __name__ == '__main__':
     main()

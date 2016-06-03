@@ -18,7 +18,8 @@ requirements = [
     "requests",
     "PyGithub",
     "click",
-    "tqdm"
+    "tqdm",
+    "pyyaml"
 ]
 
 test_requirements = [

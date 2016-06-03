@@ -58,21 +58,30 @@ class Provider(object):
             if e.status != 409:
                 raise
 
-    def get_requirement_file(self, repo, path, branch):
+    def get_file(self, repo, path, branch):
+        logger.info("Getting file at {} for branch {}".format(path, branch))
+        # if the path has not root, add it
+        if not path.startswith("/"):
+            path = "/" + path
         try:
             contentfile = repo.get_contents(path, ref=branch)
+            return contentfile.decoded_content.decode("utf-8"), contentfile
+        except GithubException:
+            logger.warning("Unable to get {path} on {repo}".format(
+                path=path,
+                repo=repo.full_name,
+            ))
+            return None, None
+
+    def get_requirement_file(self, repo, path, branch):
+        content, file_obj = self.get_file(repo, path, branch)
+        if content is not None and file_obj.sha is not None:
             return self.bundle.get_requirement_file_class()(
                 path=path,
-                content=contentfile.decoded_content.decode('utf-8'),
-                sha=contentfile.sha
+                content=content,
+                sha=file_obj.sha
             )
-        except GithubException:
-            msg = "Unable to get {path} on {repo}".format(
-                path=path,
-                repo=repo,
-            )
-            logger.error(msg, exc_info=True)
-            return None
+        return None
 
     def create_branch(self, repo, base_branch, new_branch):
         try:
@@ -83,12 +92,40 @@ class Provider(object):
                 new_branch, repo.full_name
             ))
 
+    def is_empty_branch(self, repo, base_branch, new_branch):
+        """
+        Compares the top commits of two branches.
+        Please note: This function isn't checking if `base_branch` is a direct
+        parent of `new_branch`, see
+        http://stackoverflow.com/questions/3161204/find-the-parent-branch-of-a-git-branch
+        :param repo: github.Repository
+        :param base_branch: string name of the base branch
+        :param new_branch: string name of the new branch
+        :return: bool -- True if empty
+        """
+        # extra safeguard to make sure we are handling a bot branch here
+        assert new_branch.startswith("pyup-")
+        comp = repo.compare(base_branch, new_branch)
+        logger.info("Got a total of {} commits in {}".format(comp.total_commits, new_branch))
+        return comp.total_commits == 0
+
+    def delete_branch(self, repo, branch):
+        """
+        Deletes a branch.
+        :param repo: github.Repository
+        :param branch: string name of the branch to delete
+        """
+        # extra safeguard to make sure we are handling a bot branch here
+        assert branch.startswith("pyup-")
+        ref = repo.get_git_ref("/".join(["heads", branch]))
+        ref.delete()
+
     def create_commit(self, path, branch, commit_message, content, sha, repo, committer):
         # there's a rare bug in the github API when committing too fast on really beefy
         # hardware with Gigabit NICs (probably because they do some async stuff).
         # If we encounter an error, the loop waits for 1/2/3 seconds before trying again.
         # If the loop reaches the 4th iteration, we give up and raise the error.
-        for i in range(1, 4):
+        for i in range(1, 7):
             try:
                 commit, new_file = repo.update_content(
                     path=path,
@@ -100,7 +137,7 @@ class Provider(object):
                 )
                 return new_file.sha
             except GithubException as e:
-                if i == 3:
+                if i == 6:
                     logger.error("Unable to create commit on {repo} for path {path}".format(
                         repo=repo,
                         path=path
@@ -160,9 +197,8 @@ class Provider(object):
                 issue=False
             )
         except GithubException:
-            msg = "Unable to create pull request on {repo}".format(repo=repo)
-            logger.error(msg, exc_info=True)
-            raise NoPermissionError(msg)
+            raise NoPermissionError(
+                "Unable to create pull request on {repo}".format(repo=repo))
 
     def create_issue(self, repo, title, body):
         try:

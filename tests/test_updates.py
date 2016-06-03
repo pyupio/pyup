@@ -6,7 +6,14 @@ from pyup.requirements import RequirementFile
 from mock import Mock, patch
 
 
-class UpdateCreateUpdateKeyTest(TestCase):
+class UpdateBaseTest(TestCase):
+
+    def setUp(self):
+        self.config = Mock()
+        self.config.pin_file.return_value = True
+
+
+class UpdateCreateUpdateKeyTest(UpdateBaseTest):
     def test_unpinned_requirement(self):
         req = Mock()
         req.key = "django"
@@ -21,7 +28,7 @@ class UpdateCreateUpdateKeyTest(TestCase):
         self.assertEqual(Update.create_update_key(req), "django-1.10")
 
 
-class UpdateGetCommitMessageTest(TestCase):
+class UpdateGetCommitMessageTest(UpdateBaseTest):
     def test_unpinned_requirement(self):
         req = Mock()
         req.key = "django"
@@ -38,22 +45,22 @@ class UpdateGetCommitMessageTest(TestCase):
         self.assertEqual(Update.get_commit_message(req), "Update django from 1.0 to 1.10")
 
 
-class UpdateInitTestCase(TestCase):
+class UpdateInitTestCase(UpdateBaseTest):
     def test_init_empty(self):
-        update = Update([])
+        update = Update([], self.config)
         self.assertEqual(update, dict())
 
     def test_init_with_reqs(self):
         with patch("pyup.requirements.Requirement") as req:
             req.needs_update = True
             req_files = [RequirementFile("req.txt", "django")]
-            update = Update(req_files)
+            update = Update(req_files, self.config)
             self.assertEqual(len(update.keys()), 1)
 
 
-class UpdateAddTest(TestCase):
+class UpdateAddTest(UpdateBaseTest):
     def test_add_with_empty(self):
-        update = Update([])
+        update = Update([], self.config)
         req_file = Mock()
         req = Mock()
         req.key = "django"
@@ -64,7 +71,7 @@ class UpdateAddTest(TestCase):
         self.assertEqual(len(update["django-pin"]), 1)
 
     def test_add_with_match(self):
-        update = Update([])
+        update = Update([], self.config)
         req_file = Mock()
         req = Mock()
         req.key = "django"
@@ -77,23 +84,23 @@ class UpdateAddTest(TestCase):
         self.assertEqual(len(update["django-pin"]), 2)
 
 
-class UpdateGetRequirementUpdateClassTest(TestCase):
+class UpdateGetRequirementUpdateClassTest(UpdateBaseTest):
     def test_class(self):
-        update = Update([])
+        update = Update([], self.config)
         self.assertEqual(RequirementUpdate, update.get_requirement_update_class())
 
 
-class InitialUpdateTestBody(TestCase):
+class InitialUpdateTestBody(UpdateBaseTest):
     def test_body(self):
         self.assertEqual("", InitialUpdate.get_body([]))
 
 
-class SequentialUpdateTestBody(TestCase):
+class SequentialUpdateTestBody(UpdateBaseTest):
     def test_body(self):
         self.assertEqual("", SequentialUpdate.get_body([]))
 
 
-class SequentialUpdateTestTitle(TestCase):
+class SequentialUpdateTestTitle(UpdateBaseTest):
     def test_get_title(self):
         req = Mock()
         req.key = "foo"
@@ -101,7 +108,7 @@ class SequentialUpdateTestTitle(TestCase):
         self.assertEqual(SequentialUpdate.get_title(req), "Update foo to bar")
 
 
-class SequentialUpdateTestBrach(TestCase):
+class SequentialUpdateTestBrach(UpdateBaseTest):
 
     def test_requirement_pinned(self):
         req = Mock()
@@ -119,14 +126,14 @@ class SequentialUpdateTestBrach(TestCase):
         self.assertEqual(SequentialUpdate.get_branch(req), "pyup-pin-django-1.10")
 
 
-class SequentialUpdateTestGetUpdates(TestCase):
+class SequentialUpdateTestGetUpdates(UpdateBaseTest):
 
     def test_get_updates_empty(self):
-        update = SequentialUpdate([])
+        update = SequentialUpdate([], self.config)
         self.assertEqual(len([u for u in update.get_updates()]), 0)
 
     def test_get_updates(self):
-        update = SequentialUpdate([], pin_unpinned=True)
+        update = SequentialUpdate([], config=self.config)
         req_file = Mock()
         req = Mock()
         req.key = "django"
@@ -142,14 +149,14 @@ class SequentialUpdateTestGetUpdates(TestCase):
         self.assertEqual(len(updates), 1)
 
 
-class InitialUpdateTestGetUpdates(TestCase):
+class InitialUpdateTestGetUpdates(UpdateBaseTest):
 
     def test_get_updates_empty(self):
-        update = InitialUpdate([])
+        update = InitialUpdate([], self.config)
         self.assertEqual(len([u for u in update.get_updates()]), 0)
 
     def test_get_updates(self):
-        update = InitialUpdate([], pin_unpinned=True)
+        update = InitialUpdate([], config=self.config)
         req_file = Mock()
         req = Mock()
         req.key = "django"

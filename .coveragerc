@@ -1,0 +1,3 @@
+[run]
+include = pyup/*
+omit = *migrations*, *tests*, pyup/cli.py

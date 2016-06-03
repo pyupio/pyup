@@ -12,26 +12,23 @@ logger = logging.getLogger(__name__)
 
 
 class RequirementsBundle(list):
+
+    def __init__(self, *args, **kwargs):
+        super(RequirementsBundle, self).__init__(*args, **kwargs)
+        self.pull_requests = []
+
     def has_file_in_path(self, path):
         return path in [req_file.path for req_file in self]
 
-    def get_updates(self, initial, pin_unpinned):
-        return self.get_initial_update_class()(self, pin_unpinned).get_updates() if initial \
-            else self.get_sequential_update_class()(self, pin_unpinned).get_updates()
+    def get_updates(self, initial, config):
+        return self.get_initial_update_class()(self, config).get_updates() if initial \
+            else self.get_sequential_update_class()(self, config).get_updates()
 
     @property
     def requirements(self):
         for req_file in self:
             for req in req_file.requirements:
                 yield req
-
-    def pull_requests(self):
-        returned = []
-        for pr in sorted([r.pull_request for r in self.requirements if r.pull_request is not None],
-                         key=lambda r: r.created_at):
-            if pr not in returned:
-                returned.append(pr)
-                yield pr
 
     def get_pull_request_class(self):  # pragma: no cover
         return PullRequest
@@ -97,9 +94,7 @@ class RequirementFile(object):
         index_server = None
         for num, line in enumerate(self.iter_lines()):
             line = line.strip()
-            if line == '':
-                continue
-            elif not line:
+            if not line:
                 continue
             elif "pyup: ignore file" in line and num in [0, 1]:
                 # don't process this file, filter rule match to completely ignore it
@@ -196,10 +191,9 @@ class Requirement(object):
     def filter(self):
         rqfilter = False
         if "rq.filter:" in self.line:
-            rqfilter = self.line.split("rq.filter:")[1].strip().split(" ")[0]
+            rqfilter = self.line.split("rq.filter:")[1].strip().split("#")[0]
         elif "pyup:" in self.line:
-            rqfilter = self.line.split("pyup:")[1].strip().split(" ")[0]
-
+            rqfilter = self.line.split("pyup:")[1].strip().split("#")[0]
         if rqfilter:
             try:
                 rqfilter, = parse_requirements("filter " + rqfilter)
@@ -282,7 +276,9 @@ class Requirement(object):
 
     @property
     def is_outdated(self):
-        return parse_version(self.version) < parse_version(self.latest_version_within_specs)
+        if self.latest_version_within_specs:
+            return parse_version(self.version) < parse_version(self.latest_version_within_specs)
+        return False
 
     def update_content(self, content):
         new_line = "{}=={}".format(self.name, self.latest_version_within_specs)

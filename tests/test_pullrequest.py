@@ -35,6 +35,10 @@ class PullRequestTypeTest(TestCase):
         pr = pullrequest_factory(title="Foo")
         self.assertEqual(pr.type, "unknown")
 
+    def test_compile(self):
+        pr = pullrequest_factory(title="Compile foo.txt")
+        self.assertEqual(pr.type, "compile")
+
 
 class PullRequestEQTest(TestCase):
     def test_is_eq(self):

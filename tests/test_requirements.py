@@ -13,17 +13,17 @@ import os
 class RequirementUpdateContent(TestCase):
 
     def test_update_content_tabbed(self):
-        with patch('pyup.requirements.Requirement.latest_version', new_callable=PropertyMock,
+        with patch('pyup.requirements.Requirement.latest_version_within_specs', new_callable=PropertyMock,
                    return_value="1.4.2"):
-            content = "Django==1.4.1\t\t# some foo"
+            content = "bla==1.4.1\t\t# some foo"
             req = Requirement.parse(content, 0)
 
-            self.assertEqual(req.update_content(content), "Django==1.4.2 # some foo")
+            self.assertEqual(req.update_content(content), "bla==1.4.2 # some foo")
 
-            content = "Django==1.4.1\t\t# pyup: <1.4.2"
+            content = "bla==1.4.1\t\t# pyup: <1.4.2"
             req = Requirement.parse(content, 0)
 
-            self.assertEqual(req.update_content(content), "Django==1.4.1 # pyup: <1.4.2")
+            self.assertEqual(req.update_content(content), "bla==1.4.2 # pyup: <1.4.2")
 
     def test_something_else(self):
         with patch('pyup.requirements.Requirement.latest_version', new_callable=PropertyMock,
@@ -161,6 +161,39 @@ class RequirementUpdateContent(TestCase):
 
 class RequirementTestCase(TestCase):
 
+    def test_is_outdated(self):
+        with patch('pyup.requirements.Requirement.latest_version_within_specs',
+                   new_callable=PropertyMock, return_value=None):
+            r = Requirement.parse("Django", 0)
+            self.assertEqual(r.is_outdated, False)
+
+    def test_equals(self):
+        self.assertEqual(
+            Requirement.parse("Django==1.5", 0),
+            Requirement.parse("Django==1.5", 0)
+        )
+
+    def test_not_equals(self):
+        self.assertNotEqual(
+            Requirement.parse("Django==1.5", 0),
+            Requirement.parse("Django==1.6", 0)
+        )
+
+    def test_filter(self):
+        r = Requirement.parse("Django==1.7.6", 0)
+        self.assertEqual(r.filter, False)
+
+        r = Requirement.parse("Django==1.7.6 # pyup: < 1.7.8", 0)
+        self.assertEqual(r.filter, [("<", "1.7.8")])
+
+        req = Requirement.parse("some-package==1.9.3 # rq.filter: <1.10 #some comment here", 0)
+        self.assertEqual(req.filter, [("<", "1.10")])
+
+        r = Requirement.parse("django==1.7.1  # pyup: <1.7.6", 0)
+
+        r = Requirement.parse("Django==1.7.6 # pyup: < 1.7.8, > 1.7.2", 0)
+        self.assertEqual(r.filter, [("<", "1.7.8"), (">", "1.7.2")])
+
     def test_tabbed(self):
         req = Requirement.parse("Django==1.5\t\t#some-comment", 0)
         self.assertEqual(req.is_pinned, True)
@@ -242,8 +275,6 @@ class RequirementTestCase(TestCase):
         req = Requirement.parse("bliss #pyup:", 0)
         self.assertEqual(req.filter, False)
 
-        req = Requirement.parse("some-package==1.9.3 # rq.filter: <1.10 some comment here", 0)
-        self.assertEqual(req.filter, [("<", "1.10")])
 
     def test_get_latest_version_within_specs(self):
         latest = Requirement.get_latest_version_within_specs(
@@ -433,6 +464,10 @@ class RequirementTestCase(TestCase):
 
 class RequirementsFileTestCase(TestCase):
 
+    def test_parse_empty_line(self):
+        r = RequirementFile("foo.txt", "\n\n\n\n\n")
+        self.assertEqual(r.requirements, [])
+
     def test_parse_index_server(self):
         line = "--index-url https://some.foo/"
         self.assertEqual(
@@ -468,6 +503,12 @@ class RequirementsFileTestCase(TestCase):
         self.assertEqual(
             RequirementFile.parse_index_server(line),
             "https://some.foo/"
+        )
+
+        line = "--index-url"
+        self.assertEqual(
+            RequirementFile.parse_index_server(line),
+            None
         )
 
     @patch("pyup.requirements.Requirement.package")
@@ -562,7 +603,7 @@ bar # pyup: ignore
 baz"""
         r = RequirementFile("r.txt", content=content)
         self.assertEqual(len(r.requirements), 2)
-        self.assertEquals(
+        self.assertEqual(
             r.requirements, [
                 Requirement.parse("foo", 0),
                 Requirement.parse("baz", 2)
@@ -650,13 +691,13 @@ class RequirementsBundleTestCase(TestCase):
         with patch('pyup.requirements.Requirement.package', return_value=Mock()):
             reqs = RequirementsBundle()
             reqs.append(RequirementFile(path="r.txt", content='Bla'))
-            updates = [u for u in reqs.get_updates(True, True)]
+            updates = [u for u in reqs.get_updates(True, Mock())]
             self.assertEqual(len(updates), 1)
             #self.assertEqual(updates[0].__class__, reqs.get_initial_update_class().__class__)
 
             reqs = RequirementsBundle()
             reqs.append(RequirementFile(path="r.txt", content='Bla'))
-            updates = [u for u in reqs.get_updates(False, True)]
+            updates = [u for u in reqs.get_updates(False, Mock())]
             self.assertEqual(len(updates), 1)
             #self.assertEqual(updates[0].__class__, reqs.get_sequential_update_class().__class__)
 
@@ -672,30 +713,3 @@ class RequirementsBundleTestCase(TestCase):
                 [r for r in reqs.requirements]
             )
 
-    def test_pull_requests(self):
-        pr1 = pullrequest_factory("PR1")
-        pr2 = pullrequest_factory("PR2")
-        pr3 = pullrequest_factory("PR3")
-
-        req1 = Requirement.parse("django", 0)
-        req1.pull_request = pr1
-        req2 = Requirement.parse("pyramid", 0)
-        req2.pull_request = pr1
-        req3 = Requirement.parse("flask", 0)
-        req3.pull_request = pr2
-        req4 = Requirement.parse("elixir", 0)
-        req4.pull_request = pr3
-
-        reqs = RequirementsBundle()
-
-        req_file = RequirementFile(path="foo", content='')
-        req_file._requirements = [
-            req1, req2, req3, req4
-        ]
-
-        reqs.append(req_file)
-
-        self.assertEqual(
-            [pr1, pr2, pr3],
-            [pr for pr in reqs.pull_requests()]
-        )

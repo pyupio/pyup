@@ -25,6 +25,8 @@ class PullRequest(object):
             return "pin"
         elif self.title.startswith("Initial"):
             return "initial"
+        elif self.title.startswith("Compile"):
+            return "compile"
         return "unknown"
 
     @property

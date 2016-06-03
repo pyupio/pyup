@@ -6,17 +6,25 @@ from .test_pullrequest import pullrequest_factory
 from pyup.updates import RequirementUpdate, InitialUpdate
 from pyup.requirements import RequirementFile
 from pyup.errors import NoPermissionError
-from mock import Mock
+from pyup.config import RequirementConfig
+from mock import Mock, patch
 
 
-def bot_factory(repo="foo/foo", user_token="foo", bot_token=None, bot_class=Bot):
+def bot_factory(repo="foo/foo", user_token="foo", bot_token=None, bot_class=Bot, prs=list()):
     bot = bot_class(
         repo=repo,
         user_token=user_token,
         bot_token=bot_token,
     )
-
+    bot._fetched_prs = True
+    bot.req_bundle.pull_requests = prs
     bot.provider = Mock()
+    bot.config.update({
+        "close_prs": True,
+        "pin": True,
+        "branch": "master",
+        "search": True
+    })
     return bot
 
 
@@ -56,30 +64,67 @@ class BotBotRepoTest(TestCase):
 
 
 class BotPullRequestsTest(TestCase):
-    def test_empty(self):
-        bot = bot_factory()
-        bot.provider.iter_issues.return_value = []
-        self.assertEqual(bot.pull_requests, [])
 
-    def test_some_values(self):
+    def test_iter_issues_called(self):
         bot = bot_factory()
-        bot.provider.iter_issues.return_value = ["foo", "bar"]
-        self.assertEqual(bot.pull_requests, ["foo", "bar"])
+        bot._fetched_prs = False
+        bot.provider.iter_issues = Mock(return_value=[])
+        bot.pull_requests
+        bot.provider.iter_issues.assert_called_once()
 
+
+class BotRepoConfigTest(TestCase):
+
+    def test_fetches_file_success(self):
+        bot = bot_factory()
+        bot.provider.get_file.return_value = "foo: bar", None
+        self.assertEqual(bot.get_repo_config(bot.user_repo), {"foo": "bar"})
+
+    def test_yaml_error(self):
+        bot = bot_factory()
+        bot.provider.get_file.return_value = "foo: bar: baz: fii:", None
+        self.assertEqual(bot.get_repo_config(bot.user_repo), None)
+
+    def test_fetches_file_error(self):
+        bot = bot_factory()
+        bot.provider.get_file.return_value = None, None
+        self.assertEqual(bot.get_repo_config(bot.user_repo), None)
+
+
+class BotConfigureTest(TestCase):
+
+    def test_kwargs(self):
+        bot = bot_factory()
+        bot.provider.get_file.return_value = None, None
+        bot.configure(branch="bogus-branch", pin="bogus-pin", close_prs="bogus-close")
+        self.assertEqual(bot.config.branch, "bogus-branch")
+        self.assertEqual(bot.config.pin, "bogus-pin")
+        self.assertEqual(bot.config.close_prs, "bogus-close")
+
+    def test_file(self):
+        bot = bot_factory()
+        bot.provider.get_file.return_value = "close_prs: bogus-close\nbranch: bogus-branch", None
+        bot.configure()
+        self.assertEqual(bot.config.branch, "bogus-branch")
+        self.assertEqual(bot.config.close_prs, "bogus-close")
 
 class BotUpdateTest(TestCase):
     def test_branch_is_none(self):
         bot = bot_factory()
         bot.provider.get_default_branch.return_value = "the foo"
+        bot.provider.get_file.return_value = None, None
         bot.get_all_requirements = Mock()
         bot.apply_updates = Mock()
-        self.assertEqual(bot.update(), [])
+        bot.update()
+        self.assertEqual(bot.config.branch, "the foo")
 
     def test_branch_is_set(self):
         bot = bot_factory()
         bot.get_all_requirements = Mock()
         bot.apply_updates = Mock()
-        self.assertEqual(bot.update("the branch"), [])
+        bot.provider.get_file.return_value = None, None
+        bot.update(branch="the branch")
+        self.assertEqual(bot.config.branch, "the branch")
 
 
 class BotApplyUpdateTest(TestCase):
@@ -87,79 +132,66 @@ class BotApplyUpdateTest(TestCase):
         the_requirement = Mock()
         the_pull = pullrequest_factory("The PR")
 
-        bot = bot_factory()
-        bot.provider.iter_issues.return_value = [the_pull]
-        bot.req_bundle = Mock()
+        bot = bot_factory(prs=[the_pull])
+        bot.req_bundle.get_updates = Mock()
         update = RequirementUpdate(
             requirement_file="foo", requirement=the_requirement, commit_message="foo"
         )
         bot.req_bundle.get_updates.return_value = [
             ("The PR", "", "", [update])]
-        bot.apply_updates("branch", True, True)
+        bot.apply_updates(True)
 
         self.assertEqual(the_requirement.pull_request, the_pull)
+
+    def test_updates_empty(self):
+        bot = bot_factory()
+        bot.create_issue = Mock()
+        bot.req_bundle.get_updates = Mock(side_effect=IndexError)
+        bot.apply_updates(initial=True)
+        bot.create_issue.assert_called_once_with(
+            title=InitialUpdate.get_title(),
+            body=InitialUpdate.get_empty_update_body()
+        )
 
     def test_apply_update_pull_request_new(self):
         the_requirement = Mock()
         the_pull = pullrequest_factory("The PR")
 
-        bot = bot_factory()
-        bot.provider.iter_issues.return_value = []
-        bot.req_bundle = Mock()
+        bot = bot_factory(prs=[the_pull])
+        bot.req_bundle.get_updates = Mock()
         update = RequirementUpdate(
             requirement_file="foo", requirement=the_requirement, commit_message="foo"
         )
         bot.req_bundle.get_updates.return_value = [("The PR", "", "", [update])]
         bot.commit_and_pull = Mock()
         bot.commit_and_pull.return_value = the_pull
-        bot.apply_updates("branch", True, True)
+        bot.apply_updates(True)
 
         self.assertEqual(the_requirement.pull_request, the_pull)
-
-    def test_close_stale_prs_not_called_by_default(self):
-        the_requirement = Mock()
-        the_pull = pullrequest_factory("The PR")
-
-        bot = bot_factory()
-        bot.close_stale_prs = Mock()
-        bot.provider.iter_issues.return_value = []
-        bot.req_bundle = Mock()
-        update = RequirementUpdate(
-            requirement_file="foo", requirement=the_requirement, commit_message="foo"
-        )
-        bot.req_bundle.get_updates.return_value = [("The PR", "", "", [update])]
-        bot.commit_and_pull = Mock()
-        bot.commit_and_pull.return_value = the_pull
-        bot.apply_updates("branch", False, True)
-
-        self.assertEqual(the_requirement.pull_request, the_pull)
-        bot.close_stale_prs.assert_not_called()
 
     def test_close_stall_prs_called(self):
         the_requirement = Mock()
         the_pull = pullrequest_factory("The PR")
-
-        bot = bot_factory()
+        bot = bot_factory(prs=[])
         bot.close_stale_prs = Mock()
-        bot.provider.iter_issues.return_value = []
-        bot.req_bundle = Mock()
+        bot.req_bundle.get_updates = Mock()
         update = RequirementUpdate(
             requirement_file="foo", requirement=the_requirement, commit_message="foo"
         )
         bot.req_bundle.get_updates.return_value = [("The PR", "", "", [update])]
         bot.commit_and_pull = Mock()
         bot.commit_and_pull.return_value = the_pull
-        bot.apply_updates("branch", False, True, True)
+        bot.apply_updates(False)
 
         self.assertEqual(the_requirement.pull_request, the_pull)
-        bot.close_stale_prs.assert_called_once_with(update, the_pull)
+        bot.close_stale_prs.assert_called_once_with(update=update, pull_request=the_pull)
 
     def test_apply_update_initial_empty(self):
         bot = bot_factory()
         bot.req_bundle.get_updates = Mock()
         bot.req_bundle.get_updates.return_value = [("", "", "", [])]
         bot.provider.create_issue.return_value = None
-        bot.apply_updates("branch", initial=True, pin_unpinned=False)
+        bot.apply_updates(initial=True)
 
         create_issue_args_list = bot.provider.create_issue.call_args_list
         self.assertEqual(len(create_issue_args_list), 1)
@@ -177,8 +209,7 @@ class BotApplyUpdateTest(TestCase):
             title=InitialUpdate.get_title(),
             state="open",
         )
-        bot = bot_factory()
-        bot.provider.iter_issues.return_value = [initial_pr]
+        bot = bot_factory(prs=[initial_pr])
         the_requirement = Mock()
         update = RequirementUpdate(
             requirement_file="foo", requirement=the_requirement, commit_message="foo"
@@ -186,7 +217,7 @@ class BotApplyUpdateTest(TestCase):
         bot.req_bundle.get_updates = Mock()
         bot.req_bundle.get_updates.return_value = [("The PR", "", "", [update])]
 
-        bot.apply_updates("branch", initial=True, pin_unpinned=False)
+        bot.apply_updates(initial=True)
 
         self.assertEqual(bot.provider.create_pull_request.called, False)
 
@@ -240,49 +271,113 @@ class BotCommitAndPullTest(TestCase):
         self.assertEqual(create_commit_calls[0][1]["sha"], "abcd")
         self.assertEqual(create_commit_calls[1][1]["sha"], "xyz")
 
+    def test_create_branch_fails(self):
+        bot = bot_factory()
+        bot.create_branch = Mock(return_value=False)
+        self.assertEqual(bot.commit_and_pull(None, None, None, None, None, None), None)
+
+
+class CreateBranchTest(TestCase):
+
+    def test_success(self):
+        bot = bot_factory()
+        self.assertEqual(bot.create_branch("master", "new-branch", delete_empty=False), True)
+        bot.provider.create_branch.assert_called_once_with(
+            base_branch="master", new_branch="new-branch", repo=bot.user_repo)
+
+    def test_error_dont_delete(self):
+        from pyup.errors import BranchExistsError
+        bot = bot_factory()
+        bot.provider.create_branch.side_effect = BranchExistsError
+        self.assertEqual(bot.create_branch("master", "new-branch", delete_empty=False), False)
+        bot.provider.is_empty_branch.assert_not_called()
+        bot.provider.delete_branch.assert_not_called()
+
+    def test_error_delete(self):
+        from pyup.errors import BranchExistsError
+        bot = bot_factory()
+        bot.provider.create_branch.side_effect = BranchExistsError
+        bot.provider.is_empty_branch.return_value = True
+        bot.create_branch("master", "new-branch", delete_empty=True)
+
+        bot.provider.is_empty_branch.assert_called_once()
+        bot.provider.delete_branch.assert_called_once()
+        self.assertEqual(len(bot.provider.create_branch.mock_calls), 2)
+
+    def test_branch_not_empty(self):
+        from pyup.errors import BranchExistsError
+        bot = bot_factory()
+        bot.provider.create_branch.side_effect = BranchExistsError
+        bot.provider.is_empty_branch.return_value = False
+        bot.create_branch("master", "new-branch", delete_empty=True)
+
+        bot.provider.is_empty_branch.assert_called_once()
+        bot.provider.delete_branch.assert_not_called()
+        self.assertEqual(len(bot.provider.create_branch.mock_calls), 1)
+
+
 
 class BotGetAllRequirementsTest(TestCase):
     def test_non_matching_file_not_added(self):
         bot = bot_factory()
         bot.provider.iter_git_tree.return_value = ("blob", "foo.py"),  # not added
         bot.add_requirement_file = Mock()
-        bot.get_all_requirements("branch")
+        bot.get_all_requirements()
         self.assertEqual(bot.add_requirement_file.called, False)
 
     def test_requirement_not_in_path(self):
         bot = bot_factory()
         bot.provider.iter_git_tree.return_value = ("blob", "this/that/bla/dev.pip"),  # not added
         bot.add_requirement_file = Mock()
-        bot.get_all_requirements("branch")
+        bot.get_all_requirements()
         self.assertEqual(bot.add_requirement_file.called, False)
 
     def test_file_not_ending_with_txt_or_pip(self):
         bot = bot_factory()
         bot.provider.iter_git_tree.return_value = ("blob", "requirements/dev"),  # not added
         bot.add_requirement_file = Mock()
-        bot.get_all_requirements("branch")
+        bot.get_all_requirements()
         self.assertEqual(bot.add_requirement_file.called, False)
 
     def test_matching_file_deep(self):
         bot = bot_factory()
         bot.provider.iter_git_tree.return_value = ("blob", "requirements/dev.txt"),  # added
         bot.add_requirement_file = Mock()
-        bot.get_all_requirements("branch")
+        bot.get_all_requirements()
         self.assertEqual(bot.add_requirement_file.called, True)
 
     def test_matching_file(self):
         bot = bot_factory()
         bot.provider.iter_git_tree.return_value = ("blob", "requirements.txt"),  # added
         bot.add_requirement_file = Mock()
-        bot.get_all_requirements("branch")
+        bot.get_all_requirements()
         self.assertEqual(bot.add_requirement_file.called, True)
 
     def test_matching_file_pip(self):
         bot = bot_factory()
         bot.provider.iter_git_tree.return_value = ("blob", "requirements.pip"),  # added
         bot.add_requirement_file = Mock()
-        bot.get_all_requirements("branch")
+        bot.get_all_requirements()
         self.assertEqual(bot.add_requirement_file.called, True)
+
+    def test_no_search(self):
+        bot = bot_factory()
+        bot.config.search = False
+        bot.provider.iter_git_tree.return_value = ("blob", "requirements.pip"),  # added
+        bot.add_requirement_file = Mock()
+        bot.get_all_requirements()
+        self.assertEqual(bot.add_requirement_file.called, False)
+
+    def test_requirement_in_config(self):
+        bot = bot_factory()
+        bot.config.search = False
+        bot.config.requirements = [
+            RequirementConfig(path="foo.txt")
+        ]
+        bot.add_requirement_file = Mock()
+        bot.get_all_requirements()
+        self.assertEqual(bot.add_requirement_file.called, True)
+        bot.add_requirement_file.assert_called_once_with("foo.txt")
 
 
 class BotAddRequirementFileTest(TestCase):
@@ -292,7 +387,7 @@ class BotAddRequirementFileTest(TestCase):
         bot.req_bundle.append = Mock()
         bot.req_bundle.has_file_in_path.return_value = True
 
-        bot.add_requirement_file("path", "dev")
+        bot.add_requirement_file("path",)
 
         self.assertEqual(bot.provider.get_requirement_file.called, False)
         self.assertEqual(bot.req_bundle.append.called, False)
@@ -304,7 +399,7 @@ class BotAddRequirementFileTest(TestCase):
         bot.provider.get_requirement_file.return_value = None
         bot.req_bundle.has_file_in_path.return_value = False
 
-        bot.add_requirement_file("path", "dev")
+        bot.add_requirement_file("path",)
 
         self.assertEqual(bot.provider.get_requirement_file.called, True)
         self.assertEqual(bot.req_bundle.append.called, False)
@@ -318,7 +413,7 @@ class BotAddRequirementFileTest(TestCase):
 
         bot.req_bundle.has_file_in_path.return_value = False
 
-        bot.add_requirement_file("path", "master")
+        bot.add_requirement_file("path",)
 
         self.assertEqual(bot.provider.get_requirement_file.called, True)
         self.assertEqual(bot.req_bundle.append.called, True)
@@ -332,7 +427,7 @@ class BotAddRequirementFileTest(TestCase):
 
         bot.req_bundle.has_file_in_path.return_value = False
 
-        bot.add_requirement_file("path", "master")
+        bot.add_requirement_file("path")
 
         self.assertEqual(bot.provider.get_requirement_file.called, True)
         self.assertEqual(bot.req_bundle.append.called, True)
@@ -441,15 +536,13 @@ class CloseStalePRsTestCase(TestCase):
 
     def test_no_pull_requests(self):
         bot = bot_factory(bot_token="foo")
-        bot._pull_requests = []
 
         bot.close_stale_prs(self.update, self.pr)
 
         bot.provider.get_pull_request_committer.assert_not_called()
 
     def test_close_success(self):
-        bot = bot_factory(bot_token="foo")
-        bot._pull_requests = [self.other_pr]
+        bot = bot_factory(bot_token="foo", prs=[self.other_pr])
         commiter = Mock()
         bot.provider.get_pull_request_committer.return_value = [commiter]
 
@@ -464,9 +557,8 @@ class CloseStalePRsTestCase(TestCase):
         )
 
     def test_wrong_pr_type(self):
-        bot = bot_factory(bot_token="foo")
+        bot = bot_factory(bot_token="foo", prs=[self.other_pr])
         self.other_pr.type = "foo"
-        bot._pull_requests = [self.other_pr]
         commiter = Mock()
         bot.provider.get_pull_request_committer.return_value = [commiter]
 
@@ -476,9 +568,8 @@ class CloseStalePRsTestCase(TestCase):
         bot.provider.close_pull_request.assert_not_called()
 
     def test_pr_closed(self):
-        bot = bot_factory(bot_token="foo")
+        bot = bot_factory(bot_token="foo", prs=[self.other_pr])
         self.other_pr.is_open = False
-        bot._pull_requests = [self.other_pr]
         commiter = Mock()
         bot.provider.get_pull_request_committer.return_value = [commiter]
 
@@ -488,9 +579,8 @@ class CloseStalePRsTestCase(TestCase):
         bot.provider.close_pull_request.assert_not_called()
 
     def test_same_title(self):
-        bot = bot_factory(bot_token="foo")
+        bot = bot_factory(bot_token="foo", prs=[self.other_pr])
         self.other_pr.title = "First PR"
-        bot._pull_requests = [self.other_pr]
         commiter = Mock()
         bot.provider.get_pull_request_committer.return_value = [commiter]
 
@@ -500,9 +590,8 @@ class CloseStalePRsTestCase(TestCase):
         bot.provider.close_pull_request.assert_not_called()
 
     def test_requirement_doesnt_match(self):
-        bot = bot_factory(bot_token="foo")
+        bot = bot_factory(bot_token="foo", prs=[self.other_pr])
         self.other_pr.requirement = "other-req"
-        bot._pull_requests = [self.other_pr]
         commiter = Mock()
         bot.provider.get_pull_request_committer.return_value = [commiter]
 
@@ -512,8 +601,7 @@ class CloseStalePRsTestCase(TestCase):
         bot.provider.close_pull_request.assert_not_called()
 
     def test_more_than_one_committer(self):
-        bot = bot_factory(bot_token="foo")
-        bot._pull_requests = [self.other_pr]
+        bot = bot_factory(bot_token="foo", prs=[self.other_pr])
         commiter = Mock()
         bot.provider.get_pull_request_committer.return_value = [commiter, commiter]
 
@@ -523,8 +611,7 @@ class CloseStalePRsTestCase(TestCase):
         bot.provider.close_pull_request.assert_not_called()
 
     def test_committer_is_not_bot_user(self):
-        bot = bot_factory(bot_token="foo")
-        bot._pull_requests = [self.other_pr]
+        bot = bot_factory(bot_token="foo", prs=[self.other_pr])
         commiter = Mock()
         bot.provider.get_pull_request_committer.return_value = [commiter]
         bot.provider.is_same_user.return_value = False
