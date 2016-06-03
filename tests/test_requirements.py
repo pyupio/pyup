@@ -192,7 +192,10 @@ class RequirementTestCase(TestCase):
         r = Requirement.parse("django==1.7.1  # pyup: <1.7.6", 0)
 
         r = Requirement.parse("Django==1.7.6 # pyup: < 1.7.8, > 1.7.2", 0)
-        self.assertEqual(r.filter, [("<", "1.7.8"), (">", "1.7.2")])
+        self.assertEqual(
+            sorted(r.filter, key=lambda r: r[1]),
+            sorted([("<", "1.7.8"), (">", "1.7.2")], key=lambda r: r[1])
+        )
 
     def test_tabbed(self):
         req = Requirement.parse("Django==1.5\t\t#some-comment", 0)
