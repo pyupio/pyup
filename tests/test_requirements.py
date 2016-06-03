@@ -37,16 +37,19 @@ class RequirementUpdateContent(TestCase):
                    return_value="1.2.3"):
             with patch('pyup.requirements.Requirement.package', new_callable=PropertyMock,
                        return_value=package_factory("Foo", [])):
-                content = """\r\n\r\nWerkzeug\r\ndjango-template-repl\nbpython"""
+                content = """\r\n\r\nWerkzeug\r\ndjango-template-repl\nbpython\nsome-fooo    \n"""
                 r = RequirementFile("foo.txt", content)
                 self.assertEqual(r.requirements[0].name, "Werkzeug")
                 self.assertEqual(r.requirements[1].name, "django-template-repl")
                 self.assertEqual(r.requirements[2].name, "bpython")
+                self.assertEqual(r.requirements[3].name, "some-fooo")
                 self.assertTrue("Werkzeug==1.2.3\r\n" in r.requirements[0].update_content(content))
                 self.assertTrue(
                     "django-template-repl==1.2.3\n" in r.requirements[1].update_content(content))
                 self.assertTrue(
                     "bpython==1.2.3" in r.requirements[2].update_content(content))
+                self.assertTrue(
+                    "some-fooo==1.2.3    \n" in r.requirements[3].update_content(content))
 
     def test_update_content_simple_pinned(self):
         with patch('pyup.requirements.Requirement.latest_version', new_callable=PropertyMock,
