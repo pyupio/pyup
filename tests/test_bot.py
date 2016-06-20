@@ -620,3 +620,44 @@ class CloseStalePRsTestCase(TestCase):
 
         bot.provider.get_pull_request_committer.assert_called_once_with(bot.user_repo, self.other_pr)
         bot.provider.close_pull_request.assert_not_called()
+
+
+class ConflictingUpdateTest(TestCase):
+
+    def test_no_conflict(self):
+        bot = bot_factory()
+        update1 = Mock()
+        update1.requirement.key = "pkg"
+        update1.requirement.latest_version_within_specs = "1.0"
+
+        update2 = Mock()
+        update2.requirement.key = "other-pkg"
+        update1.requirement.latest_version_within_specs = "1.0"
+
+        bot.iter_updates = Mock(return_value=[
+            [None, None, None, [update1]],
+            [None, None, None, [update2]]
+        ])
+
+        self.assertFalse(
+            bot.has_conflicting_update(update1)
+        )
+
+    def test_has_conflict(self):
+        bot = bot_factory()
+        update1 = Mock()
+        update1.requirement.key = "pkg"
+        update1.requirement.latest_version_within_specs = "1.0"
+
+        update2 = Mock()
+        update2.requirement.key = "pkg"
+        update1.requirement.latest_version_within_specs = "1.4"
+
+        bot.iter_updates = Mock(return_value=[
+            [None, None, None, [update1]],
+            [None, None, None, [update2]]
+        ])
+
+        self.assertTrue(
+            bot.has_conflicting_update(update1)
+        )

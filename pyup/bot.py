@@ -169,17 +169,42 @@ class Bot(object):
                     pr.is_open and \
                         pr.title != pull_request.title and \
                         pr.requirement == update.requirement.key:
-                    committer = self.provider.get_pull_request_committer(
-                        self.user_repo, pr)
-                    # check that there's exactly one committer in this PRs commit history and
-                    # that the committer is the bot
-                    if len(committer) == 1 and self.provider.is_same_user(self.bot, committer[0]):
-                        self.provider.close_pull_request(
-                            bot_repo=self.bot_repo,
-                            user_repo=self.user_repo,
-                            pull_request=pr,
-                            comment="Closing this in favor of #{}".format(pull_request.number)
-                        )
+                    # there's a possible race condition where multiple updates with more than one
+                    # target version conflict with each other (closing each others PRs). Check
+                    # that's not the case here
+                    if not self.has_conflicting_update(update):
+                        committer = self.provider.get_pull_request_committer(
+                            self.user_repo, pr)
+                        # check that there's exactly one committer in this PRs commit history and
+                        # that the committer is the bot
+                        if len(committer) == 1 and \
+                                self.provider.is_same_user(self.bot, committer[0]):
+                            self.provider.close_pull_request(
+                                bot_repo=self.bot_repo,
+                                user_repo=self.user_repo,
+                                pull_request=pr,
+                                comment="Closing this in favor of #{}".format(pull_request.number)
+                            )
+
+    def has_conflicting_update(self, update):
+        """
+        Checks if there are conflicting updates. Conflicting updates are updates that have the
+        same requirement but different target versions to update to.
+        :param update: Update to check
+        :return: bool - True if conflict found
+        """
+        for _, _, _, updates in self.iter_updates(initial=False):
+            for _update in updates:
+                if update.requirement.key == _update.requirement.key and \
+                        update.requirement.latest_version_within_specs != \
+                        _update.requirement.latest_version_within_specs:
+                    logger.debug("{} conflicting with {}/{}".format(
+                        update.requirement.key,
+                        update.requirement.latest_version_within_specs,
+                        _update.requirement.latest_version_within_specs)
+                    )
+                    return True
+        return False
 
     def create_branch(self, base_branch, new_branch, delete_empty=False):
         """
