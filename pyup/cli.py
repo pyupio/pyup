@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function, unicode_literals
 from pyup import __version__
 from pyup.bot import DryBot, Bot
 from pyup.requirements import RequirementFile, RequirementsBundle
 from pyup.providers.github import Provider as GithubProvider
 import click
 from tqdm import tqdm
+import logging
 
 
 @click.command()
@@ -19,7 +19,9 @@ from tqdm import tqdm
 @click.option('--initial', help='', default=False, is_flag=True)
 @click.option('--pin', help='', default=True)
 @click.option('--close-prs', help='Tell the bot to close stale pull requests', default=True)
-def main(repo, user_token, bot_token, provider, dry, branch, initial, pin, close_prs):
+@click.option('--log', help='Set the log level', default="ERROR")
+def main(repo, user_token, bot_token, provider, dry, branch, initial, pin, close_prs, log):
+    logging.basicConfig(level=getattr(logging, log.upper(), None))
 
     if provider == 'github':
         ProviderClass = GithubProvider
@@ -51,13 +53,12 @@ class CLIBot(Bot):
         bundle = CLIBundle
         super(CLIBot, self).__init__(repo, user_token, bot_token, provider, bundle)
 
-    def iter_updates(self, initial, pin_unpinned):
+    def iter_updates(self, initial):
 
-        ls = list(super(CLIBot, self).iter_updates(initial, pin_unpinned))
+        ls = list(super(CLIBot, self).iter_updates(initial))
 
         if not initial:
             ls = tqdm(ls, desc="Updating ...")
-
         for title, body, update_branch, updates in ls:
             if not initial:
                 ls.set_description(title)
@@ -67,7 +68,6 @@ class CLIBot(Bot):
         # we don't display the progress bar if this is a sequential update, just return the list
         if initial:
             updates = tqdm(updates, desc="Updating ...")
-
         for update in updates:
             if initial:
                 updates.set_description(update.commit_message)

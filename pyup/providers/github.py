@@ -124,6 +124,9 @@ class Provider(object):
         # hardware with Gigabit NICs (probably because they do some async stuff).
         # If we encounter an error, the loop waits for 1/2/3 seconds before trying again.
         # If the loop reaches the 4th iteration, we give up and raise the error.
+        if not path.startswith("/"):
+            path = "/" + path
+
         for i in range(1, 7):
             try:
                 data = repo.update_file(

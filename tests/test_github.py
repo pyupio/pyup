@@ -143,17 +143,17 @@ class ProviderTest(TestCase):
         committer = Mock()
         committer.email = "foo@bar.com"
         committer.login = "foo"
-        data = self.provider.get_committer_data(committer)
-        self.assertEqual(data.name, "foo")
-        self.assertEqual(data.email, "foo@bar.com")
+        data = self.provider.get_committer_data(committer)._identity
+        self.assertEqual(data["name"], "foo")
+        self.assertEqual(data["email"], "foo@bar.com")
 
         committer = Mock()
         committer.email = None
         committer.login = "foo"
         committer.get_emails.return_value = [{"primary": True, "email": "primary@bar.com"},]
-        data = self.provider.get_committer_data(committer)
-        self.assertEqual(data.name, "foo")
-        self.assertEqual(data.email, "primary@bar.com")
+        data = self.provider.get_committer_data(committer)._identity
+        self.assertEqual(data["name"], "foo")
+        self.assertEqual(data["email"], "primary@bar.com")
 
         committer = Mock()
         committer.email = None
