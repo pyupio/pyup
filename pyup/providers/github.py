@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function, unicode_literals
+from __future__ import absolute_import, print_function
 import time
 import logging
-from github import Github, GithubException, UnknownObjectException
-from collections import namedtuple
+from github import Github, GithubException, UnknownObjectException, InputGitAuthor
 from ..errors import BranchExistsError, NoPermissionError, RepoDoesNotExistError
 
 logger = logging.getLogger(__name__)
@@ -157,7 +156,10 @@ class Provider(object):
             msg = "Unable to get {login}'s email adress. " \
                   "You may have to add the scope user:email".format(login=committer.login)
             raise NoPermissionError(msg)
-        return namedtuple("Committer", ["name", "email"])(name=committer.login, email=email)
+        return InputGitAuthor(
+            name=committer.login,
+            email=email
+        )
 
     def get_pull_request_committer(self, repo, pull_request):
         try:
