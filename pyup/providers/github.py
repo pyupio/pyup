@@ -127,7 +127,7 @@ class Provider(object):
         # If the loop reaches the 4th iteration, we give up and raise the error.
         for i in range(1, 7):
             try:
-                commit, new_file = repo.update_content(
+                data = repo.update_file(
                     path=path,
                     message=commit_message,
                     content=content,
@@ -135,7 +135,7 @@ class Provider(object):
                     sha=sha,
                     committer=self.get_committer_data(committer),
                 )
-                return new_file.sha
+                return data["content"].sha
             except GithubException as e:
                 if i == 6:
                     logger.error("Unable to create commit on {repo} for path {path}".format(
