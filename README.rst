@@ -10,7 +10,7 @@
 .. image:: https://img.shields.io/pypi/v/pyupio.svg
         :target: https://pypi.python.org/pypi/pyupio
 
-.. image:: https://img.shields.io/travis/pyupio/pyup.svg
+.. image:: https://travis-ci.org/pyupio/pyup.svg?branch=master
         :target: https://travis-ci.org/pyupio/pyup
 
 .. image:: https://readthedocs.org/projects/pyup/badge/?version=latest
@@ -40,8 +40,6 @@ Installation
 To install pyup, run::
 
     $ pip install pyupio
-    $ pip install -e git+https://github.com/pyupio/PyGithub#egg=PyGithub
-
 
 Obtain Token
 ------------
