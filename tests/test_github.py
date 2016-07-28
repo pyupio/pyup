@@ -129,12 +129,12 @@ class ProviderTest(TestCase):
 
     @patch("pyup.providers.github.time")
     def test_create_commit(self, time):
-        self.repo.update_content.return_value = Mock(), Mock()
+        self.repo.update_file.return_value = {"commit": Mock(), "content": Mock()}
         self.provider.get_committer_data = Mock(return_value = "foo@bar.com")
         self.provider.create_commit("path", "branch", "commit", "content", "sha", self.repo, "com")
-        self.repo.update_content.assert_called_once()
+        self.repo.update_file.assert_called_once()
 
-        self.repo.update_content.side_effect = GithubException(data="", status=1)
+        self.repo.update_file.side_effect = GithubException(data="", status=1)
         with self.assertRaises(GithubException):
             self.provider.create_commit("path", "branch", "commit", "content", "sha", self.repo,
                                         "com")
