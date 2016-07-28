@@ -14,9 +14,10 @@ import logging
 @click.option('--user-token', prompt='user token', help='')
 @click.option('--bot-token', help='', default=None)
 @click.option('--provider', help='', default="github")
-@click.option('--dry', help='', default=False)
-@click.option('--branch', help='', default=None)
-@click.option('--initial', help='', default=False, is_flag=True)
+@click.option('--dry', help='Run the bot without committing', default=False)
+@click.option('--branch', help='Set the branch the bot should use', default='master')
+@click.option('--initial', help='Set this to bundle all PRs into a large one',
+              default=False, is_flag=True)
 @click.option('--pin', help='', default=True)
 @click.option('--close-prs', help='Tell the bot to close stale pull requests', default=True)
 @click.option('--log', help='Set the log level', default="ERROR")
