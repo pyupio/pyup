@@ -276,7 +276,7 @@ class Requirement(object):
 
     @property
     def is_outdated(self):
-        if self.latest_version_within_specs:
+        if self.version and self.latest_version_within_specs:
             return parse_version(self.version) < parse_version(self.latest_version_within_specs)
         return False
 
