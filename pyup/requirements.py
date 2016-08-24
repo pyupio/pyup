@@ -1,5 +1,4 @@
 from __future__ import unicode_literals
-import re
 from pkg_resources import parse_requirements
 from pkg_resources import parse_version
 from pkg_resources._vendor.packaging.specifiers import SpecifierSet
@@ -8,6 +7,7 @@ from .pullrequest import PullRequest
 import logging
 from .package import Package, fetch_package
 import re
+
 # see https://gist.github.com/dperini/729294
 URL_REGEX = re.compile(
     # protocol identifier
@@ -39,8 +39,8 @@ URL_REGEX = re.compile(
     # port number
     u"(?::\d{2,5})?"
     # resource path
-    u"(?:/\S*)?"
-    , re.UNICODE)
+    u"(?:/\S*)?",
+    re.UNICODE)
 
 logger = logging.getLogger(__name__)
 
