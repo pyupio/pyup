@@ -195,9 +195,11 @@ class Provider(object):
             )
             if pr_label:
                 label = self.get_or_create_label(repo=repo, name=pr_label)
-                # we have to convert the PR to an issue internally because PRs don't support labels
-                issue = repo.get_issue(number=pr.number)
-                issue.add_to_labels(label)
+                if label:
+                    # we have to convert the PR to an issue internally because PRs don't
+                    # support labels
+                    issue = repo.get_issue(number=pr.number)
+                    issue.add_to_labels(label)
 
             return self.bundle.get_pull_request_class()(
                 state=pr.state,
@@ -216,7 +218,12 @@ class Provider(object):
             label = repo.get_label(name=name)
         except UnknownObjectException:
             logger.info("Label {} does not exist, creating.".format(name))
-            label = repo.create_label(name=name, color="1BB0CE")
+            try:
+                label = repo.create_label(name=name, color="1BB0CE")
+            except GithubException:
+                logger.warning(
+                    "Unable to create label {} due to permissions".format(name), exc_info=True)
+                return None
         return label
 
     def create_issue(self, repo, title, body):

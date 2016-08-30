@@ -232,3 +232,12 @@ class ProviderTest(TestCase):
         self.repo.get_label.assert_called_once_with(name="another-label")
         self.repo.create_label.assert_called_once_with(name="another-label", color="1BB0CE")
 
+    def test_create_label_fails(self):
+        # label does not exist, need to create it
+        self.repo.get_label.side_effect = UnknownObjectException(None, None)
+        self.repo.create_label.side_effect = GithubException(None, None)
+        label = self.provider.get_or_create_label(self.repo, "another-label")
+        self.assertIsNone(label)
+        self.repo.get_label.assert_called_once_with(name="another-label")
+        self.repo.create_label.assert_called_once_with(name="another-label", color="1BB0CE")
+
