@@ -192,13 +192,18 @@ class ProviderTest(TestCase):
 
 
     def test_create_pull_request(self):
-        self.provider.create_pull_request(self.repo, "title", "body", "master", "new")
+        self.provider.create_pull_request(self.repo, "title", "body", "master", "new", False)
         self.provider.bundle.get_pull_request_class.assert_called_once()
         self.provider.bundle.get_pull_request_class().assert_called_once()
 
         self.repo.create_pull.side_effect = GithubException(data="", status=1)
         with self.assertRaises(errors.NoPermissionError):
-            self.provider.create_pull_request(self.repo, "title", "body", "master", "new")
+            self.provider.create_pull_request(self.repo, "title", "body", "master", "new", False)
+
+    def test_create_pull_request_with_label(self):
+        self.provider.create_pull_request(self.repo, "title", "body", "master", "new", "some-label")
+        self.provider.bundle.get_pull_request_class.assert_called_once()
+        self.provider.bundle.get_pull_request_class().assert_called_once()
 
     def test_create_issue(self):
         self.assertIsNot(self.provider.create_issue(self.repo, "title", "body"), False)
@@ -214,4 +219,16 @@ class ProviderTest(TestCase):
         self.repo.get_issues.return_value = [Mock(), Mock()]
         issues = list(self.provider.iter_issues(self.repo, Mock()))
         self.assertEqual(len(issues), 2)
+
+    def test_get_or_create_label(self):
+        self.provider.get_or_create_label(self.repo, "foo-label")
+        self.repo.get_label.assert_called_once_with(name="foo-label")
+        self.repo.create_label.assert_not_called()
+
+    def test_create_label(self):
+        # label does not exist, need to create it
+        self.repo.get_label.side_effect = UnknownObjectException(None, None)
+        self.provider.get_or_create_label(self.repo, "another-label")
+        self.repo.get_label.assert_called_once_with(name="another-label")
+        self.repo.create_label.assert_called_once_with(name="another-label", color="1BB0CE")
 

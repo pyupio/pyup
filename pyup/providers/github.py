@@ -185,7 +185,7 @@ class Provider(object):
         except UnknownObjectException:
             return False
 
-    def create_pull_request(self, repo, title, body, base_branch, new_branch):
+    def create_pull_request(self, repo, title, body, base_branch, new_branch, pr_label):
         try:
             pr = repo.create_pull(
                 title=title,
@@ -193,6 +193,12 @@ class Provider(object):
                 base=base_branch,
                 head=new_branch
             )
+            if pr_label:
+                label = self.get_or_create_label(repo=repo, name=pr_label)
+                # we have to convert the PR to an issue internally because PRs don't support labels
+                issue = repo.get_issue(number=pr.number)
+                issue.add_to_labels(label)
+
             return self.bundle.get_pull_request_class()(
                 state=pr.state,
                 title=pr.title,
@@ -204,6 +210,14 @@ class Provider(object):
         except GithubException:
             raise NoPermissionError(
                 "Unable to create pull request on {repo}".format(repo=repo))
+
+    def get_or_create_label(self, repo, name):
+        try:
+            label = repo.get_label(name=name)
+        except UnknownObjectException:
+            logger.info("Label {} does not exist, creating.".format(name))
+            label = repo.create_label(name=name, color="1BB0CE")
+        return label
 
     def create_issue(self, repo, title, body):
         try:

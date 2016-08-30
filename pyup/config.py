@@ -14,6 +14,7 @@ class Config(object):
         self.pin = True
         self.search = True
         self.requirements = []
+        self.label_prs = False
 
     def update(self, d):
         for key, value in d.items():

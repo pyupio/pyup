@@ -262,7 +262,7 @@ class BotCommitAndPullTest(TestCase):
             )
         ]
 
-        bot.commit_and_pull(True, "branch", "new branch", "repo", "", updates)
+        bot.commit_and_pull(True, "branch", "new branch", "repo", "", updates, False)
 
         self.assertEqual(bot.provider.create_commit.called, True)
         self.assertEqual(bot.provider.create_commit.call_count, 2)
@@ -274,7 +274,7 @@ class BotCommitAndPullTest(TestCase):
     def test_create_branch_fails(self):
         bot = bot_factory()
         bot.create_branch = Mock(return_value=False)
-        self.assertEqual(bot.commit_and_pull(None, None, None, None, None, None), None)
+        self.assertEqual(bot.commit_and_pull(None, None, None, None, None, None, None), None)
 
 
 class CreateBranchTest(TestCase):
@@ -439,7 +439,7 @@ class BotCreatePullRequestTest(TestCase):
         bot = bot_factory(bot_token=None)
         bot._bot_repo = "BOT REPO"
         bot._user_repo = "USER REPO"
-        bot.create_pull_request("title", "body", "base_branch", "new_branch")
+        bot.create_pull_request("title", "body", "base_branch", "new_branch", False)
         self.assertEqual(bot.provider.create_pull_request.called, True)
         self.assertEqual(bot.provider.create_pull_request.call_args_list[0][1], {
             "base_branch": "base_branch",
@@ -447,13 +447,14 @@ class BotCreatePullRequestTest(TestCase):
             "repo": "USER REPO",
             "body": "body",
             "title": "title",
+            "pr_label": False
         })
 
     def test_bot_no_errors(self):
         bot = bot_factory(bot_token="foo")
         bot._bot_repo = "BOT REPO"
         bot._user_repo = "USER REPO"
-        bot.create_pull_request("title", "body", "base_branch", "new_branch")
+        bot.create_pull_request("title", "body", "base_branch", "new_branch", False)
         self.assertEqual(bot.provider.create_pull_request.called, True)
         self.assertEqual(bot.provider.create_pull_request.call_args_list[0][1], {
             "base_branch": "base_branch",
@@ -461,6 +462,7 @@ class BotCreatePullRequestTest(TestCase):
             "repo": "BOT REPO",
             "body": "body",
             "title": "title",
+            "pr_label": False
         })
         self.assertEqual(bot.provider.get_pull_request_permissions.called, False)
 
@@ -469,7 +471,7 @@ class BotCreatePullRequestTest(TestCase):
         bot.provider.create_pull_request.side_effect = [NoPermissionError, "the foo"]
         bot._bot_repo = "BOT REPO"
         bot._user_repo = "USER REPO"
-        bot.create_pull_request("title", "body", "base_branch", "new_branch")
+        bot.create_pull_request("title", "body", "base_branch", "new_branch", False)
         self.assertEqual(bot.provider.create_pull_request.called, True)
         self.assertEqual(bot.provider.create_pull_request.call_args_list[0][1], {
             "base_branch": "base_branch",
@@ -477,6 +479,7 @@ class BotCreatePullRequestTest(TestCase):
             "repo": "BOT REPO",
             "body": "body",
             "title": "title",
+            "pr_label": False
         })
         self.assertEqual(bot.provider.create_pull_request.call_args_list[1][1], {
             "base_branch": "base_branch",
@@ -484,6 +487,7 @@ class BotCreatePullRequestTest(TestCase):
             "repo": "BOT REPO",
             "body": "body",
             "title": "title",
+            "pr_label": False
         })
 
     def test_bot_permission_error_not_resolved(self):
@@ -492,7 +496,7 @@ class BotCreatePullRequestTest(TestCase):
         bot._bot_repo = "BOT REPO"
         bot._user_repo = "USER REPO"
         with self.assertRaises(NoPermissionError):
-            bot.create_pull_request("title", "body", "base_branch", "new_branch")
+            bot.create_pull_request("title", "body", "base_branch", "new_branch", False)
         self.assertEqual(bot.provider.create_pull_request.called, True)
         self.assertEqual(bot.provider.create_pull_request.call_args_list[0][1], {
             "base_branch": "base_branch",
@@ -500,6 +504,7 @@ class BotCreatePullRequestTest(TestCase):
             "repo": "BOT REPO",
             "body": "body",
             "title": "title",
+            "pr_label": False
         })
         self.assertEqual(bot.provider.create_pull_request.call_args_list[1][1], {
             "base_branch": "base_branch",
@@ -507,6 +512,7 @@ class BotCreatePullRequestTest(TestCase):
             "repo": "BOT REPO",
             "body": "body",
             "title": "title",
+            "pr_label": False
         })
 
 
