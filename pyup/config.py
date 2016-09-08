@@ -15,6 +15,7 @@ class Config(object):
         self.search = True
         self.requirements = []
         self.label_prs = False
+        self.schedule = ""
 
     def update(self, d):
         for key, value in d.items():

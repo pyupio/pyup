@@ -3,6 +3,10 @@
 History
 -------
 
+Unreleased
+----------
+* Added schedules to the config parser
+
 0.4.0 (2016-8-30)
 -----------------
 * Added a new feature: The bot can now add a label to pull requests.

@@ -17,6 +17,7 @@ class ConfigTestCase(TestCase):
         self.assertEqual(config.pin, True)
         self.assertEqual(config.search, True)
         self.assertEqual(config.requirements, [])
+        self.assertEqual(config.schedule, "")
 
     def test_pin_file(self):
         config = Config()
