@@ -4,7 +4,19 @@ try:  # pragma: no cover
     basestring
 except NameError:  # pragma: no cover
     basestring = str
+import re
 
+
+SCHEDULE_REGEX = re.compile(
+    # has to begin with every
+    "^every "
+    # followed by day/month
+    "((day|month)$"
+    # or week/two weeks
+    "|(week|two weeks))"
+    # with an optional weekday
+    "( on (monday|tuesday|wednesday|thursday|friday|saturday|sunday))?"
+)
 
 class Config(object):
 
@@ -43,6 +55,9 @@ class Config(object):
             if path == req_file.path:
                 return req_file.pin
         return self.pin
+
+    def is_valid_schedule(self):
+        return SCHEDULE_REGEX.search(self.schedule) is not None
 
     def __repr__(self):
         return str(self.__dict__)

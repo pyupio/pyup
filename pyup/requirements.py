@@ -41,7 +41,7 @@ URL_REGEX = re.compile(
     # resource path
     u"(?:/\S*)?",
     re.UNICODE)
-
+"""^every ?((day|month)|((two weeks|week)( on (monday|tuesday|wednesday|thursday|friday|saturday|sunday))?))"""
 logger = logging.getLogger(__name__)
 
 
