@@ -667,3 +667,24 @@ class ConflictingUpdateTest(TestCase):
         self.assertTrue(
             bot.has_conflicting_update(update1)
         )
+
+    def test_fool_loop(self):
+        bot = bot_factory()
+        update1 = Mock()
+        update1.requirement.key = "google-api-python-client"
+        update1.requirement.latest_version_within_specs = "1.5.3"
+        update1.commit_message = "Update google-api-python-client from 1.5.1 to 1.5.3"
+
+        update2 = Mock()
+        update2.requirement.key = "google-api-python-client"
+        update2.requirement.latest_version_within_specs = "1.5.3"
+        update2.commit_message = "Pin google-api-python-client to latest version 1.5.3"
+
+        bot.iter_updates = Mock(return_value=[
+            [None, None, None, [update1]],
+            [None, None, None, [update2]]
+        ])
+
+        self.assertTrue(
+            bot.has_conflicting_update(update1)
+        )

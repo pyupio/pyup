@@ -196,10 +196,11 @@ class Bot(object):
         """
         for _, _, _, updates in self.iter_updates(initial=False):
             for _update in updates:
-                if update.requirement.key == _update.requirement.key and \
-                        update.requirement.latest_version_within_specs != \
-                        _update.requirement.latest_version_within_specs:
-                    logger.debug("{} conflicting with {}/{}".format(
+                if (update.requirement.key == _update.requirement.key and
+                    (update.commit_message != _update.commit_message or
+                        update.requirement.latest_version_within_specs !=
+                        _update.requirement.latest_version_within_specs)):
+                    logger.info("{} conflicting with {}/{}".format(
                         update.requirement.key,
                         update.requirement.latest_version_within_specs,
                         _update.requirement.latest_version_within_specs)
