@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 from pkg_resources import parse_requirements
 from pkg_resources import parse_version
 from pkg_resources._vendor.packaging.specifiers import SpecifierSet
-from .updates import InitialUpdate, SequentialUpdate
+from .updates import InitialUpdate, SequentialUpdate, ScheduledUpdate
 from .pullrequest import PullRequest
 import logging
 from .package import Package, fetch_package
@@ -41,7 +41,6 @@ URL_REGEX = re.compile(
     # resource path
     u"(?:/\S*)?",
     re.UNICODE)
-"""^every ?((day|month)|((two weeks|week)( on (monday|tuesday|wednesday|thursday|friday|saturday|sunday))?))"""
 logger = logging.getLogger(__name__)
 
 
@@ -54,9 +53,19 @@ class RequirementsBundle(list):
     def has_file_in_path(self, path):
         return path in [req_file.path for req_file in self]
 
-    def get_updates(self, initial, config):
-        return self.get_initial_update_class()(self, config).get_updates() if initial \
-            else self.get_sequential_update_class()(self, config).get_updates()
+    def get_updates(self, initial, scheduled, config):
+        return self.get_update_class(
+            initial=initial,
+            scheduled=scheduled,
+            config=config
+        )(self, config).get_updates()
+
+    def get_update_class(self, initial, scheduled, config):
+        if initial:
+            return self.get_initial_update_class()
+        elif scheduled and config.is_valid_schedule():
+            return self.get_scheduled_update_class()
+        return self.get_sequential_update_class()
 
     @property
     def requirements(self):
@@ -75,6 +84,9 @@ class RequirementsBundle(list):
 
     def get_initial_update_class(self):  # pragma: no cover
         return InitialUpdate
+
+    def get_scheduled_update_class(self):  # pragma: no cover
+        return ScheduledUpdate
 
     def get_sequential_update_class(self):  # pragma: no cover
         return SequentialUpdate

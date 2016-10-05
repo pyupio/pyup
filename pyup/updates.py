@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, print_function, unicode_literals
 from collections import namedtuple
+from datetime import datetime
+from .errors import UnsupportedScheduleError
 
 
 class Update(dict):
@@ -55,7 +57,8 @@ class Update(dict):
         return RequirementUpdate
 
 
-class InitialUpdate(Update):
+class BundledUpdate(Update):
+
     def get_updates(self):
         if self:
             yield (
@@ -63,10 +66,54 @@ class InitialUpdate(Update):
                 self.get_body([update for updates in self.values() for update in updates
                                if
                                self.should_update(update.requirement, update.requirement_file)]),
-                "pyup-initial-update",
+                self.get_branch(),
                 [update for updates in self.values() for update in updates if
                  self.should_update(update.requirement, update.requirement_file)]
             )
+
+    @classmethod
+    def get_branch(cls):  # pragma: no cover
+        raise NotImplementedError
+
+    @classmethod
+    def get_body(cls, updates):  # pragma: no cover
+        raise NotImplementedError
+
+    @classmethod
+    def get_empty_update_body(cls):  # pragma: no cover
+        raise NotImplementedError
+
+    @classmethod
+    def get_title(cls):  # pragma: no cover
+        raise NotImplementedError
+
+
+class ScheduledUpdate(BundledUpdate):
+
+    @classmethod
+    def get_body(cls, updates):
+        return ""
+
+    def get_title(self):
+        now = datetime.now()
+
+        if "every day" in self.config.schedule:
+            return "Scheduled daily dependency update on {}".format(now.strftime("%A").lower())
+        elif "every week" in self.config.schedule:
+            return "Scheduled weekly dependency update for week {}".format(now.strftime("%U"))
+        elif "every two weeks" in self.config.schedule:
+            return "Scheduled biweekly dependency update for week {}".format(now.strftime("%U"))
+        elif "every month" in self.config.schedule:
+            return "Scheduled monthly dependency update for {}".format(now.strftime("%B"))
+        raise UnsupportedScheduleError("Unsupported schedule {}".format(self.config.schedule))
+
+    def get_branch(self):
+        return "pyup-scheduled-update-{dt}".format(
+            dt=datetime.now().strftime("%m-%d-%Y")
+        )
+
+
+class InitialUpdate(BundledUpdate):
 
     @classmethod
     def get_body(cls, updates):
@@ -80,6 +127,10 @@ class InitialUpdate(Update):
     @classmethod
     def get_title(cls):
         return "Initial Update"
+
+    @classmethod
+    def get_branch(cls):
+        return "pyup-initial-update"
 
 
 RequirementUpdate = namedtuple(

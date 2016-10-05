@@ -4,6 +4,14 @@ from __future__ import absolute_import, print_function, unicode_literals
 
 class PullRequest(object):
 
+    UPDATE_TYPE = "update"
+    SECURITY_TYPE = "security"
+    PIN_TYPE = "pin"
+    INITIAL_TYPE = "initial"
+    COMPILE_TYPE = "compile"
+    SCHEDULED_TYPE = "scheduled"
+    UNKNOWN_TYPE = "unknown"
+
     def __init__(self, state, title, url, created_at, number=None, issue=False):
         self.state = state
         self.title = title
@@ -18,16 +26,42 @@ class PullRequest(object):
     @property
     def type(self):
         if self.title.startswith("Update"):
-            return "update"
+            return PullRequest.UPDATE_TYPE
         elif self.title.startswith("Security"):
-            return "security"
+            return PullRequest.SECURITY_TYPE
         elif self.title.startswith("Pin"):
-            return "pin"
+            return PullRequest.PIN_TYPE
         elif self.title.startswith("Initial"):
-            return "initial"
+            return PullRequest.INITIAL_TYPE
         elif self.title.startswith("Compile"):
-            return "compile"
-        return "unknown"
+            return PullRequest.COMPILE_TYPE
+        elif self.title.startswith("Scheduled"):
+            return PullRequest.SCHEDULED_TYPE
+        return PullRequest.UNKNOWN_TYPE
+
+    @property
+    def is_update(self):
+        return self.type == self.UPDATE_TYPE
+
+    @property
+    def is_security(self):
+        return self.type == self.SECURITY_TYPE
+
+    @property
+    def is_pin(self):
+        return self.type == self.PIN_TYPE
+
+    @property
+    def is_initial(self):
+        return self.type == self.INITIAL_TYPE
+
+    @property
+    def is_compile(self):
+        return self.type == self.COMPILE_TYPE
+
+    @property
+    def is_scheduled(self):
+        return self.type == self.SCHEDULED_TYPE
 
     @property
     def is_open(self):

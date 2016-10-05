@@ -18,26 +18,37 @@ class PullRequestTypeTest(TestCase):
     def test_update(self):
         pr = pullrequest_factory(title="Update this and that")
         self.assertEqual(pr.type, "update")
+        self.assertTrue(pr.is_update)
 
     def test_security(self):
         pr = pullrequest_factory(title="Security is not provided here")
         self.assertEqual(pr.type, "security")
+        self.assertTrue(pr.is_security)
 
     def test_pin(self):
         pr = pullrequest_factory(title="Pin this on thta")
         self.assertEqual(pr.type, "pin")
+        self.assertTrue(pr.is_pin)
 
     def test_initial(self):
         pr = pullrequest_factory(title="Initial Update")
         self.assertEqual(pr.type, "initial")
+        self.assertTrue(pr.is_initial)
 
     def test_unknown(self):
         pr = pullrequest_factory(title="Foo")
         self.assertEqual(pr.type, "unknown")
+        #self.assertTrue(pr.is_scheduled)
 
     def test_compile(self):
         pr = pullrequest_factory(title="Compile foo.txt")
         self.assertEqual(pr.type, "compile")
+        self.assertTrue(pr.is_compile)
+
+    def test_scheduled(self):
+        pr = pullrequest_factory(title="Scheduled foo in bar")
+        self.assertEqual(pr.type, "scheduled")
+        self.assertTrue(pr.is_scheduled)
 
 
 class PullRequestEQTest(TestCase):

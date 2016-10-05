@@ -92,7 +92,7 @@ class ProviderTest(TestCase):
         req = self.provider.get_requirement_file(self.repo, "path", "branch")
         self.assertIsNotNone(req)
         self.provider.bundle.get_requirement_file_class.assert_called_once_with()
-        self.provider.bundle.get_requirement_file_class().assert_called_once()
+        self.assertEquals(self.provider.bundle.get_requirement_file_class().call_count, 1)
 
         self.provider.get_file = Mock(return_value = (None, None))
         req = self.provider.get_requirement_file(self.repo, "path", "branch")
@@ -132,7 +132,7 @@ class ProviderTest(TestCase):
         self.repo.update_file.return_value = {"commit": Mock(), "content": Mock()}
         self.provider.get_committer_data = Mock(return_value = "foo@bar.com")
         self.provider.create_commit("path", "branch", "commit", "content", "sha", self.repo, "com")
-        self.repo.update_file.assert_called_once()
+        self.assertEquals(self.repo.update_file.call_count, 1)
 
         self.repo.update_file.side_effect = GithubException(data="", status=1)
         with self.assertRaises(GithubException):
@@ -184,7 +184,7 @@ class ProviderTest(TestCase):
 
         pr.head.ref = "pyup-bla"
         self.provider.close_pull_request(self.repo, self.repo, pr, "comment")
-        self.repo.get_git_ref().delete.assert_called_once()
+        self.assertEquals(self.repo.get_git_ref().delete.call_count, 1)
 
         self.repo.get_pull.side_effect = UnknownObjectException(data="", status=1)
         data = self.provider.close_pull_request(self.repo, self.repo, Mock(), "comment")
@@ -193,8 +193,8 @@ class ProviderTest(TestCase):
 
     def test_create_pull_request(self):
         self.provider.create_pull_request(self.repo, "title", "body", "master", "new", False)
-        self.provider.bundle.get_pull_request_class.assert_called_once()
-        self.provider.bundle.get_pull_request_class().assert_called_once()
+        self.assertEquals(self.provider.bundle.get_pull_request_class.call_count, 1)
+        self.assertEquals(self.provider.bundle.get_pull_request_class().call_count, 1)
 
         self.repo.create_pull.side_effect = GithubException(data="", status=1)
         with self.assertRaises(errors.NoPermissionError):
@@ -202,8 +202,8 @@ class ProviderTest(TestCase):
 
     def test_create_pull_request_with_label(self):
         self.provider.create_pull_request(self.repo, "title", "body", "master", "new", "some-label")
-        self.provider.bundle.get_pull_request_class.assert_called_once()
-        self.provider.bundle.get_pull_request_class().assert_called_once()
+        self.assertEquals(self.provider.bundle.get_pull_request_class.call_count, 1)
+        self.assertEquals(self.provider.bundle.get_pull_request_class().call_count, 1)
 
     def test_create_issue(self):
         self.assertIsNot(self.provider.create_issue(self.repo, "title", "body"), False)

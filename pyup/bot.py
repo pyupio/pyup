@@ -79,6 +79,7 @@ class Bot(object):
         repo_config = self.get_repo_config(repo=self.user_repo)
         if repo_config:
             self.config.update(repo_config)
+        logger.info("Runtime config is: {}".format(self.config))
 
     def update(self, **kwargs):
         """
@@ -90,11 +91,22 @@ class Bot(object):
         self.get_all_requirements()
         self.apply_updates(
             initial=kwargs.get("initial", False),
+            scheduled=kwargs.get("scheduled", False)
         )
 
         return self.req_bundle
 
-    def apply_updates(self, initial):
+    def can_pull(self, scheduled):
+        """
+        Determines if pull requests should be created
+        :return: bool
+        """
+        if self.config.is_valid_schedule():
+            # if the config has a valid schedule, return True if this is a scheduled run
+            return scheduled
+        return True
+
+    def apply_updates(self, initial, scheduled):
 
         InitialUpdateClass = self.req_bundle.get_initial_update_class()
 
@@ -102,7 +114,7 @@ class Bot(object):
             # get the list of pending updates
             try:
                 _, _, _, updates = list(
-                    self.req_bundle.get_updates(initial=initial, config=self.config)
+                    self.iter_updates(initial, scheduled)
                 )[0]
             except IndexError:
                 # need to catch the index error here in case the intial update is completely
@@ -128,10 +140,10 @@ class Bot(object):
         )
 
         # todo: This block needs to be refactored
-        for title, body, update_branch, updates in self.iter_updates(initial):
+        for title, body, update_branch, updates in self.iter_updates(initial, scheduled):
             if initial_pr:
                 pull_request = initial_pr
-            elif title not in [pr.title for pr in self.pull_requests]:
+            elif self.can_pull(scheduled) and title not in [pr.title for pr in self.pull_requests]:
                 pull_request = self.commit_and_pull(
                     initial=initial,
                     base_branch=self.config.branch,
@@ -144,12 +156,20 @@ class Bot(object):
             else:
                 pull_request = next((pr for pr in self.pull_requests if pr.title == title), None)
 
+            logger.info("Have updates {} and pr {}".format(updates, pull_request))
             for update in updates:
                 update.requirement.pull_request = pull_request
                 if self.config.close_prs and pull_request and not initial:
-                    self.close_stale_prs(update=update, pull_request=pull_request)
+                    self.close_stale_prs(
+                        update=update,
+                        pull_request=pull_request,
+                        scheduled=scheduled
+                    )
+                    # if this is a scheduled update, break since it's bundled
+                    if pull_request.is_scheduled:
+                        break
 
-    def close_stale_prs(self, update, pull_request):
+    def close_stale_prs(self, update, pull_request, scheduled):
         """
         Closes stale pull requests for the given update, links to the new pull request and deletes
         the stale branch.
@@ -161,31 +181,56 @@ class Bot(object):
         :param pull_request:
         """
         logger.info("Preparing to close stale PRs for {}".format(pull_request.title))
-        if self.bot_token and pull_request.type != "initial":
+        if self.bot_token and not pull_request.is_initial:
             for pr in self.pull_requests:
+                close_pr = False
                 logger.info("Checking PR {}".format(pr.title))
-                # check that, the pr is an update, is open, the titles are not equal and that
-                # the requirement matches
-                if pr.type == "update" and \
-                    pr.is_open and \
-                        pr.title != pull_request.title and \
-                        pr.requirement == update.requirement.key:
-                    # there's a possible race condition where multiple updates with more than one
-                    # target version conflict with each other (closing each others PRs). Check
-                    # that's not the case here
-                    if not self.has_conflicting_update(update):
-                        committer = self.provider.get_pull_request_committer(
-                            self.user_repo, pr)
-                        # check that there's exactly one committer in this PRs commit history and
-                        # that the committer is the bot
-                        if len(committer) == 1 and \
-                                self.provider.is_same_user(self.bot, committer[0]):
-                            self.provider.close_pull_request(
-                                bot_repo=self.bot_repo,
-                                user_repo=self.user_repo,
-                                pull_request=pr,
-                                comment="Closing this in favor of #{}".format(pull_request.number)
-                            )
+                if scheduled and pull_request.is_scheduled:
+                    # check that the PR is open and the title does not match
+                    if pr.is_open and pr.title != pull_request.title:
+                        # we want to close the previous scheduled PR if it is not merged yet
+                        # and we want to close all previous updates if the user choose to
+                        # switch to a scheduled update
+                        if pr.is_scheduled or pr.is_update:
+                            close_pr = True
+                elif pull_request.is_update:
+                    # check that, the pr is an update, is open, the titles are not equal and that
+                    # the requirement matches
+                    if pr.is_update and \
+                            pr.is_open and \
+                            pr.title != pull_request.title and \
+                            pr.requirement == update.requirement.key:
+                        # there's a possible race condition where multiple updates with more than
+                        # one target version conflict with each other (closing each others PRs).
+                        # Check that's not the case here
+                        if not self.has_conflicting_update(update):
+                            close_pr = True
+
+                if close_pr and self.is_bot_the_only_committer(pr=pr):
+                    self.provider.close_pull_request(
+                        bot_repo=self.bot_repo,
+                        user_repo=self.user_repo,
+                        pull_request=pr,
+                        comment="Closing this in favor of #{}".format(
+                            pull_request.number)
+                    )
+
+    def is_bot_the_only_committer(self, pr):
+        """
+        Checks if the bot is the only committer for the given pull request.
+        :param update: Update to check
+        :return: bool - True if conflict found
+        """
+        logger.info("check if bot is only committer")
+        committer = self.provider.get_pull_request_committer(
+            self.user_repo,
+            pr)
+        # flatten the list and remove duplicates
+        committer_set = set([c.login for c in committer])
+        # check that there's exactly one committer in this PRs commit history and
+        # that the committer is the bot
+        return len(committer_set) == 1 and \
+            self.provider.is_same_user(self.bot, committer[0])
 
     def has_conflicting_update(self, update):
         """
@@ -194,7 +239,9 @@ class Bot(object):
         :param update: Update to check
         :return: bool - True if conflict found
         """
-        for _, _, _, updates in self.iter_updates(initial=False):
+        # we explicitly want a flat list of updates here, that's why we call iter_updates
+        # with both `initial` and `scheduled` == False
+        for _, _, _, updates in self.iter_updates(initial=False, scheduled=False):
             for _update in updates:
                 if (update.requirement.key == _update.requirement.key and
                     (update.commit_message != _update.commit_message or
@@ -317,8 +364,12 @@ class Bot(object):
     def iter_git_tree(self, branch):
         return self.provider.iter_git_tree(branch=branch, repo=self.user_repo)
 
-    def iter_updates(self, initial):
-        return self.req_bundle.get_updates(initial=initial, config=self.config)
+    def iter_updates(self, initial, scheduled):
+        return self.req_bundle.get_updates(
+            initial=initial,
+            scheduled=scheduled,
+            config=self.config
+        )
 
     def iter_changes(self, initial, updates):
         return iter(updates)

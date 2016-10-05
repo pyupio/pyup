@@ -18,6 +18,7 @@ SCHEDULE_REGEX = re.compile(
     "( on (monday|tuesday|wednesday|thursday|friday|saturday|sunday))?"
 )
 
+
 class Config(object):
 
     def __init__(self):

@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, print_function, unicode_literals
-from pyup.updates import Update, RequirementUpdate, InitialUpdate, SequentialUpdate
+from pyup.updates import Update, RequirementUpdate, InitialUpdate, SequentialUpdate, ScheduledUpdate
 from unittest import TestCase
 from pyup.requirements import RequirementFile
+from pyup.errors import UnsupportedScheduleError
 from mock import Mock, patch
+from datetime import datetime
 
 
 class UpdateBaseTest(TestCase):
@@ -170,3 +172,67 @@ class InitialUpdateTestGetUpdates(UpdateBaseTest):
 
         updates = [u for u in update.get_updates()]
         self.assertEqual(len(updates), 1)
+
+
+class ScheduledUpdateBaseTest(UpdateBaseTest):
+
+    def setUp(self):
+        super(ScheduledUpdateBaseTest, self).setUp()
+        self.config.is_valid_schedule = True
+        self.config.schedule = "every day on monday"
+        self.update = ScheduledUpdate([], self.config)
+
+
+class ScheduledUpdateTest(ScheduledUpdateBaseTest):
+
+    @patch("pyup.updates.datetime")
+    def test_title_every_day(self, dt):
+        dt.now.return_value = datetime(2016, 9, 13, 9, 21, 42, 702067)
+        self.config.schedule = "every day"
+        self.assertEquals(
+            self.update.get_title(),
+            "Scheduled daily dependency update on tuesday"
+        )
+
+    @patch("pyup.updates.datetime")
+    def test_title_every_week(self, dt):
+        dt.now.return_value = datetime(2016, 9, 16, 9, 21, 42, 702067)
+        self.config.schedule = "every week on wednesday"
+        self.assertEquals(
+            self.update.get_title(),
+            "Scheduled weekly dependency update for week 37"
+        )
+
+    @patch("pyup.updates.datetime")
+    def test_title_every_two_weeks(self, dt):
+        dt.now.return_value = datetime(2016, 9, 18, 9, 21, 42, 702067)
+        self.config.schedule = "every two weeks on sunday"
+        self.assertEquals(
+            self.update.get_title(),
+            "Scheduled biweekly dependency update for week 38"
+        )
+
+    @patch("pyup.updates.datetime")
+    def test_title_every_month(self, dt):
+        dt.now.return_value = datetime(2016, 12, 13, 9, 21, 42, 702067)
+        self.config.schedule = "every month"
+        self.assertEquals(
+            self.update.get_title(),
+            "Scheduled monthly dependency update for December"
+        )
+
+    def test_title_unsupported_schedule(self):
+        with self.assertRaises(UnsupportedScheduleError):
+            self.config.schedule = "uhm, what?"
+            self.update.get_title()
+
+    @patch("pyup.updates.datetime")
+    def test_get_branch(self, dt):
+        dt.now.return_value = datetime(2016, 12, 13, 9, 21, 42, 702067)
+        self.assertEquals(
+            self.update.get_branch(),
+            "pyup-scheduled-update-12-13-2016"
+        )
+
+    def test_get_body(self):
+        self.assertEquals("", self.update.get_body([]))

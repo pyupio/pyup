@@ -9,3 +9,7 @@ class NoPermissionError(Exception):  # pragma: no cover
 
 class RepoDoesNotExistError(Exception):  # pragma: no cover
     pass
+
+
+class UnsupportedScheduleError(Exception):  # pragma: no cover
+    pass

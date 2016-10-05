@@ -70,7 +70,7 @@ class BotPullRequestsTest(TestCase):
         bot._fetched_prs = False
         bot.provider.iter_issues = Mock(return_value=[])
         bot.pull_requests
-        bot.provider.iter_issues.assert_called_once()
+        self.assertEquals(bot.provider.iter_issues.call_count, 1)
 
 
 class BotRepoConfigTest(TestCase):
@@ -139,7 +139,7 @@ class BotApplyUpdateTest(TestCase):
         )
         bot.req_bundle.get_updates.return_value = [
             ("The PR", "", "", [update])]
-        bot.apply_updates(True)
+        bot.apply_updates(initial=True, scheduled=False)
 
         self.assertEqual(the_requirement.pull_request, the_pull)
 
@@ -147,7 +147,7 @@ class BotApplyUpdateTest(TestCase):
         bot = bot_factory()
         bot.create_issue = Mock()
         bot.req_bundle.get_updates = Mock(side_effect=IndexError)
-        bot.apply_updates(initial=True)
+        bot.apply_updates(initial=True, scheduled=False)
         bot.create_issue.assert_called_once_with(
             title=InitialUpdate.get_title(),
             body=InitialUpdate.get_empty_update_body()
@@ -165,7 +165,7 @@ class BotApplyUpdateTest(TestCase):
         bot.req_bundle.get_updates.return_value = [("The PR", "", "", [update])]
         bot.commit_and_pull = Mock()
         bot.commit_and_pull.return_value = the_pull
-        bot.apply_updates(True)
+        bot.apply_updates(initial=True, scheduled=False)
 
         self.assertEqual(the_requirement.pull_request, the_pull)
 
@@ -181,17 +181,36 @@ class BotApplyUpdateTest(TestCase):
         bot.req_bundle.get_updates.return_value = [("The PR", "", "", [update])]
         bot.commit_and_pull = Mock()
         bot.commit_and_pull.return_value = the_pull
-        bot.apply_updates(False)
+        bot.apply_updates(initial=False, scheduled=False)
 
         self.assertEqual(the_requirement.pull_request, the_pull)
-        bot.close_stale_prs.assert_called_once_with(update=update, pull_request=the_pull)
+        bot.close_stale_prs.assert_called_once_with(update=update, pull_request=the_pull,
+                                                    scheduled=False)
+
+    def test_close_stall_prs_called_only_once_on_scheduled_run(self):
+        the_requirement = Mock()
+        the_pull = pullrequest_factory("Scheduled")
+        bot = bot_factory(prs=[])
+        bot.close_stale_prs = Mock()
+        bot.req_bundle.get_updates = Mock()
+        update = RequirementUpdate(
+            requirement_file="foo", requirement=the_requirement, commit_message="foo"
+        )
+        bot.req_bundle.get_updates.return_value = [("The PR", "", "", [update, update])]
+        bot.commit_and_pull = Mock()
+        bot.commit_and_pull.return_value = the_pull
+        bot.apply_updates(initial=False, scheduled=True)
+
+        self.assertEqual(the_requirement.pull_request, the_pull)
+        bot.close_stale_prs.assert_called_once_with(update=update, pull_request=the_pull,
+                                                    scheduled=True)
 
     def test_apply_update_initial_empty(self):
         bot = bot_factory()
         bot.req_bundle.get_updates = Mock()
         bot.req_bundle.get_updates.return_value = [("", "", "", [])]
         bot.provider.create_issue.return_value = None
-        bot.apply_updates(initial=True)
+        bot.apply_updates(initial=True, scheduled=False)
 
         create_issue_args_list = bot.provider.create_issue.call_args_list
         self.assertEqual(len(create_issue_args_list), 1)
@@ -217,7 +236,7 @@ class BotApplyUpdateTest(TestCase):
         bot.req_bundle.get_updates = Mock()
         bot.req_bundle.get_updates.return_value = [("The PR", "", "", [update])]
 
-        bot.apply_updates(initial=True)
+        bot.apply_updates(initial=True, scheduled=False)
 
         self.assertEqual(bot.provider.create_pull_request.called, False)
 
@@ -300,8 +319,8 @@ class CreateBranchTest(TestCase):
         bot.provider.is_empty_branch.return_value = True
         bot.create_branch("master", "new-branch", delete_empty=True)
 
-        bot.provider.is_empty_branch.assert_called_once()
-        bot.provider.delete_branch.assert_called_once()
+        self.assertEquals(bot.provider.is_empty_branch.call_count, 1)
+        self.assertEquals(bot.provider.delete_branch.call_count, 1)
         self.assertEqual(len(bot.provider.create_branch.mock_calls), 2)
 
     def test_branch_not_empty(self):
@@ -311,7 +330,7 @@ class CreateBranchTest(TestCase):
         bot.provider.is_empty_branch.return_value = False
         bot.create_branch("master", "new-branch", delete_empty=True)
 
-        bot.provider.is_empty_branch.assert_called_once()
+        self.assertEquals(bot.provider.is_empty_branch.call_count, 1)
         bot.provider.delete_branch.assert_not_called()
         self.assertEqual(len(bot.provider.create_branch.mock_calls), 1)
 
@@ -433,6 +452,28 @@ class BotAddRequirementFileTest(TestCase):
         self.assertEqual(bot.req_bundle.append.called, True)
 
 
+class BotCanPullTest(TestCase):
+
+    def test_valid_schedule_but_unscheduled_run(self):
+        bot = bot_factory(bot_token=None)
+        bot.config.is_valid_schedule = Mock()
+        bot.config.is_valid_schedule.return_value = True
+        self.assertFalse(bot.can_pull(False))
+
+    def test_valid_schedule_and_scheduled_run(self):
+        bot = bot_factory(bot_token=None)
+        bot.config.is_valid_schedule = Mock()
+        bot.config.is_valid_schedule.return_value = True
+        self.assertTrue(bot.can_pull(True))
+
+    def test_no_schedule(self):
+        bot = bot_factory(bot_token=None)
+        bot.config.is_valid_schedule = Mock()
+        bot.config.is_valid_schedule.return_value = False
+        self.assertTrue(bot.can_pull(False))
+        self.assertTrue(bot.can_pull(True))
+
+
 class BotCreatePullRequestTest(TestCase):
 
     def test_plain(self):
@@ -523,6 +564,9 @@ class CloseStalePRsTestCase(TestCase):
         self.pr = Mock()
         self.pr.title = "First PR"
         self.pr.number = 100
+        self.pr.type = "update"
+        self.pr.is_update = True
+        self.pr.is_initial = False
 
         self.update = Mock()
         self.update.requirement.key = "some-req"
@@ -532,18 +576,44 @@ class CloseStalePRsTestCase(TestCase):
         self.other_pr.is_open = True
         self.other_pr.title = "Second PR"
         self.other_pr.requirement = "some-req"
+        self.other_pr.is_update = True
+        self.other_pr.is_initial = False
+
+    def test_scheduled_closing_scheduled(self):
+        self.pr.is_scheduled = True
+        self.other_pr.is_scheduled = True
+        bot = bot_factory(bot_token="foo", prs=[self.other_pr])
+        commiter = Mock()
+        bot.provider.get_pull_request_committer.return_value = [commiter]
+
+        bot.close_stale_prs(self.update, self.pr, True)
+
+        bot.provider.get_pull_request_committer.assert_called_once_with(bot.user_repo,
+                                                                        self.other_pr)
+
+    def test_scheduled_closing_update(self):
+        self.pr.is_scheduled = True
+        bot = bot_factory(bot_token="foo", prs=[self.other_pr])
+        commiter = Mock()
+        bot.provider.get_pull_request_committer.return_value = [commiter]
+
+        bot.close_stale_prs(self.update, self.pr, True)
+
+        bot.provider.get_pull_request_committer.assert_called_once_with(bot.user_repo,
+                                                                        self.other_pr)
+
 
     def test_no_bot_token(self):
         bot = bot_factory()
+        self.pr.type = Mock()
+        bot.close_stale_prs(self.update, self.pr, False)
 
-        bot.close_stale_prs(self.update, self.pr)
-
-        self.pr.type.assert_not_called()
+        self.assertEquals(self.pr.type.call_count, 0)
 
     def test_no_pull_requests(self):
         bot = bot_factory(bot_token="foo")
 
-        bot.close_stale_prs(self.update, self.pr)
+        bot.close_stale_prs(self.update, self.pr, False)
 
         bot.provider.get_pull_request_committer.assert_not_called()
 
@@ -552,7 +622,7 @@ class CloseStalePRsTestCase(TestCase):
         commiter = Mock()
         bot.provider.get_pull_request_committer.return_value = [commiter]
 
-        bot.close_stale_prs(self.update, self.pr)
+        bot.close_stale_prs(self.update, self.pr, False)
 
         bot.provider.get_pull_request_committer.assert_called_once_with(bot.user_repo, self.other_pr)
         bot.provider.close_pull_request.assert_called_once_with(
@@ -564,11 +634,11 @@ class CloseStalePRsTestCase(TestCase):
 
     def test_wrong_pr_type(self):
         bot = bot_factory(bot_token="foo", prs=[self.other_pr])
-        self.other_pr.type = "foo"
+        self.other_pr.is_update = False
         commiter = Mock()
         bot.provider.get_pull_request_committer.return_value = [commiter]
 
-        bot.close_stale_prs(self.update, self.pr)
+        bot.close_stale_prs(self.update, self.pr, False)
 
         bot.provider.get_pull_request_committer.assert_not_called()
         bot.provider.close_pull_request.assert_not_called()
@@ -579,7 +649,7 @@ class CloseStalePRsTestCase(TestCase):
         commiter = Mock()
         bot.provider.get_pull_request_committer.return_value = [commiter]
 
-        bot.close_stale_prs(self.update, self.pr)
+        bot.close_stale_prs(self.update, self.pr, False)
 
         bot.provider.get_pull_request_committer.assert_not_called()
         bot.provider.close_pull_request.assert_not_called()
@@ -590,7 +660,7 @@ class CloseStalePRsTestCase(TestCase):
         commiter = Mock()
         bot.provider.get_pull_request_committer.return_value = [commiter]
 
-        bot.close_stale_prs(self.update, self.pr)
+        bot.close_stale_prs(self.update, self.pr, False)
 
         bot.provider.get_pull_request_committer.assert_not_called()
         bot.provider.close_pull_request.assert_not_called()
@@ -601,17 +671,17 @@ class CloseStalePRsTestCase(TestCase):
         commiter = Mock()
         bot.provider.get_pull_request_committer.return_value = [commiter]
 
-        bot.close_stale_prs(self.update, self.pr)
+        bot.close_stale_prs(self.update, self.pr, False)
 
         bot.provider.get_pull_request_committer.assert_not_called()
         bot.provider.close_pull_request.assert_not_called()
 
     def test_more_than_one_committer(self):
         bot = bot_factory(bot_token="foo", prs=[self.other_pr])
-        commiter = Mock()
-        bot.provider.get_pull_request_committer.return_value = [commiter, commiter]
+        commiter, commiter1 = Mock(), Mock()
+        bot.provider.get_pull_request_committer.return_value = [commiter, commiter1]
 
-        bot.close_stale_prs(self.update, self.pr)
+        bot.close_stale_prs(self.update, self.pr, False)
 
         bot.provider.get_pull_request_committer.assert_called_once_with(bot.user_repo, self.other_pr)
         bot.provider.close_pull_request.assert_not_called()
@@ -622,7 +692,7 @@ class CloseStalePRsTestCase(TestCase):
         bot.provider.get_pull_request_committer.return_value = [commiter]
         bot.provider.is_same_user.return_value = False
 
-        bot.close_stale_prs(self.update, self.pr)
+        bot.close_stale_prs(self.update, self.pr, False)
 
         bot.provider.get_pull_request_committer.assert_called_once_with(bot.user_repo, self.other_pr)
         bot.provider.close_pull_request.assert_not_called()
