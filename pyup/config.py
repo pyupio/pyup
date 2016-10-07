@@ -29,6 +29,7 @@ class Config(object):
         self.requirements = []
         self.label_prs = False
         self.schedule = ""
+        self.assignees = []
 
     def update(self, d):
         for key, value in d.items():
@@ -49,6 +50,11 @@ class Config(object):
                         if req.compile:
                             for spec in req.compile.specs:
                                 value.append(RequirementConfig(path=spec, pin=False))
+                elif key == "assignees":
+                    # assignees can be a string or a list. If it's a string, convert it to a list
+                    # to make things consistent
+                    if isinstance(value, basestring):
+                        value = [value, ]
                 setattr(self, key, value)
 
     def pin_file(self, path):

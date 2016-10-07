@@ -18,6 +18,7 @@ class ConfigTestCase(TestCase):
         self.assertEqual(config.search, True)
         self.assertEqual(config.requirements, [])
         self.assertEqual(config.schedule, "")
+        self.assertEqual(config.assignees, [])
 
     def test_pin_file(self):
         config = Config()
@@ -91,7 +92,15 @@ class ConfigTestCase(TestCase):
             config.schedule = sched
             self.assertFalse(config.is_valid_schedule())
 
+    def test_assignees(self):
+        config = Config()
+        self.assertEqual(config.assignees, [])
 
+        config.update({"assignees": "jay"})
+        self.assertEqual(config.assignees, ["jay"])
+
+        config.update({"assignees": ["jay", "bla"]})
+        self.assertEqual(config.assignees, ["jay", "bla"])
 
 class RequirementConfigTestCase(TestCase):
 

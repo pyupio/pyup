@@ -151,7 +151,8 @@ class Bot(object):
                     title=title,
                     body=body,
                     updates=updates,
-                    pr_label=self.config.label_prs
+                    pr_label=self.config.label_prs,
+                    assignees=self.config.assignees
                 )
             else:
                 pull_request = next((pr for pr in self.pull_requests if pr.title == title), None)
@@ -285,7 +286,8 @@ class Bot(object):
                 logger.info("Branch {} is not empty".format(new_branch))
         return False
 
-    def commit_and_pull(self, initial, base_branch, new_branch, title, body, updates, pr_label):
+    def commit_and_pull(self, initial, base_branch, new_branch, title, body, updates, pr_label,
+                        assignees):
         logger.info("Preparing commit {}".format(title))
         if self.create_branch(base_branch, new_branch, delete_empty=False):
             updated_files = {}
@@ -321,7 +323,8 @@ class Bot(object):
                     body=body,
                     base_branch=base_branch,
                     new_branch=new_branch,
-                    pr_label=pr_label
+                    pr_label=pr_label,
+                    assignees=assignees
                 )
                 self.pull_requests.append(pr)
                 return pr
@@ -334,7 +337,7 @@ class Bot(object):
             body=body,
         )
 
-    def create_pull_request(self, title, body, base_branch, new_branch, pr_label):
+    def create_pull_request(self, title, body, base_branch, new_branch, pr_label, assignees):
 
         # if we have a bot user that creates the PR, we might run into problems on private
         # repos because the bot has to be a collaborator. We try to submit the PR before checking
@@ -347,7 +350,8 @@ class Bot(object):
                     body=body,
                     base_branch=base_branch,
                     new_branch=new_branch,
-                    pr_label=pr_label
+                    pr_label=pr_label,
+                    assignees=assignees
                 )
             except NoPermissionError:
                 self.provider.get_pull_request_permissions(self.bot, self.user_repo)
@@ -358,7 +362,8 @@ class Bot(object):
             body=body,
             base_branch=base_branch,
             new_branch=new_branch,
-            pr_label=pr_label
+            pr_label=pr_label,
+            assignees=assignees
         )
 
     def iter_git_tree(self, branch):

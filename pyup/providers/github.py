@@ -185,7 +185,7 @@ class Provider(object):
         except UnknownObjectException:
             return False
 
-    def create_pull_request(self, repo, title, body, base_branch, new_branch, pr_label):
+    def create_pull_request(self, repo, title, body, base_branch, new_branch, pr_label, assignees):
         try:
             pr = repo.create_pull(
                 title=title,
@@ -193,13 +193,17 @@ class Provider(object):
                 base=base_branch,
                 head=new_branch
             )
-            if pr_label:
-                label = self.get_or_create_label(repo=repo, name=pr_label)
-                if label:
-                    # we have to convert the PR to an issue internally because PRs don't
-                    # support labels
-                    issue = repo.get_issue(number=pr.number)
-                    issue.add_to_labels(label)
+            if pr_label or assignees:
+                # we have to convert the PR to an issue internally because PRs don't
+                # support labels or assignees
+                issue = repo.get_issue(number=pr.number)
+
+                if pr_label:
+                    label = self.get_or_create_label(repo=repo, name=pr_label)
+                    if label:
+                        issue.add_to_labels(label)
+                if assignees:
+                    issue.edit(assignees=assignees)
 
             return self.bundle.get_pull_request_class()(
                 state=pr.state,

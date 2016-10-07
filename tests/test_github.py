@@ -192,18 +192,26 @@ class ProviderTest(TestCase):
 
 
     def test_create_pull_request(self):
-        self.provider.create_pull_request(self.repo, "title", "body", "master", "new", False)
+        self.provider.create_pull_request(self.repo, "title", "body", "master", "new", False, [])
         self.assertEquals(self.provider.bundle.get_pull_request_class.call_count, 1)
         self.assertEquals(self.provider.bundle.get_pull_request_class().call_count, 1)
 
         self.repo.create_pull.side_effect = GithubException(data="", status=1)
         with self.assertRaises(errors.NoPermissionError):
-            self.provider.create_pull_request(self.repo, "title", "body", "master", "new", False)
+            self.provider.create_pull_request(self.repo, "title", "body", "master", "new", False, [])
 
     def test_create_pull_request_with_label(self):
-        self.provider.create_pull_request(self.repo, "title", "body", "master", "new", "some-label")
+        self.provider.create_pull_request(self.repo, "title", "body", "master", "new", "some-label", [])
         self.assertEquals(self.provider.bundle.get_pull_request_class.call_count, 1)
         self.assertEquals(self.provider.bundle.get_pull_request_class().call_count, 1)
+
+    def test_create_pull_request_with_assignees(self):
+        self.provider.create_pull_request(self.repo, "title", "body", "master", "new",
+                                          None, ["some-assignee"])
+        self.assertEquals(self.provider.bundle.get_pull_request_class.call_count, 1)
+        self.assertEquals(self.provider.bundle.get_pull_request_class().call_count, 1)
+        self.assertEquals(self.repo.get_issue.call_count, 1)
+        self.assertEquals(self.repo.get_issue().edit.call_count, 1)
 
     def test_create_issue(self):
         self.assertIsNot(self.provider.create_issue(self.repo, "title", "body"), False)
