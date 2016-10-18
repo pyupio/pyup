@@ -55,6 +55,9 @@ class Config(object):
                     # to make things consistent
                     if isinstance(value, basestring):
                         value = [value, ]
+                # cast ints and floats to str
+                if isinstance(value, (int, float)):
+                    value = str(value)
                 setattr(self, key, value)
 
     def pin_file(self, path):

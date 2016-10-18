@@ -102,6 +102,7 @@ class ConfigTestCase(TestCase):
         config.update({"assignees": ["jay", "bla"]})
         self.assertEqual(config.assignees, ["jay", "bla"])
 
+
 class RequirementConfigTestCase(TestCase):
 
     def test_repr(self):

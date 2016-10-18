@@ -108,6 +108,13 @@ class BotConfigureTest(TestCase):
         self.assertEqual(bot.config.branch, "bogus-branch")
         self.assertEqual(bot.config.close_prs, "bogus-close")
 
+    def test_numeric_branch(self):
+        bot = bot_factory()
+        bot.provider.get_file.return_value = "branch: 2.0\n", None
+        bot.configure()
+        self.assertEqual(bot.config.branch, "2.0")
+
+
 class BotUpdateTest(TestCase):
     def test_branch_is_none(self):
         bot = bot_factory()
