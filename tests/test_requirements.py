@@ -12,6 +12,14 @@ import os
 
 class RequirementUpdateContent(TestCase):
 
+    def test_update_content_with_extras(self):
+        with patch('pyup.requirements.Requirement.latest_version_within_specs', new_callable=PropertyMock,
+                   return_value="1.4.2"):
+            content = "requests[security]==1.4.1"
+            req = Requirement.parse(content, 0)
+
+            self.assertEqual(req.update_content(content), "requests[security]==1.4.2")
+
     def test_update_content_tabbed(self):
         with patch('pyup.requirements.Requirement.latest_version_within_specs', new_callable=PropertyMock,
                    return_value="1.4.2"):

@@ -194,7 +194,7 @@ class RequirementFile(object):
 
 
 class Requirement(object):
-    def __init__(self, name, specs, hashCmp, line, lineno, index_server):
+    def __init__(self, name, specs, hashCmp, line, lineno, index_server, extras):
         self.name = name
         self.key = name.lower()
         self.specs = specs
@@ -202,6 +202,7 @@ class Requirement(object):
         self.line = line
         self.lineno = lineno
         self.index_server = index_server
+        self.extras = extras
         self.pull_request = None
         self._fetched_package = False
         self._package = None
@@ -325,8 +326,14 @@ class Requirement(object):
             return parse_version(self.version) < parse_version(self.latest_version_within_specs)
         return False
 
+    @property
+    def full_name(self):
+        if self.extras:
+            return "{}[{}]".format(self.name, ",".join(self.extras))
+        return self.name
+
     def update_content(self, content):
-        new_line = "{}=={}".format(self.name, self.latest_version_within_specs)
+        new_line = "{}=={}".format(self.full_name, self.latest_version_within_specs)
         if "#" in self.line:
             new_line += " #" + "#".join(self.line.split("#")[1:])
         regex = r"^{}(?=\s*\r?\n?$)".format(re.escape(self.line))
@@ -345,7 +352,8 @@ class Requirement(object):
             line=s,
             lineno=lineno,
             hashCmp=parsed.hashCmp,
-            index_server=index_server
+            index_server=index_server,
+            extras=parsed.extras
         )
 
     def get_package_class(self):  # pragma: no cover
