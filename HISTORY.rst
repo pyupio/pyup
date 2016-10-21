@@ -3,9 +3,13 @@
 History
 -------
 
-Unreleased
-----------
+0.5.0 (2016-10-21)
+------------------
+* The bot now parses requirement extras correctly
+* Made the config parser more robust
+* Fixed a possible endless loop on conflicting PRs
 * Added schedules to the config parser
+* Now using PyGithub again
 
 0.4.0 (2016-8-30)
 -----------------
