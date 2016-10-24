@@ -56,7 +56,7 @@ class Config(object):
                     if isinstance(value, basestring):
                         value = [value, ]
                 # cast ints and floats to str
-                if isinstance(value, (int, float)):
+                if isinstance(value, (int, float)) and not isinstance(value, bool):
                     value = str(value)
                 setattr(self, key, value)
 

@@ -38,6 +38,7 @@ class ConfigTestCase(TestCase):
     def test_update(self):
         update = {
             "branch": "some branch",
+            "search": False,
             "requirements": [
                 "foo.txt",
                 {"bar.txt": {"pin": True, "compile": {"specs": ["baz.in", "foo.in"]}}}
@@ -50,6 +51,7 @@ class ConfigTestCase(TestCase):
         config.update(update)
 
         self.assertEqual(config.branch, "some branch")
+        self.assertFalse(config.search)
         self.assertEqual(config.requirements[0].path, "foo.txt")
         self.assertEqual(config.requirements[1].path, "bar.txt")
         self.assertEqual(config.requirements[2].path, "baz.in")
