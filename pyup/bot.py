@@ -65,7 +65,7 @@ class Bot(object):
         try:
             content, _ = self.provider.get_file(repo, "/.pyup.yml", self.config.branch)
             if content is not None:
-                return yaml.load(content)
+                return yaml.safe_load(content)
         except yaml.YAMLError:
             logger.warning("Unable to parse config file /.pyup.yml", exc_info=True)
         return None
