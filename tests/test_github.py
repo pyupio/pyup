@@ -190,6 +190,11 @@ class ProviderTest(TestCase):
         data = self.provider.close_pull_request(self.repo, self.repo, Mock(), "comment")
         self.assertEqual(data, False)
 
+    def test_create_pull_request_with_exceeding_body(self):
+        body = ''.join(["a" for i in range(0, 65536 + 1)])
+        self.provider.create_pull_request(self.repo, "title", body, "master", "new", False, [])
+        self.assertEquals(self.provider.bundle.get_pull_request_class.call_count, 1)
+        self.assertEquals(self.provider.bundle.get_pull_request_class().call_count, 1)
 
     def test_create_pull_request(self):
         self.provider.create_pull_request(self.repo, "title", "body", "master", "new", False, [])

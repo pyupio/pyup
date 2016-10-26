@@ -187,6 +187,9 @@ class Provider(object):
 
     def create_pull_request(self, repo, title, body, base_branch, new_branch, pr_label, assignees):
         try:
+            if len(body) >= 65536:
+                logger.warning("PR body exceeds maximum length of 65536 chars, reducing")
+                body = body[:65536 - 1]
             pr = repo.create_pull(
                 title=title,
                 body=body,
