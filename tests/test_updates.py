@@ -118,14 +118,14 @@ class SequentialUpdateTestBrach(UpdateBaseTest):
         req.is_pinned = True
         req.latest_version_within_specs = "1.10"
         req.version = "1.0"
-        self.assertEqual(SequentialUpdate.get_branch(req), "pyup-update-django-1.0-to-1.10")
+        self.assertEqual(SequentialUpdate.get_branch(req), "update-django-1.0-to-1.10")
 
     def test_requirement_not_pinned(self):
         req = Mock()
         req.key = "django"
         req.is_pinned = False
         req.latest_version_within_specs = "1.10"
-        self.assertEqual(SequentialUpdate.get_branch(req), "pyup-pin-django-1.10")
+        self.assertEqual(SequentialUpdate.get_branch(req), "pin-django-1.10")
 
 
 class SequentialUpdateTestGetUpdates(UpdateBaseTest):
@@ -231,7 +231,7 @@ class ScheduledUpdateTest(ScheduledUpdateBaseTest):
         dt.now.return_value = datetime(2016, 12, 13, 9, 21, 42, 702067)
         self.assertEquals(
             self.update.get_branch(),
-            "pyup-scheduled-update-12-13-2016"
+            "scheduled-update-12-13-2016"
         )
 
     def test_get_body(self):

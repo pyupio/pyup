@@ -108,7 +108,7 @@ class ScheduledUpdate(BundledUpdate):
         raise UnsupportedScheduleError("Unsupported schedule {}".format(self.config.schedule))
 
     def get_branch(self):
-        return "pyup-scheduled-update-{dt}".format(
+        return "scheduled-update-{dt}".format(
             dt=datetime.now().strftime("%m-%d-%Y")
         )
 
@@ -130,7 +130,7 @@ class InitialUpdate(BundledUpdate):
 
     @classmethod
     def get_branch(cls):
-        return "pyup-initial-update"
+        return "initial-update"
 
 
 RequirementUpdate = namedtuple(
@@ -155,11 +155,11 @@ class SequentialUpdate(Update):
     @classmethod
     def get_branch(cls, requirement):
         if requirement.is_pinned:
-            return "pyup-update-{}-{}-to-{}".format(
+            return "update-{}-{}-to-{}".format(
                 requirement.key, requirement.version,
                 requirement.latest_version_within_specs
             )
-        return "pyup-pin-{}-{}".format(
+        return "pin-{}-{}".format(
             requirement.key,
             requirement.latest_version_within_specs
         )

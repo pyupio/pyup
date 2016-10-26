@@ -108,24 +108,32 @@ class ProviderTest(TestCase):
 
     def test_is_empty_branch(self):
         with self.assertRaises(AssertionError):
-            self.provider.is_empty_branch(self.repo, "master", "foo")
+            self.provider.is_empty_branch(self.repo, "master", "foo", prefix="bar")
 
         self.repo.compare().total_commits = 0
         self.assertTrue(
-            self.provider.is_empty_branch(self.repo, "master", "pyup-foo")
+            self.provider.is_empty_branch(self.repo, "master", "pyup-foo", prefix="pyup-")
+        )
+
+        self.repo.compare().total_commits = 0
+        self.assertTrue(
+            self.provider.is_empty_branch(self.repo, "master", "pyup/foo", prefix="pyup/")
         )
 
         self.repo.compare().total_commits = 1
         self.assertFalse(
-            self.provider.is_empty_branch(self.repo, "master", "pyup-foo")
+            self.provider.is_empty_branch(self.repo, "master", "pyup-foo", prefix="pyup-")
         )
 
     def test_delete_branch(self):
         with self.assertRaises(AssertionError):
-            self.provider.delete_branch(self.repo, "foo")
+            self.provider.delete_branch(self.repo, "foo", prefix="bar")
 
-        self.provider.delete_branch(self.repo, "pyup-foo")
+        self.provider.delete_branch(self.repo, "pyup-foo", prefix="pyup-")
         self.repo.get_git_ref.assert_called_once_with("heads/pyup-foo")
+
+        self.provider.delete_branch(self.repo, "pyup/foo", prefix="pyup/")
+        self.repo.get_git_ref.assert_called_with("heads/pyup/foo")
 
     @patch("pyup.providers.github.time")
     def test_create_commit(self, time):
@@ -180,14 +188,15 @@ class ProviderTest(TestCase):
         pr.head.ref = "bla"
         self.repo.get_pull.return_value = pr
         with self.assertRaises(AssertionError):
-            self.provider.close_pull_request(self.repo, self.repo, pr, "comment")
+            self.provider.close_pull_request(self.repo, self.repo, pr, "comment", prefix="pyup-")
 
         pr.head.ref = "pyup-bla"
-        self.provider.close_pull_request(self.repo, self.repo, pr, "comment")
+        self.provider.close_pull_request(self.repo, self.repo, pr, "comment", prefix="pyup-")
         self.assertEquals(self.repo.get_git_ref().delete.call_count, 1)
 
         self.repo.get_pull.side_effect = UnknownObjectException(data="", status=1)
-        data = self.provider.close_pull_request(self.repo, self.repo, Mock(), "comment")
+        data = self.provider.close_pull_request(self.repo, self.repo, Mock(), "comment",
+                                                prefix="pyup-")
         self.assertEqual(data, False)
 
     def test_create_pull_request_with_exceeding_body(self):

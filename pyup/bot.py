@@ -144,6 +144,7 @@ class Bot(object):
             if initial_pr:
                 pull_request = initial_pr
             elif self.can_pull(scheduled) and title not in [pr.title for pr in self.pull_requests]:
+                update_branch = self.config.branch_prefix + update_branch
                 pull_request = self.commit_and_pull(
                     initial=initial,
                     base_branch=self.config.branch,
@@ -213,7 +214,8 @@ class Bot(object):
                         user_repo=self.user_repo,
                         pull_request=pr,
                         comment="Closing this in favor of #{}".format(
-                            pull_request.number)
+                            pull_request.number),
+                        prefix=self.config.branch_prefix
                     )
 
     def is_bot_the_only_committer(self, pr):
@@ -279,8 +281,10 @@ class Bot(object):
             # if the branch exists, is empty and delete_empty is set, delete it and call
             # this function again
             if delete_empty:
-                if self.provider.is_empty_branch(self.user_repo, base_branch, new_branch):
-                    self.provider.delete_branch(self.user_repo, new_branch)
+                if self.provider.is_empty_branch(self.user_repo, base_branch, new_branch,
+                                                 self.config.branch_prefix):
+                    self.provider.delete_branch(self.user_repo, new_branch,
+                                                self.config.branch_prefix)
                     logger.info("Branch {} was empty and has been deleted".format(new_branch))
                     return self.create_branch(base_branch, new_branch, delete_empty=False)
                 logger.info("Branch {} is not empty".format(new_branch))

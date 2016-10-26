@@ -615,7 +615,6 @@ class CloseStalePRsTestCase(TestCase):
         bot.provider.get_pull_request_committer.assert_called_once_with(bot.user_repo,
                                                                         self.other_pr)
 
-
     def test_no_bot_token(self):
         bot = bot_factory()
         self.pr.type = Mock()
@@ -642,7 +641,8 @@ class CloseStalePRsTestCase(TestCase):
             bot_repo=bot.bot_repo,
             user_repo=bot.user_repo,
             pull_request=self.other_pr,
-            comment="Closing this in favor of #100"
+            comment="Closing this in favor of #100",
+            prefix="pyup-"
         )
 
     def test_wrong_pr_type(self):
