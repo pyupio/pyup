@@ -21,6 +21,9 @@ SCHEDULE_REGEX = re.compile(
 
 class Config(object):
 
+    UPDATE_ALL = "all"
+    UPDATE_INSECURE = "insecure"
+
     def __init__(self):
         self.close_prs = True
         self.branch = "master"
@@ -31,6 +34,7 @@ class Config(object):
         self.label_prs = False
         self.schedule = ""
         self.assignees = []
+        self.updates = Config.UPDATE_ALL
 
     def update(self, d):
         for key, value in d.items():

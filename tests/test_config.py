@@ -19,6 +19,7 @@ class ConfigTestCase(TestCase):
         self.assertEqual(config.requirements, [])
         self.assertEqual(config.schedule, "")
         self.assertEqual(config.assignees, [])
+        self.assertEqual(config.updates, "all")
 
     def test_pin_file(self):
         config = Config()
