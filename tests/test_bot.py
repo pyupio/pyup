@@ -22,7 +22,7 @@ def bot_factory(repo="foo/foo", user_token="foo", bot_token=None, bot_class=Bot,
     bot.config.update({
         "close_prs": True,
         "pin": True,
-        "branch": "master",
+        "branch": "base_branch",
         "search": True
     })
     return bot
@@ -288,7 +288,7 @@ class BotCommitAndPullTest(TestCase):
             )
         ]
 
-        bot.commit_and_pull(True, "branch", "new branch", "repo", "", updates, False, [])
+        bot.commit_and_pull(True, "new branch", "repo", "", updates)
 
         self.assertEqual(bot.provider.create_commit.called, True)
         self.assertEqual(bot.provider.create_commit.call_count, 2)
@@ -300,22 +300,22 @@ class BotCommitAndPullTest(TestCase):
     def test_create_branch_fails(self):
         bot = bot_factory()
         bot.create_branch = Mock(return_value=False)
-        self.assertEqual(bot.commit_and_pull(None, None, None, None, None, None, None, None), None)
+        self.assertEqual(bot.commit_and_pull(None, None, None, None, None), None)
 
 
 class CreateBranchTest(TestCase):
 
     def test_success(self):
         bot = bot_factory()
-        self.assertEqual(bot.create_branch("master", "new-branch", delete_empty=False), True)
+        self.assertEqual(bot.create_branch("new-branch", delete_empty=False), True)
         bot.provider.create_branch.assert_called_once_with(
-            base_branch="master", new_branch="new-branch", repo=bot.user_repo)
+            base_branch="base_branch", new_branch="new-branch", repo=bot.user_repo)
 
     def test_error_dont_delete(self):
         from pyup.errors import BranchExistsError
         bot = bot_factory()
         bot.provider.create_branch.side_effect = BranchExistsError
-        self.assertEqual(bot.create_branch("master", "new-branch", delete_empty=False), False)
+        self.assertEqual(bot.create_branch("new-branch", delete_empty=False), False)
         bot.provider.is_empty_branch.assert_not_called()
         bot.provider.delete_branch.assert_not_called()
 
@@ -324,7 +324,7 @@ class CreateBranchTest(TestCase):
         bot = bot_factory()
         bot.provider.create_branch.side_effect = BranchExistsError
         bot.provider.is_empty_branch.return_value = True
-        bot.create_branch("master", "new-branch", delete_empty=True)
+        bot.create_branch("new-branch", delete_empty=True)
 
         self.assertEquals(bot.provider.is_empty_branch.call_count, 1)
         self.assertEquals(bot.provider.delete_branch.call_count, 1)
@@ -335,7 +335,7 @@ class CreateBranchTest(TestCase):
         bot = bot_factory()
         bot.provider.create_branch.side_effect = BranchExistsError
         bot.provider.is_empty_branch.return_value = False
-        bot.create_branch("master", "new-branch", delete_empty=True)
+        bot.create_branch("new-branch", delete_empty=True)
 
         self.assertEquals(bot.provider.is_empty_branch.call_count, 1)
         bot.provider.delete_branch.assert_not_called()
@@ -487,7 +487,7 @@ class BotCreatePullRequestTest(TestCase):
         bot = bot_factory(bot_token=None)
         bot._bot_repo = "BOT REPO"
         bot._user_repo = "USER REPO"
-        bot.create_pull_request("title", "body", "base_branch", "new_branch", False, [])
+        bot.create_pull_request("title", "body", "new_branch")
         self.assertEqual(bot.provider.create_pull_request.called, True)
         self.assertEqual(bot.provider.create_pull_request.call_args_list[0][1], {
             "base_branch": "base_branch",
@@ -503,7 +503,7 @@ class BotCreatePullRequestTest(TestCase):
         bot = bot_factory(bot_token="foo")
         bot._bot_repo = "BOT REPO"
         bot._user_repo = "USER REPO"
-        bot.create_pull_request("title", "body", "base_branch", "new_branch", False, [])
+        bot.create_pull_request("title", "body", "new_branch")
         self.assertEqual(bot.provider.create_pull_request.called, True)
         self.assertEqual(bot.provider.create_pull_request.call_args_list[0][1], {
             "base_branch": "base_branch",
@@ -521,7 +521,7 @@ class BotCreatePullRequestTest(TestCase):
         bot.provider.create_pull_request.side_effect = [NoPermissionError, "the foo"]
         bot._bot_repo = "BOT REPO"
         bot._user_repo = "USER REPO"
-        bot.create_pull_request("title", "body", "base_branch", "new_branch", False, [])
+        bot.create_pull_request("title", "body", "new_branch")
         self.assertEqual(bot.provider.create_pull_request.called, True)
         self.assertEqual(bot.provider.create_pull_request.call_args_list[0][1], {
             "base_branch": "base_branch",
@@ -540,6 +540,7 @@ class BotCreatePullRequestTest(TestCase):
             "title": "title",
             "pr_label": False,
             "assignees": []
+
         })
 
     def test_bot_permission_error_not_resolved(self):
@@ -548,7 +549,7 @@ class BotCreatePullRequestTest(TestCase):
         bot._bot_repo = "BOT REPO"
         bot._user_repo = "USER REPO"
         with self.assertRaises(NoPermissionError):
-            bot.create_pull_request("title", "body", "base_branch", "new_branch", False, [])
+            bot.create_pull_request("title", "body", "new_branch")
         self.assertEqual(bot.provider.create_pull_request.called, True)
         self.assertEqual(bot.provider.create_pull_request.call_args_list[0][1], {
             "base_branch": "base_branch",

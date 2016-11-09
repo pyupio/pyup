@@ -147,13 +147,10 @@ class Bot(object):
                 update_branch = self.config.branch_prefix + update_branch
                 pull_request = self.commit_and_pull(
                     initial=initial,
-                    base_branch=self.config.branch,
                     new_branch=update_branch,
                     title=title,
                     body=body,
                     updates=updates,
-                    pr_label=self.config.label_prs,
-                    assignees=self.config.assignees
                 )
             else:
                 pull_request = next((pr for pr in self.pull_requests if pr.title == title), None)
@@ -258,7 +255,7 @@ class Bot(object):
                     return True
         return False
 
-    def create_branch(self, base_branch, new_branch, delete_empty=False):
+    def create_branch(self, new_branch, delete_empty=False):
         """
         Creates a new branch.
         :param base_branch: string name of the base branch
@@ -266,34 +263,33 @@ class Bot(object):
         :param delete_empty: bool -- delete the branch if it is empty
         :return: bool -- True if successfull
         """
-        logger.info("Preparing to create branch {} from {}".format(new_branch, base_branch))
+        logger.info("Preparing to create branch {} from {}".format(new_branch, self.config.branch))
         try:
             # create new branch
             self.provider.create_branch(
-                base_branch=base_branch,
+                base_branch=self.config.branch,
                 new_branch=new_branch,
                 repo=self.user_repo
             )
-            logger.info("Created branch {} from {}".format(new_branch, base_branch))
+            logger.info("Created branch {} from {}".format(new_branch, self.config.branch))
             return True
         except BranchExistsError:
             logger.info("Branch {} exists.".format(new_branch))
             # if the branch exists, is empty and delete_empty is set, delete it and call
             # this function again
             if delete_empty:
-                if self.provider.is_empty_branch(self.user_repo, base_branch, new_branch,
+                if self.provider.is_empty_branch(self.user_repo, self.config.branch, new_branch,
                                                  self.config.branch_prefix):
                     self.provider.delete_branch(self.user_repo, new_branch,
                                                 self.config.branch_prefix)
                     logger.info("Branch {} was empty and has been deleted".format(new_branch))
-                    return self.create_branch(base_branch, new_branch, delete_empty=False)
+                    return self.create_branch(new_branch, delete_empty=False)
                 logger.info("Branch {} is not empty".format(new_branch))
         return False
 
-    def commit_and_pull(self, initial, base_branch, new_branch, title, body, updates, pr_label,
-                        assignees):
+    def commit_and_pull(self, initial, new_branch, title, body, updates):
         logger.info("Preparing commit {}".format(title))
-        if self.create_branch(base_branch, new_branch, delete_empty=False):
+        if self.create_branch(new_branch, delete_empty=False):
             updated_files = {}
             for update in self.iter_changes(initial, updates):
                 if update.requirement_file.path in updated_files:
@@ -325,10 +321,7 @@ class Bot(object):
                 pr = self.create_pull_request(
                     title=title,
                     body=body,
-                    base_branch=base_branch,
                     new_branch=new_branch,
-                    pr_label=pr_label,
-                    assignees=assignees
                 )
                 self.pull_requests.append(pr)
                 return pr
@@ -341,7 +334,7 @@ class Bot(object):
             body=body,
         )
 
-    def create_pull_request(self, title, body, base_branch, new_branch, pr_label, assignees):
+    def create_pull_request(self, title, body, new_branch):
 
         # if we have a bot user that creates the PR, we might run into problems on private
         # repos because the bot has to be a collaborator. We try to submit the PR before checking
@@ -352,10 +345,10 @@ class Bot(object):
                     repo=self.bot_repo,
                     title=title,
                     body=body,
-                    base_branch=base_branch,
+                    base_branch=self.config.branch,
                     new_branch=new_branch,
-                    pr_label=pr_label,
-                    assignees=assignees
+                    pr_label=self.config.label_prs,
+                    assignees=self.config.assignees
                 )
             except NoPermissionError:
                 self.provider.get_pull_request_permissions(self.bot, self.user_repo)
@@ -364,14 +357,14 @@ class Bot(object):
             repo=self.bot_repo if self.bot_token else self.user_repo,
             title=title,
             body=body,
-            base_branch=base_branch,
+            base_branch=self.config.branch,
             new_branch=new_branch,
-            pr_label=pr_label,
-            assignees=assignees
+            pr_label=self.config.label_prs,
+            assignees=self.config.assignees
         )
 
-    def iter_git_tree(self, branch):
-        return self.provider.iter_git_tree(branch=branch, repo=self.user_repo)
+    def iter_git_tree(self):
+        return self.provider.iter_git_tree(branch=self.config.branch, repo=self.user_repo)
 
     def iter_updates(self, initial, scheduled):
         return self.req_bundle.get_updates(
@@ -388,7 +381,7 @@ class Bot(object):
     def get_all_requirements(self):
         if self.config.search:
             logger.info("Searching requirement files")
-            for file_type, path in self.iter_git_tree(self.config.branch):
+            for file_type, path in self.iter_git_tree():
                 if file_type == "blob":
                     if "requirements" in path:
                         if path.endswith("txt") or path.endswith("pip"):
@@ -410,6 +403,5 @@ class Bot(object):
 
 
 class DryBot(Bot):
-    def commit_and_pull(self, initial, base_branch, new_branch, title, body,
-                        updates):  # pragma: no cover
+    def commit_and_pull(self, initial, new_branch, title, body, updates):  # pragma: no cover
         return None
