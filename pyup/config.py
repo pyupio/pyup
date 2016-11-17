@@ -23,6 +23,7 @@ class Config(object):
 
     UPDATE_ALL = "all"
     UPDATE_INSECURE = "insecure"
+    UPDATE_NONE = ["False", "false", False, None]
 
     def __init__(self):
         self.close_prs = True
@@ -34,9 +35,13 @@ class Config(object):
         self.label_prs = False
         self.schedule = ""
         self.assignees = []
-        self.updates = Config.UPDATE_ALL
+        self.update = Config.UPDATE_ALL
 
-    def update(self, d):
+    def update_config(self, d):
+        """
+        Updates the config object.
+        :param d: dict
+        """
         for key, value in d.items():
             if hasattr(self, key):
                 if key == "requirements":
@@ -49,7 +54,9 @@ class Config(object):
                             req = RequirementConfig(
                                 path=path,
                                 pin=item.get("pin", None),
-                                compile=item.get("compile", False))
+                                compile=item.get("compile", False),
+                                update=item.get("update", Config.UPDATE_ALL)
+                            )
                         value.append(req)
                         # add constraint requirement files to config
                         if req.compile:
@@ -65,11 +72,42 @@ class Config(object):
                     value = str(value)
                 setattr(self, key, value)
 
-    def pin_file(self, path):
+    def _get_requirement_attr(self, attr, path):
+        """
+        Gets the attribute for a given requirement file in path
+        :param attr: string, attribute
+        :param path: string, path
+        :return: The attribute for the requirement, or the global default
+        """
         for req_file in self.requirements:
-            if path == req_file.path:
-                return req_file.pin
-        return self.pin
+            if path.strip("/") == req_file.path.strip("/"):
+                return getattr(req_file, attr)
+        return getattr(self, attr)
+
+    def can_pin(self, path):
+        """
+        Checks if requirements in `path` can be pinned.
+        :param path: string, path to requirement file
+        :return: bool
+        """
+        return self._get_requirement_attr(attr="pin", path=path)
+
+    def can_update_all(self, path):
+        """
+        Checks if requirements in `path` can be updated.
+        :param path: string, path to requirement file
+        :return: bool
+        """
+        return self._get_requirement_attr("update", path=path) == Config.UPDATE_ALL
+
+    def can_update_insecure(self, path):
+        """
+        Checks if requirements in `path` can be updated if insecure.
+        :param path: string, path to requirement file
+        :return: bool
+        """
+        return self._get_requirement_attr("update", path=path) in (Config.UPDATE_ALL,
+                                                                   Config.UPDATE_INSECURE)
 
     def is_valid_schedule(self):
         return SCHEDULE_REGEX.search(self.schedule) is not None
@@ -80,10 +118,11 @@ class Config(object):
 
 class RequirementConfig(object):
 
-    def __init__(self, path, pin=None, compile=False):
+    def __init__(self, path, pin=None, compile=False, update=Config.UPDATE_ALL):
         self.path = path
         self.pin = pin
         self.compile = CompileConfig(specs=compile.get("specs", [])) if compile else False
+        self.update = update
 
         # set pin default
         if self.pin is None:

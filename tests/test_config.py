@@ -19,22 +19,56 @@ class ConfigTestCase(TestCase):
         self.assertEqual(config.requirements, [])
         self.assertEqual(config.schedule, "")
         self.assertEqual(config.assignees, [])
-        self.assertEqual(config.updates, "all")
+        self.assertEqual(config.update, "all")
 
-    def test_pin_file(self):
+    def test_can_pin(self):
         config = Config()
         config.requirements = [
             RequirementConfig(path="foo.txt", pin=False)
         ]
 
-        self.assertEqual(config.pin_file("foo.txt"), False)
+        self.assertEqual(config.can_pin("foo.txt"), False)
 
         config.pin = False
         config.requirements[0].pin = True
 
-        self.assertEqual(config.pin_file("foo.txt"), True)
+        self.assertEqual(config.can_pin("foo.txt"), True)
 
-        self.assertEqual(config.pin_file("other.txt"), False)
+        self.assertEqual(config.can_pin("other.txt"), False)
+
+    def test_can_update_all(self):
+        config = Config()
+        config.requirements = [
+            RequirementConfig(path="foo.txt", update="insecure")
+        ]
+
+        self.assertEqual(config.can_update_all("foo.txt"), False)
+
+        config.update = "insecure"
+        config.requirements[0].update = "all"
+
+        self.assertEqual(config.can_update_all("foo.txt"), True)
+
+        self.assertEqual(config.can_update_all("other.txt"), False)
+
+    def test_can_update_insecure(self):
+        config = Config()
+        config.requirements = [
+            RequirementConfig(path="foo.txt", update=False)
+        ]
+
+        self.assertEqual(config.can_update_insecure("foo.txt"), False)
+
+        config.update = False
+        config.requirements[0].update = "insecure"
+
+        self.assertEqual(config.can_update_insecure("foo.txt"), True)
+
+        config.requirements[0].update = "all"
+
+        self.assertEqual(config.can_update_insecure("foo.txt"), True)
+
+        self.assertEqual(config.can_update_insecure("other.txt"), False)
 
     def test_update(self):
         update = {
@@ -49,7 +83,7 @@ class ConfigTestCase(TestCase):
         self.assertEqual(config.requirements, [])
         self.assertEqual(config.branch, "master")
 
-        config.update(update)
+        config.update_config(update)
 
         self.assertEqual(config.branch, "some branch")
         self.assertFalse(config.search)
@@ -99,10 +133,10 @@ class ConfigTestCase(TestCase):
         config = Config()
         self.assertEqual(config.assignees, [])
 
-        config.update({"assignees": "jay"})
+        config.update_config({"assignees": "jay"})
         self.assertEqual(config.assignees, ["jay"])
 
-        config.update({"assignees": ["jay", "bla"]})
+        config.update_config({"assignees": ["jay", "bla"]})
         self.assertEqual(config.assignees, ["jay", "bla"])
 
 

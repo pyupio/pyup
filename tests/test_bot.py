@@ -19,7 +19,7 @@ def bot_factory(repo="foo/foo", user_token="foo", bot_token=None, bot_class=Bot,
     bot._fetched_prs = True
     bot.req_bundle.pull_requests = prs
     bot.provider = Mock()
-    bot.config.update({
+    bot.config.update_config({
         "close_prs": True,
         "pin": True,
         "branch": "base_branch",

@@ -4,6 +4,7 @@ from pyup.updates import Update, RequirementUpdate, InitialUpdate, SequentialUpd
 from unittest import TestCase
 from pyup.requirements import RequirementFile
 from pyup.errors import UnsupportedScheduleError
+from pyup.config import Config, RequirementConfig
 from mock import Mock, patch
 from datetime import datetime
 
@@ -13,6 +14,65 @@ class UpdateBaseTest(TestCase):
     def setUp(self):
         self.config = Mock()
         self.config.pin_file.return_value = True
+
+
+class ShouldUpdateTest(TestCase):
+
+    def setUp(self):
+        self.config = Config()
+
+        self.req1 = Mock()
+        self.req1.key = "foo"
+        self.req1.latest_version_within_specs = "0.2"
+        self.req1.needs_update = True
+        self.req1.is_pinned = True
+        self.req1.is_insecure = False
+
+        self.req2 = Mock()
+        self.req2.key = "bar"
+        self.req2.latest_version_within_specs = "0.2"
+        self.req2.needs_update = True
+        self.req2.is_pinned = True
+        self.req2.is_insecure = False
+
+        self.req_file = Mock()
+        self.req_file.requirements = [self.req1, self.req2]
+        self.req_file.path = "requirements.txt"
+
+        self.update = Update(
+            requirement_files=[self.req_file],
+            config=self.config
+        )
+
+    def test_default_yes(self):
+        self.assertTrue(self.update.should_update(self.req1, self.req_file))
+
+    def test_update_all_restricted_in_file(self):
+        self.assertTrue(self.update.should_update(self.req1, self.req_file))
+
+        self.config.requirements = [RequirementConfig(path="requirements.txt", update="insecure")]
+        self.assertFalse(self.update.should_update(self.req1, self.req_file))
+
+    def test_update_insecure(self):
+        self.config.update = "insecure"
+        self.assertFalse(self.update.should_update(self.req1, self.req_file))
+
+        self.req1.is_insecure = True
+        self.assertTrue(self.update.should_update(self.req1, self.req_file))
+
+    def test_update_unpinned(self):
+        self.config.update = "all"
+        self.config.pin = False
+        self.req1.is_pinned = False
+
+        self.assertFalse(self.update.should_update(self.req1, self.req_file))
+
+        self.req1.is_pinned = True
+        self.assertTrue(self.update.should_update(self.req1, self.req_file))
+
+        self.req1.is_pinned = False
+        self.config.pin = True
+        self.assertTrue(self.update.should_update(self.req1, self.req_file))
 
 
 class UpdateCreateUpdateKeyTest(UpdateBaseTest):

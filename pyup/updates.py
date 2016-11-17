@@ -20,10 +20,9 @@ class Update(dict):
         super(dict, self).__init__()
         self.config = config
         for requirement_file in requirement_files:
-            if self.config.pin_file(requirement_file.path):
-                for requirement in requirement_file.requirements:
-                    if requirement.needs_update:
-                        self.add(requirement, requirement_file)
+            for requirement in requirement_file.requirements:
+                if requirement.needs_update:
+                    self.add(requirement, requirement_file)
 
     def add(self, requirement, requirement_file):
         key = self.create_update_key(requirement)
@@ -50,8 +49,20 @@ class Update(dict):
         )
 
     def should_update(self, requirement, requirement_file):
-        # handle unpinned requirements only if pin is set
-        return self.config.pin_file(requirement_file.path)
+        """
+        Determines if a requirement can be updated
+        :param requirement: Requirement
+        :param requirement_file: RequirementFile
+        :return: bool
+        """
+        path = requirement_file.path
+        if self.config.can_update_all(path) or \
+                (self.config.can_update_insecure(path) and requirement.is_insecure):
+            # handle unpinned requirements only if pin is set
+            if not requirement.is_pinned:
+                return self.config.can_pin(path)
+            return True
+        return False
 
     def get_requirement_update_class(self):
         return RequirementUpdate

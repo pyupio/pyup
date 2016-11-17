@@ -75,10 +75,10 @@ class Bot(object):
         if kwargs.get("branch", False) in [None, False]:
             self.config.branch = self.provider.get_default_branch(repo=self.user_repo)
         # set the config for this update run
-        self.config.update(kwargs)
+        self.config.update_config(kwargs)
         repo_config = self.get_repo_config(repo=self.user_repo)
         if repo_config:
-            self.config.update(repo_config)
+            self.config.update_config(repo_config)
         logger.info("Runtime config is: {}".format(self.config))
 
     def update(self, **kwargs):
