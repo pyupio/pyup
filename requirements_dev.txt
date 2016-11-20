@@ -5,7 +5,7 @@ flake8==3.0.2
 tox==2.3.1
 coverage==4.2
 Sphinx==1.4.5
-cryptography==1.4
+cryptography==1.5.3
 PyYAML==3.11
 requests-mock==1.0.0
 setuptools==25.1.0
