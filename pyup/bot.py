@@ -363,8 +363,9 @@ class Bot(object):
             assignees=self.config.assignees
         )
 
-    def iter_git_tree(self):
-        return self.provider.iter_git_tree(branch=self.config.branch, repo=self.user_repo)
+    def iter_git_tree(self, sha=None):
+        branch = sha if sha is not None else self.config.branch
+        return self.provider.iter_git_tree(branch=branch, repo=self.user_repo)
 
     def iter_updates(self, initial, scheduled):
         return self.req_bundle.get_updates(
@@ -378,24 +379,25 @@ class Bot(object):
 
     # if this function gets updated, the gist at https://gist.github.com/jayfk/45862b05836701b49b01
     # needs to be updated too
-    def get_all_requirements(self):
+    def get_all_requirements(self, sha=None):
         if self.config.search:
             logger.info("Searching requirement files")
-            for file_type, path in self.iter_git_tree():
+            for file_type, path in self.iter_git_tree(sha=sha):
                 if file_type == "blob":
                     if "requirements" in path:
                         if path.endswith("txt") or path.endswith("pip"):
-                            self.add_requirement_file(path)
+                            self.add_requirement_file(path, sha)
         for req_file in self.config.requirements:
             self.add_requirement_file(req_file.path)
 
     # if this function gets updated, the gist at https://gist.github.com/jayfk/c6509bbaf4429052ca3f
     # needs to be updated too
-    def add_requirement_file(self, path):
+    def add_requirement_file(self, path, sha=None):
         logger.info("Adding requirement file at {}".format(path))
+        branch = sha if sha is not None else self.config.branch
         if not self.req_bundle.has_file_in_path(path):
             req_file = self.provider.get_requirement_file(
-                path=path, repo=self.user_repo, branch=self.config.branch)
+                path=path, repo=self.user_repo, branch=branch)
             if req_file is not None:
                 self.req_bundle.append(req_file)
                 for other_file in req_file.other_files:
