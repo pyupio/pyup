@@ -43,6 +43,7 @@ def main(repo, user_token, bot_token, provider, dry, branch, initial, pin, close
 
     bot.update(branch=branch, initial=initial, pin=pin, close_prs=close_prs)
 
+
 if __name__ == '__main__':
     main()
 
