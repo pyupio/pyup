@@ -6,6 +6,6 @@ tox==2.3.1
 coverage==4.2
 Sphinx==1.4.5
 cryptography==1.6
-PyYAML==3.11
+PyYAML==3.12
 requests-mock==1.0.0
 setuptools==25.1.0
