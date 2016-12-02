@@ -333,7 +333,16 @@ class Requirement(object):
         return self.name
 
     def update_content(self, content):
+        """
+        Updates the requirement to the latest version for the given content
+        :param content: str, content
+        :return: str, updated content
+        """
         new_line = "{}=={}".format(self.full_name, self.latest_version_within_specs)
+
+        # leave environment markers intact
+        if ";" in self.line:
+            new_line += ";" + self.line.split(";", 1)[1].split("#")[0].rstrip()
         if "#" in self.line:
             new_line += " #" + "#".join(self.line.split("#")[1:])
         regex = r"^{}(?=\s*\r?\n?$)".format(re.escape(self.line))

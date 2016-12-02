@@ -12,6 +12,26 @@ import os
 
 class RequirementUpdateContent(TestCase):
 
+    def test_update_with_environment_markers(self):
+        with patch('pyup.requirements.Requirement.latest_version_within_specs',
+                   new_callable=PropertyMock,
+                   return_value="1.4.2"):
+
+            content = "uvloop==0.6.5; sys_platform != 'win32'"
+            req = Requirement.parse(content, 0)
+
+            self.assertEqual(req.update_content(content), "uvloop==1.4.2; sys_platform != 'win32'")
+
+    def test_update_with_environment_markers_and_comment(self):
+        with patch('pyup.requirements.Requirement.latest_version_within_specs',
+                   new_callable=PropertyMock,
+                   return_value="1.4.2"):
+
+            content = "uvloop==0.6.5; sys_platform != 'win32' # and here's some comment"
+            req = Requirement.parse(content, 0)
+
+            self.assertEqual(req.update_content(content), "uvloop==1.4.2; sys_platform != 'win32' # and here's some comment")
+
     def test_update_content_with_extras(self):
         with patch('pyup.requirements.Requirement.latest_version_within_specs', new_callable=PropertyMock,
                    return_value="1.4.2"):
