@@ -36,6 +36,7 @@ class Config(object):
         self.schedule = ""
         self.assignees = []
         self.update = Config.UPDATE_ALL
+        self.update_hashes = True
 
     def update_config(self, d):
         """

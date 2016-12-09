@@ -299,7 +299,7 @@ class Bot(object):
                     sha = update.requirement_file.sha
                     content = update.requirement_file.content
                 old_content = content
-                content = update.requirement.update_content(content)
+                content = update.requirement.update_content(content, self.config.update_hashes)
                 if content != old_content:
                     new_sha = self.provider.create_commit(
                         repo=self.user_repo,

@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 from pkg_resources import parse_requirements
 from pkg_resources import parse_version
 from pkg_resources._vendor.packaging.specifiers import SpecifierSet
+import hashin
 from .updates import InitialUpdate, SequentialUpdate, ScheduledUpdate
 from .pullrequest import PullRequest
 import logging
@@ -41,6 +42,10 @@ URL_REGEX = re.compile(
     # resource path
     u"(?:/\S*)?",
     re.UNICODE)
+
+PYTHON_VERSIONS = [
+    "2.7", "3.0", "3.1", "3.2", "3.3", "3.4", "3.5", "3.6"
+]
 logger = logging.getLogger(__name__)
 
 
@@ -134,6 +139,18 @@ class RequirementFile(object):
             return url if url.endswith("/") else url + "/"
         return None
 
+    def _hash_parser(self, line):
+        """
+
+        :param line:
+        :return:
+        """
+        regex = r"--hash=[\w]+:[\w]+"
+        hashes = []
+        for match in re.finditer(regex, line):
+            hashes.append(line[match.start():match.end()])
+        return re.sub(regex, "", line).strip(), hashes
+
     def _parse(self):
         self._requirements, self._other_files = [], []
         index_server = None
@@ -166,17 +183,36 @@ class RequirementFile(object):
                     if "pyup: ignore" in line:
                         # filter rule match to completely ignore this requirement
                         continue
+                    parseable_line = line
+
+                    # multiline requirements are not parseable
+                    if "\\" in line:
+                        parseable_line = line.replace("\\", "")
+                        for next_line in self.iter_lines(num + 1):
+                            parseable_line += next_line.strip().replace("\\", "")
+                            line += "\n" + next_line
+                            if "\\" in next_line:
+                                continue
+                            break
+
+                    hashes = []
+                    if "--hash" in parseable_line:
+                        parseable_line, hashes = self._hash_parser(parseable_line)
+
                     klass = self.get_requirement_class()
-                    req = klass.parse(line, num + 1, index_server=index_server)
+                    req = klass.parse(parseable_line, num + 1)
+                    req.hashes = hashes
+                    req.index_server = index_server
+                    # replace the requirements line with the 'real' line
+                    req.line = line
                     if req.package is not None:
                         self._requirements.append(req)
-                except ValueError:
-                    # print("can't parse", line)
+                except ValueError as e:
                     continue
         self._is_valid = len(self._requirements) > 0 or len(self._other_files) > 0
 
-    def iter_lines(self):
-        for line in self.content.splitlines():
+    def iter_lines(self, lineno=0):
+        for line in self.content.splitlines()[lineno:]:
             yield line
 
     @classmethod
@@ -194,16 +230,17 @@ class RequirementFile(object):
 
 
 class Requirement(object):
-    def __init__(self, name, specs, hashCmp, line, lineno, index_server, extras):
+    def __init__(self, name, specs, hashCmp, line, lineno, extras):
         self.name = name
         self.key = name.lower()
         self.specs = specs
         self.hashCmp = hashCmp
         self.line = line
         self.lineno = lineno
-        self.index_server = index_server
+        self.index_server = None
         self.extras = extras
         self.pull_request = None
+        self.hashes = []
         self._fetched_package = False
         self._package = None
 
@@ -287,15 +324,11 @@ class Requirement(object):
             ",".join(["".join([x, y]) for x, y in specs])
         )
         candidates = []
-        # print("specs are", spec_set)
         for version in versions:
             if spec_set.contains(version, prereleases=prereleases):
                 candidates.append(version)
-                # else:
-                # print(spec_set, "does not contain", version)
         candidates = sorted(candidates, key=lambda v: parse_version(v), reverse=True)
         if len(candidates) > 0:
-            # print("candidates are", candidates)
             return candidates[0]
         return None
 
@@ -332,24 +365,49 @@ class Requirement(object):
             return "{}[{}]".format(self.name, ",".join(self.extras))
         return self.name
 
-    def update_content(self, content):
+
+    def get_hashes(self, version):
+        data = hashin.get_package_hashes(
+            self.name,
+            version=version,
+            algorithm="sha256",
+            python_versions=PYTHON_VERSIONS,
+            verbose=True
+        )
+        return data["hashes"]
+
+    def update_content(self, content, update_hashes=True):
         """
-        Updates the requirement to the latest version for the given content
+        Updates the requirement to the latest version for the given content and adds hashes
+        if neccessary.
         :param content: str, content
         :return: str, updated content
         """
         new_line = "{}=={}".format(self.full_name, self.latest_version_within_specs)
-
         # leave environment markers intact
         if ";" in self.line:
             new_line += ";" + self.line.split(";", 1)[1].split("#")[0].rstrip()
+        # add the comment
         if "#" in self.line:
-            new_line += " #" + "#".join(self.line.split("#")[1:])
+            new_line += " #" + "#".join(self.line.splitlines()[0].split("#")[1:])
+        # if this is a hashed requirement, add a multiline break before the comment
+        if self.hashes and not new_line.endswith("\\"):
+            new_line += " \\"
+        # if this is a hashed requirement, add the hashes
+        if update_hashes and self.hashes:
+            new_hashes = self.get_hashes(self.latest_version_within_specs)
+            for n, new_hash in enumerate(new_hashes):
+                new_line += "\n    --hash=sha256:{}".format(new_hash["hash"])
+                # append a new multiline break if this is not the last line
+                if len(new_hashes) > n + 1:
+                    new_line += " \\"
+
         regex = r"^{}(?=\s*\r?\n?$)".format(re.escape(self.line))
+
         return re.sub(regex, new_line, content, flags=re.MULTILINE)
 
     @classmethod
-    def parse(cls, s, lineno, index_server=None):
+    def parse(cls, s, lineno):
         # setuptools requires a space before the comment. If this isn't the case, add it.
         if "\t#" in s:
             parsed, = parse_requirements(s.replace("\t#", "\t #"))
@@ -361,7 +419,6 @@ class Requirement(object):
             line=s,
             lineno=lineno,
             hashCmp=parsed.hashCmp,
-            index_server=index_server,
             extras=parsed.extras
         )
 

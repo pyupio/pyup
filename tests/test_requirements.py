@@ -12,6 +12,71 @@ import os
 
 class RequirementUpdateContent(TestCase):
 
+    @patch("pyup.requirements.hashin.get_package_hashes")
+    def test_update_with_hashes(self, get_hashes_mock):
+        get_hashes_mock.return_value = {
+            "hashes": [{"hash": "123"}, {"hash": "456"}]
+        }
+        with patch('pyup.requirements.Requirement.latest_version_within_specs',
+                   new_callable=PropertyMock,
+                   return_value="1.4.2"):
+            content = "alembic==0.8.9 \\\n" \
+                      "        --hash=sha256:abcde"
+            req_file = RequirementFile("req.txt", content)
+            req = list(req_file.requirements)[0]
+            self.assertEqual(
+                Requirement.parse("alembic==0.8.9", 1),
+                req
+            )
+
+            self.assertEqual(req.update_content(content), "alembic==1.4.2 \\\n"
+                                                          "    --hash=sha256:123 \\\n"
+                                                          "    --hash=sha256:456")
+
+    @patch("pyup.requirements.hashin.get_package_hashes")
+    def test_update_with_hashes_and_comment(self, get_hashes_mock):
+        get_hashes_mock.return_value = {
+            "hashes": [{"hash": "123"}, {"hash": "456"}]
+        }
+        with patch('pyup.requirements.Requirement.latest_version_within_specs',
+                   new_callable=PropertyMock,
+                   return_value="1.4.2"):
+            content = "alembic==0.8.9 # yay \\\n" \
+                      "        --hash=sha256:abcde"
+            req_file = RequirementFile("req.txt", content)
+            req = list(req_file.requirements)[0]
+            self.assertEqual(
+                Requirement.parse("alembic==0.8.9", 1),
+                req
+            )
+
+            new_content = req.update_content(content)
+            self.assertEqual(new_content, "alembic==1.4.2 # yay \\\n"
+                                                          "    --hash=sha256:123 \\\n"
+                                                          "    --hash=sha256:456")
+
+    @patch("pyup.requirements.hashin.get_package_hashes")
+    def test_update_with_hashes_and_comment_and_env_markers(self, get_hashes_mock):
+
+        get_hashes_mock.return_value = {
+            "hashes": [{"hash": "123"}, {"hash": "456"}]
+        }
+        with patch('pyup.requirements.Requirement.latest_version_within_specs',
+                   new_callable=PropertyMock,
+                   return_value="1.4.2"):
+            content = "alembic==0.8.9; sys_platform != 'win32' # yay \\\n" \
+                      "        --hash=sha256:abcde"
+            req_file = RequirementFile("req.txt", content)
+            req = list(req_file.requirements)[0]
+            self.assertEqual(
+                Requirement.parse("alembic==0.8.9; sys_platform != 'win32'", 1),
+                req
+            )
+
+            self.assertEqual(req.update_content(content), "alembic==1.4.2; sys_platform != 'win32' # yay \\\n"
+                                                          "    --hash=sha256:123 \\\n"
+                                                          "    --hash=sha256:456")
+
     def test_update_with_environment_markers(self):
         with patch('pyup.requirements.Requirement.latest_version_within_specs',
                    new_callable=PropertyMock,
@@ -501,6 +566,20 @@ class RequirementsFileTestCase(TestCase):
     def test_parse_empty_line(self):
         r = RequirementFile("foo.txt", "\n\n\n\n\n")
         self.assertEqual(r.requirements, [])
+
+    def test_parse_hashes(self):
+        with open(os.path.dirname(os.path.realpath(__file__)) + "/data/hashed_reqs.txt") as f:
+            content = f.read()
+            r = RequirementFile("r.txt", content)
+            self.assertEqual(
+                [
+                    Requirement.parse("alembic==0.8.9", 1),
+                    Requirement.parse("amqp==2.1.1", 3),
+                    Requirement.parse("argon2-cffi==16.3.0", 6),
+                    Requirement.parse("Babel==2.3.4", 8),
+                ],
+                list(r.requirements)
+            )
 
     def test_parse_index_server(self):
         line = "--index-url https://some.foo/"
