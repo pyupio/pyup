@@ -12,7 +12,7 @@ import os
 
 class RequirementUpdateContent(TestCase):
 
-    @patch("pyup.requirements.hashin.get_package_hashes")
+    @patch("pyup.requirements.hashin.get_package_data")
     def test_update_with_hashes(self, get_hashes_mock):
         get_hashes_mock.return_value = {
             "hashes": [{"hash": "123"}, {"hash": "456"}]
@@ -33,7 +33,7 @@ class RequirementUpdateContent(TestCase):
                                                           "    --hash=sha256:123 \\\n"
                                                           "    --hash=sha256:456")
 
-    @patch("pyup.requirements.hashin.get_package_hashes")
+    @patch("pyup.requirements.hashin.get_package_data")
     def test_update_with_hashes_and_comment(self, get_hashes_mock):
         get_hashes_mock.return_value = {
             "hashes": [{"hash": "123"}, {"hash": "456"}]
@@ -55,7 +55,7 @@ class RequirementUpdateContent(TestCase):
                                                           "    --hash=sha256:123 \\\n"
                                                           "    --hash=sha256:456")
 
-    @patch("pyup.requirements.hashin.get_package_hashes")
+    @patch("pyup.requirements.hashin.get_package_data")
     def test_update_with_hashes_and_comment_and_env_markers(self, get_hashes_mock):
 
         get_hashes_mock.return_value = {
@@ -890,4 +890,3 @@ class RequirementsBundleTestCase(TestCase):
             ],
                 [r for r in reqs.requirements]
             )
-

@@ -365,9 +365,8 @@ class Requirement(object):
             return "{}[{}]".format(self.name, ",".join(self.extras))
         return self.name
 
-
     def get_hashes(self, version):
-        data = hashin.get_package_hashes(
+        data = hashin.get_package_data(
             self.name,
             version=version,
             algorithm="sha256",
