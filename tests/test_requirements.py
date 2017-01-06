@@ -3,7 +3,7 @@ from __future__ import absolute_import, print_function, unicode_literals
 from unittest import TestCase
 from pyup.requirements import Requirement
 from mock import patch, PropertyMock, Mock
-from pyup.requirements import RequirementFile, RequirementsBundle
+from pyup.requirements import RequirementFile, RequirementsBundle, SetupPyFile
 from .test_package import package_factory
 from .test_pullrequest import pullrequest_factory
 import requests_mock
@@ -891,3 +891,43 @@ class RequirementsBundleTestCase(TestCase):
                 [r for r in reqs.requirements]
             )
 
+
+class SetupPyFileTestCase(TestCase):
+    def setUp(self):
+        with open(os.path.join(os.path.dirname(__file__), '..', 'setup.py')) as f:
+            self.content = f.read()
+
+    def test_parse(self):
+        assertion = AssertionError('setup function should not have been called')
+        requirements = [
+            "requests",
+            "pygithub",
+            "click",
+            "tqdm",
+            "pyyaml",
+            "hashin",
+        ] + [
+            "requests-mock",
+            "mock",
+            "flake8"
+        ]
+
+        req = SetupPyFile('setup.py', self.content)
+
+        def req_requirements():
+            return sorted(r.name for r in req.requirements)
+
+        try:
+            with patch('setuptools.setup', side_effect=assertion):
+                self.assertListEqual(req_requirements(), sorted(requirements))
+        except ImportError:
+            pass
+        else:
+            return
+
+        with patch('distutils.core.setup', side_effect=assertion):
+            self.assertListEqual(req_requirements(), sorted(requirements))
+
+    def test_str(self):
+        req = SetupPyFile('setup.py', self.content)
+        self.assertEqual(str(req), "SetupPyFile(path='setup.py', sha='None', content='#!/usr/bin/env python\n# -*- co[truncated]')")
