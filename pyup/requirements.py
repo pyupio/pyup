@@ -207,7 +207,7 @@ class RequirementFile(object):
                     req.line = line
                     if req.package is not None:
                         self._requirements.append(req)
-                except ValueError as e:
+                except ValueError:
                     continue
         self._is_valid = len(self._requirements) > 0 or len(self._other_files) > 0
 

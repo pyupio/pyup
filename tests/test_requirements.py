@@ -890,3 +890,4 @@ class RequirementsBundleTestCase(TestCase):
             ],
                 [r for r in reqs.requirements]
             )
+
