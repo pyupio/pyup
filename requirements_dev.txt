@@ -8,4 +8,4 @@ Sphinx==1.4.5
 cryptography==1.6
 PyYAML==3.11
 requests-mock==1.0.0
-setuptools==29.0.1
+setuptools==33.1.0
