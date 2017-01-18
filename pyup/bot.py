@@ -26,6 +26,7 @@ class Bot(object):
         self._bot = None
         self._bot_repo = None
         self.config = config()
+        self.write_config = {}
 
         self._fetched_prs = False
 
@@ -61,9 +62,10 @@ class Bot(object):
             self._fetched_prs = True
         return self.req_bundle.pull_requests
 
-    def get_repo_config(self, repo):
+    def get_repo_config(self, repo, branch=None):
+        branch = self.config.branch if branch is None else branch
         try:
-            content, _ = self.provider.get_file(repo, "/.pyup.yml", self.config.branch)
+            content, _ = self.provider.get_file(repo, "/.pyup.yml", branch)
             if content is not None:
                 return yaml.safe_load(content)
         except yaml.YAMLError:
@@ -71,6 +73,8 @@ class Bot(object):
         return None
 
     def configure(self, **kwargs):
+        if kwargs.get("write_config", False):
+            self.write_config = kwargs.get("write_config")
         # if the branch is not set, get the default branch
         if kwargs.get("branch", False) in [None, False]:
             self.config.branch = self.provider.get_default_branch(repo=self.user_repo)
@@ -79,6 +83,8 @@ class Bot(object):
         repo_config = self.get_repo_config(repo=self.user_repo)
         if repo_config:
             self.config.update_config(repo_config)
+        if self.write_config:
+            self.config.update_config(self.write_config)
         logger.info("Runtime config is: {}".format(self.config))
 
     def update(self, **kwargs):
@@ -96,12 +102,12 @@ class Bot(object):
 
         return self.req_bundle
 
-    def can_pull(self, scheduled):
+    def can_pull(self, initial, scheduled):
         """
         Determines if pull requests should be created
         :return: bool
         """
-        if self.config.is_valid_schedule():
+        if not initial and self.config.is_valid_schedule():
             # if the config has a valid schedule, return True if this is a scheduled run
             return scheduled
         return True
@@ -128,6 +134,8 @@ class Bot(object):
                     title=InitialUpdateClass.get_title(),
                     body=InitialUpdateClass.get_empty_update_body()
                 )
+                if self.write_config:
+                    self.pull_config(self.write_config)
                 return
 
         # check if we have an initial PR open. If this is the case, we attach the initial PR
@@ -139,11 +147,14 @@ class Bot(object):
             False
         )
 
+        if initial and self.write_config:
+            self.pull_config(self.write_config)
+
         # todo: This block needs to be refactored
         for title, body, update_branch, updates in self.iter_updates(initial, scheduled):
             if initial_pr:
                 pull_request = initial_pr
-            elif self.can_pull(scheduled) and title not in [pr.title for pr in self.pull_requests]:
+            elif self.can_pull(initial, scheduled) and title not in [pr.title for pr in self.pull_requests]:
                 update_branch = self.config.branch_prefix + update_branch
                 pull_request = self.commit_and_pull(
                     initial=initial,
@@ -258,7 +269,6 @@ class Bot(object):
     def create_branch(self, new_branch, delete_empty=False):
         """
         Creates a new branch.
-        :param base_branch: string name of the base branch
         :param new_branch: string name of the new branch
         :param delete_empty: bool -- delete the branch if it is empty
         :return: bool -- True if successfull
@@ -286,6 +296,55 @@ class Bot(object):
                     return self.create_branch(new_branch, delete_empty=False)
                 logger.info("Branch {} is not empty".format(new_branch))
         return False
+
+    def pull_config(self, new_config):  # pragma: no cover
+        """
+
+        :param new_config:
+        :return:
+        """
+        logger.info("Creating new config file with {}".format(new_config))
+        branch = 'pyup-config'
+        if self.create_branch(branch, delete_empty=True):
+            content = self.config.generate_config_file(new_config)
+            _, content_file = self.provider.get_file(self.user_repo, '/.pyup.yml', branch)
+            if content_file:
+                # a config file exists, update and commit it
+                logger.info("Config file exists, updating config for sha {}".format(content_file.sha))
+                commit = self.provider.create_commit(
+                    repo=self.user_repo,
+                    path="/.pyup.yml",
+                    branch=branch,
+                    content=content,
+                    commit_message="update pyup.io config file",
+                    committer=self.bot if self.bot_token else self.user,
+                    sha=content_file.sha
+                )
+            logger.info("No config file found, writing new config file")
+            # there's no config file present, write a new config file and commit it
+            commit = self.provider.create_and_commit_file(
+                repo=self.user_repo,
+                path="/.pyup.yml",
+                branch=branch,
+                content=content,
+                commit_message="create pyup.io config file",
+                committer=self.bot if self.bot_token else self.user,
+            )
+
+            title = 'Config file for pyup.io'
+            body = 'Hi there and thanks for using pyup.io!\n' \
+                   '\n' \
+                   "Since you are using a non-default config I've created one for you.\n\n" \
+                   "There are a lot of things you can configure on top of " \
+                   "that, so make sure to check out the " \
+                   "[docs](https://pyup.io/docs/configuration/) to see what I can do for you."
+
+            pr = self.create_pull_request(
+                title=title,
+                body=body,
+                new_branch=branch,
+            )
+            return pr
 
     def commit_and_pull(self, initial, new_branch, title, body, updates):
         logger.info("Preparing commit {}".format(title))

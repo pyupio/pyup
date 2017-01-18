@@ -147,6 +147,34 @@ class ProviderTest(TestCase):
             self.provider.create_commit("path", "branch", "commit", "content", "sha", self.repo,
                                         "com")
 
+    def test_create_and_commit_file(self):
+        repo = Mock()
+        path, branch, content, commit_message, committer = (
+            '/foo.txt',
+            'some-branch',
+            'content',
+            'some-message',
+            'johnny'
+        )
+        committer_data = Mock()
+        committer_data.return_value = 'committer-data'
+        self.provider.get_committer_data = committer_data
+        data = self.provider.create_and_commit_file(
+            repo=repo,
+            path=path,
+            commit_message=commit_message,
+            branch=branch,
+            content=content,
+            committer=committer
+        )
+        repo.create_file.assert_called_once_with(
+            path=path,
+            message=commit_message,
+            content=content,
+            branch=branch,
+            committer='committer-data'
+        )
+
     def test_get_committer_data(self):
         committer = Mock()
         committer.email = "foo@bar.com"

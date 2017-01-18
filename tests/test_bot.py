@@ -114,6 +114,12 @@ class BotConfigureTest(TestCase):
         bot.configure()
         self.assertEqual(bot.config.branch, "2.0")
 
+    def test_write_config(self):
+        bot = bot_factory()
+        bot.provider.get_file.return_value = None, None
+        bot.configure(write_config={'branch': 'bogus-branch'})
+        self.assertEqual(bot.config.branch, "bogus-branch")
+
 
 class BotUpdateTest(TestCase):
     def test_branch_is_none(self):
@@ -160,6 +166,21 @@ class BotApplyUpdateTest(TestCase):
             body=InitialUpdate.get_empty_update_body()
         )
 
+    def test_updates_empty_with_write_config(self):
+        bot = bot_factory()
+        bot.write_config = {'foo': 'bar'}
+        bot.create_issue = Mock()
+        bot.req_bundle.get_updates = Mock(side_effect=IndexError)
+        bot.pull_config = Mock()
+        bot.apply_updates(initial=True, scheduled=False)
+        bot.create_issue.assert_called_once_with(
+            title=InitialUpdate.get_title(),
+            body=InitialUpdate.get_empty_update_body()
+        )
+        bot.pull_config.assert_called_once_with(
+            {'foo': 'bar'}
+        )
+
     def test_apply_update_pull_request_new(self):
         the_requirement = Mock()
         the_pull = pullrequest_factory("The PR")
@@ -175,6 +196,27 @@ class BotApplyUpdateTest(TestCase):
         bot.apply_updates(initial=True, scheduled=False)
 
         self.assertEqual(the_requirement.pull_request, the_pull)
+
+    def test_apply_update_with_write_config(self):
+        the_requirement = Mock()
+        the_pull = pullrequest_factory("The PR")
+
+        bot = bot_factory(prs=[the_pull])
+        bot.write_config = {'foo': 'bar'}
+        bot.pull_config = Mock()
+        bot.req_bundle.get_updates = Mock()
+        update = RequirementUpdate(
+            requirement_file="foo", requirement=the_requirement, commit_message="foo"
+        )
+        bot.req_bundle.get_updates.return_value = [("The PR", "", "", [update])]
+        bot.commit_and_pull = Mock()
+        bot.commit_and_pull.return_value = the_pull
+        bot.apply_updates(initial=True, scheduled=False)
+
+        self.assertEqual(the_requirement.pull_request, the_pull)
+        bot.pull_config.assert_called_once_with(
+            {'foo': 'bar'}
+        )
 
     def test_close_stall_prs_called(self):
         the_requirement = Mock()
@@ -465,20 +507,27 @@ class BotCanPullTest(TestCase):
         bot = bot_factory(bot_token=None)
         bot.config.is_valid_schedule = Mock()
         bot.config.is_valid_schedule.return_value = True
-        self.assertFalse(bot.can_pull(False))
+        self.assertFalse(bot.can_pull(False, False))
 
     def test_valid_schedule_and_scheduled_run(self):
         bot = bot_factory(bot_token=None)
         bot.config.is_valid_schedule = Mock()
         bot.config.is_valid_schedule.return_value = True
-        self.assertTrue(bot.can_pull(True))
+        self.assertTrue(bot.can_pull(False, True))
 
     def test_no_schedule(self):
         bot = bot_factory(bot_token=None)
         bot.config.is_valid_schedule = Mock()
         bot.config.is_valid_schedule.return_value = False
-        self.assertTrue(bot.can_pull(False))
-        self.assertTrue(bot.can_pull(True))
+        self.assertTrue(bot.can_pull(False, False))
+        self.assertTrue(bot.can_pull(False, True))
+
+    def test_initial(self):
+        bot = bot_factory(bot_token=None)
+        bot.config.is_valid_schedule = Mock()
+        bot.config.is_valid_schedule.return_value = False
+        self.assertTrue(bot.can_pull(True, False))
+        self.assertTrue(bot.can_pull(True, True))
 
 
 class BotCreatePullRequestTest(TestCase):

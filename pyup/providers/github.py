@@ -72,6 +72,15 @@ class Provider(object):
             ))
             return None, None
 
+    def create_and_commit_file(self, repo, path, branch, content, commit_message, committer):
+        return repo.create_file(
+            path=path,
+            message=commit_message,
+            content=content,
+            branch=branch,
+            committer=self.get_committer_data(committer),
+        )
+
     def get_requirement_file(self, repo, path, branch):
         content, file_obj = self.get_file(repo, path, branch)
         if content is not None and file_obj.sha is not None:
