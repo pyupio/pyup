@@ -115,7 +115,7 @@ class Bot(object):
     def apply_updates(self, initial, scheduled):
 
         InitialUpdateClass = self.req_bundle.get_initial_update_class()
-        print("hi")
+
         if initial:
             # get the list of pending updates
             try:
@@ -140,7 +140,7 @@ class Bot(object):
                 if self.write_config:
                     self.pull_config(self.write_config)
                 return
-        print("here")
+
         # check if we have an initial PR open. If this is the case, we attach the initial PR
         # to all updates and are done. The `Initial Update` has to be merged (or at least closed)
         # before we continue to do anything here.

@@ -771,7 +771,7 @@ class CloseStalePRsTestCase(TestCase):
         bot.provider.close_pull_request.assert_not_called()
 
     def test_same_title(self):
-        print("*" * 30)
+
         bot = bot_factory(bot_token="foo", prs=[self.other_pr])
         self.other_pr.title = "First PR"
         self.other_pr.canonical_title.return_value = "First PR"
@@ -779,7 +779,7 @@ class CloseStalePRsTestCase(TestCase):
         bot.provider.get_pull_request_committer.return_value = [commiter]
 
         bot.close_stale_prs(self.update, self.pr, False)
-        print("*" * 30)
+
         bot.provider.get_pull_request_committer.assert_not_called()
         bot.provider.close_pull_request.assert_not_called()
 
