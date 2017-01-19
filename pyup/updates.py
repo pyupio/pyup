@@ -143,7 +143,6 @@ class InitialUpdate(BundledUpdate):
     def get_branch(cls):
         return "initial-update"
 
-
 RequirementUpdate = namedtuple(
     "RequirementUpdate",
     ["requirement_file", "requirement", "commit_message"]

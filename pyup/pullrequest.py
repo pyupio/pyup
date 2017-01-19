@@ -21,21 +21,26 @@ class PullRequest(object):
         self.issue = issue
 
     def __eq__(self, other):
-        return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+        return isinstance(other, self.__class__) and self.number == other.number
+
+    def canonical_title(self, prefix):
+        if prefix:
+            return self.title.replace("{} | ".format(prefix), "")
+        return self.title
 
     @property
     def type(self):
-        if self.title.startswith("Update"):
+        if "Update " in self.title:
             return PullRequest.UPDATE_TYPE
-        elif self.title.startswith("Security"):
+        elif "Security" in self.title:
             return PullRequest.SECURITY_TYPE
-        elif self.title.startswith("Pin"):
+        elif "Pin" in self.title:
             return PullRequest.PIN_TYPE
-        elif self.title.startswith("Initial"):
+        elif "Initial" in self.title:
             return PullRequest.INITIAL_TYPE
-        elif self.title.startswith("Compile"):
+        elif "Compile" in self.title:
             return PullRequest.COMPILE_TYPE
-        elif self.title.startswith("Scheduled"):
+        elif "Scheduled" in self.title:
             return PullRequest.SCHEDULED_TYPE
         return PullRequest.UNKNOWN_TYPE
 
@@ -70,7 +75,11 @@ class PullRequest(object):
     @property
     def requirement(self):
         if self.type != "initial":
-            parts = self.title.split(" ")
+            # if the pr title contains a pipe, remove everything prior as it is a prefix
+            if "|" in self.title:
+                parts = self.title.split(" | ")[1].split(" ")
+            else:
+                parts = self.title.split(" ")
             if len(parts) >= 2:
                 return parts[1].lower()
         return None

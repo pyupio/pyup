@@ -166,6 +166,17 @@ class BotApplyUpdateTest(TestCase):
             body=InitialUpdate.get_empty_update_body()
         )
 
+    def test_updates_empty_with_prefix(self):
+        bot = bot_factory()
+        bot.config.pr_prefix = "Some Prefix"
+        bot.create_issue = Mock()
+        bot.req_bundle.get_updates = Mock(side_effect=IndexError)
+        bot.apply_updates(initial=True, scheduled=False)
+        bot.create_issue.assert_called_once_with(
+            title="Some Prefix " + InitialUpdate.get_title(),
+            body=InitialUpdate.get_empty_update_body()
+        )
+
     def test_updates_empty_with_write_config(self):
         bot = bot_factory()
         bot.write_config = {'foo': 'bar'}
@@ -196,6 +207,29 @@ class BotApplyUpdateTest(TestCase):
         bot.apply_updates(initial=True, scheduled=False)
 
         self.assertEqual(the_requirement.pull_request, the_pull)
+
+    def test_apply_update_with_prefix_pull_request_new(self):
+        the_requirement = Mock()
+        the_pull = pullrequest_factory("The PR")
+
+        bot = bot_factory(prs=[the_pull])
+        bot.config.pr_prefix = "Some Prefix"
+        bot.req_bundle.get_updates = Mock()
+        update = RequirementUpdate(
+            requirement_file="foo", requirement=the_requirement, commit_message="foo"
+        )
+        bot.req_bundle.get_updates.return_value = [("The PR", "", "", [update])]
+        bot.commit_and_pull = Mock()
+        bot.commit_and_pull.return_value = the_pull
+        bot.apply_updates(initial=False, scheduled=False)
+        self.assertEqual(the_requirement.pull_request, the_pull)
+        bot.commit_and_pull.assert_called_once_with(
+            body='',
+            initial=False,
+            new_branch=u'pyup-',
+            title=u'Some Prefix | The PR',
+            updates=[update]
+        )
 
     def test_apply_update_with_write_config(self):
         the_requirement = Mock()
@@ -626,6 +660,7 @@ class CloseStalePRsTestCase(TestCase):
 
         self.pr = Mock()
         self.pr.title = "First PR"
+        self.pr.canonical_title.return_value = "First PR"
         self.pr.number = 100
         self.pr.type = "update"
         self.pr.is_update = True
@@ -638,6 +673,7 @@ class CloseStalePRsTestCase(TestCase):
         self.other_pr.type = "update"
         self.other_pr.is_open = True
         self.other_pr.title = "Second PR"
+        self.other_pr.canonical_title.return_value = "Second PR"
         self.other_pr.requirement = "some-req"
         self.other_pr.is_update = True
         self.other_pr.is_initial = False
@@ -695,6 +731,23 @@ class CloseStalePRsTestCase(TestCase):
             prefix="pyup-"
         )
 
+    def test_close_success_with_prefix(self):
+        bot = bot_factory(bot_token="foo", prs=[self.other_pr])
+        bot.config.pr_prefix = "Some Prefix"
+        commiter = Mock()
+        bot.provider.get_pull_request_committer.return_value = [commiter]
+
+        bot.close_stale_prs(self.update, self.pr, False)
+
+        bot.provider.get_pull_request_committer.assert_called_once_with(bot.user_repo, self.other_pr)
+        bot.provider.close_pull_request.assert_called_once_with(
+            bot_repo=bot.bot_repo,
+            user_repo=bot.user_repo,
+            pull_request=self.other_pr,
+            comment="Closing this in favor of #100",
+            prefix="pyup-"
+        )
+
     def test_wrong_pr_type(self):
         bot = bot_factory(bot_token="foo", prs=[self.other_pr])
         self.other_pr.is_update = False
@@ -718,15 +771,18 @@ class CloseStalePRsTestCase(TestCase):
         bot.provider.close_pull_request.assert_not_called()
 
     def test_same_title(self):
+        print("*" * 30)
         bot = bot_factory(bot_token="foo", prs=[self.other_pr])
         self.other_pr.title = "First PR"
+        self.other_pr.canonical_title.return_value = "First PR"
         commiter = Mock()
         bot.provider.get_pull_request_committer.return_value = [commiter]
 
         bot.close_stale_prs(self.update, self.pr, False)
-
+        print("*" * 30)
         bot.provider.get_pull_request_committer.assert_not_called()
         bot.provider.close_pull_request.assert_not_called()
+
 
     def test_requirement_doesnt_match(self):
         bot = bot_factory(bot_token="foo", prs=[self.other_pr])

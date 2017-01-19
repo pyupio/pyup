@@ -30,6 +30,7 @@ class Config(object):
         self.close_prs = True
         self.branch = "master"
         self.branch_prefix = "pyup-"
+        self.pr_prefix = ""
         self.pin = True
         self.search = True
         self.requirements = []

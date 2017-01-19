@@ -90,3 +90,12 @@ class PullRequestRequirementTestCase(TestCase):
     def test_some_bogus(self):
         pr = pullrequest_factory(title="Uhm?")
         self.assertEqual(pr.requirement, None)
+
+    def test_with_prefix(self):
+        pr = pullrequest_factory(title="Some Prefix | Update django")
+        self.assertEqual(pr.requirement, 'django')
+
+        flask = pullrequest_factory(title="Pin flask")
+        flask_prefix = pullrequest_factory(title="Some Prefix | Pin flask")
+        self.assertIsNotNone(flask.requirement)
+        self.assertEqual(flask.requirement, flask_prefix.requirement)

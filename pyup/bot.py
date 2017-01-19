@@ -115,7 +115,7 @@ class Bot(object):
     def apply_updates(self, initial, scheduled):
 
         InitialUpdateClass = self.req_bundle.get_initial_update_class()
-
+        print("hi")
         if initial:
             # get the list of pending updates
             try:
@@ -130,20 +130,24 @@ class Bot(object):
             # up to date. In this case, we create an issue letting the user know that the bot is
             # now set up for this repo and return early.
             if not updates:
+                title = InitialUpdateClass.get_title()
+                if self.config.pr_prefix:
+                    title = "{prefix} {title}".format(prefix=self.config.pr_prefix, title=title)
                 self.create_issue(
-                    title=InitialUpdateClass.get_title(),
+                    title=title,
                     body=InitialUpdateClass.get_empty_update_body()
                 )
                 if self.write_config:
                     self.pull_config(self.write_config)
                 return
-
+        print("here")
         # check if we have an initial PR open. If this is the case, we attach the initial PR
         # to all updates and are done. The `Initial Update` has to be merged (or at least closed)
         # before we continue to do anything here.
         initial_pr = next(
             (pr for pr in self.pull_requests if
-             pr.title == InitialUpdateClass.get_title() and pr.is_open),
+             pr.canonical_title(self.config.pr_prefix) ==
+             InitialUpdateClass.get_title() and pr.is_open),
             False
         )
 
@@ -152,6 +156,8 @@ class Bot(object):
 
         # todo: This block needs to be refactored
         for title, body, update_branch, updates in self.iter_updates(initial, scheduled):
+            if self.config.pr_prefix:
+                title = "{prefix} | {title}".format(prefix=self.config.pr_prefix, title=title)
             if initial_pr:
                 pull_request = initial_pr
             elif self.can_pull(initial, scheduled) and title not in [pr.title for pr in self.pull_requests]:
@@ -195,9 +201,13 @@ class Bot(object):
             for pr in self.pull_requests:
                 close_pr = False
                 logger.info("Checking PR {}".format(pr.title))
+                same_title = \
+                    pr.canonical_title(self.config.pr_prefix) == \
+                    pull_request.canonical_title(self.config.pr_prefix)
+
                 if scheduled and pull_request.is_scheduled:
                     # check that the PR is open and the title does not match
-                    if pr.is_open and pr.title != pull_request.title:
+                    if pr.is_open and not same_title:
                         # we want to close the previous scheduled PR if it is not merged yet
                         # and we want to close all previous updates if the user choose to
                         # switch to a scheduled update
@@ -207,8 +217,8 @@ class Bot(object):
                     # check that, the pr is an update, is open, the titles are not equal and that
                     # the requirement matches
                     if pr.is_update and \
-                            pr.is_open and \
-                            pr.title != pull_request.title and \
+                        pr.is_open and \
+                            not same_title and \
                             pr.requirement == update.requirement.key:
                         # there's a possible race condition where multiple updates with more than
                         # one target version conflict with each other (closing each others PRs).
@@ -241,7 +251,7 @@ class Bot(object):
         # check that there's exactly one committer in this PRs commit history and
         # that the committer is the bot
         return len(committer_set) == 1 and \
-            self.provider.is_same_user(self.bot, committer[0])
+               self.provider.is_same_user(self.bot, committer[0])
 
     def has_conflicting_update(self, update):
         """
@@ -255,9 +265,9 @@ class Bot(object):
         for _, _, _, updates in self.iter_updates(initial=False, scheduled=False):
             for _update in updates:
                 if (update.requirement.key == _update.requirement.key and
-                    (update.commit_message != _update.commit_message or
-                        update.requirement.latest_version_within_specs !=
-                        _update.requirement.latest_version_within_specs)):
+                        (update.commit_message != _update.commit_message or
+                                 update.requirement.latest_version_within_specs !=
+                                 _update.requirement.latest_version_within_specs)):
                     logger.info("{} conflicting with {}/{}".format(
                         update.requirement.key,
                         update.requirement.latest_version_within_specs,
@@ -310,7 +320,8 @@ class Bot(object):
             _, content_file = self.provider.get_file(self.user_repo, '/.pyup.yml', branch)
             if content_file:
                 # a config file exists, update and commit it
-                logger.info("Config file exists, updating config for sha {}".format(content_file.sha))
+                logger.info(
+                    "Config file exists, updating config for sha {}".format(content_file.sha))
                 commit = self.provider.create_commit(
                     repo=self.user_repo,
                     path="/.pyup.yml",
@@ -332,6 +343,8 @@ class Bot(object):
             )
 
             title = 'Config file for pyup.io'
+            if self.config.pr_prefix:
+                title = "{prefix} | {title}".format(prefix=self.config.pr_prefix, title=title)
             body = 'Hi there and thanks for using pyup.io!\n' \
                    '\n' \
                    "Since you are using a non-default config I've created one for you.\n\n" \
