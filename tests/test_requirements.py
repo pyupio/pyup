@@ -12,6 +12,21 @@ import os
 
 class RequirementUpdateContent(TestCase):
 
+    def test_update_contains_correct_sep_char(self):
+
+        with patch('pyup.requirements.Requirement.latest_version_within_specs',
+                   new_callable=PropertyMock,
+                   return_value="2.9.5"):
+            content = "Jinja2==2.9.4         # via flask"
+            req_file = RequirementFile("req.txt", content)
+            req = list(req_file.requirements)[0]
+            self.assertEqual(
+                Requirement.parse("Jinja2==2.9.4         # via flask", 1),
+                req
+            )
+
+            self.assertEqual(req.update_content(content), "Jinja2==2.9.5         # via flask")
+
     @patch("pyup.requirements.hashin.get_package_hashes")
     def test_update_with_hashes(self, get_hashes_mock):
         get_hashes_mock.return_value = {
@@ -111,12 +126,12 @@ class RequirementUpdateContent(TestCase):
             content = "bla==1.4.1\t\t# some foo"
             req = Requirement.parse(content, 0)
 
-            self.assertEqual(req.update_content(content), "bla==1.4.2 # some foo")
+            self.assertEqual(req.update_content(content), "bla==1.4.2\t\t# some foo")
 
             content = "bla==1.4.1\t\t# pyup: <1.4.2"
             req = Requirement.parse(content, 0)
 
-            self.assertEqual(req.update_content(content), "bla==1.4.2 # pyup: <1.4.2")
+            self.assertEqual(req.update_content(content), "bla==1.4.2\t\t# pyup: <1.4.2")
 
     def test_something_else(self):
         with patch('pyup.requirements.Requirement.latest_version', new_callable=PropertyMock,

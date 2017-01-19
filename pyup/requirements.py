@@ -389,7 +389,18 @@ class Requirement(object):
             new_line += ";" + self.line.split(";", 1)[1].split("#")[0].rstrip()
         # add the comment
         if "#" in self.line:
-            new_line += " #" + "#".join(self.line.splitlines()[0].split("#")[1:])
+            # split the line into parts: requirement and comment
+            parts = self.line.splitlines()[0].split("#")
+            requirement, comment = parts[0], "#".join(parts[1:])
+            # find all whitespaces between the requirement and the comment
+            whitespaces = (hex(ord('\t')), hex(ord(' ')))
+            trailing_whitespace = ''
+            for c in requirement[::-1]:
+                if hex(ord(c)) in whitespaces:
+                    trailing_whitespace += c
+                else:
+                    break
+            new_line += trailing_whitespace + "#" + comment
         # if this is a hashed requirement, add a multiline break before the comment
         if self.hashes and not new_line.endswith("\\"):
             new_line += " \\"
