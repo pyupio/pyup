@@ -19,7 +19,8 @@ requirements = [
     "pygithub",
     "click",
     "tqdm",
-    "pyyaml"
+    "pyyaml",
+    "hashin",
 ]
 
 test_requirements = [
