@@ -70,9 +70,14 @@ class Config(object):
                     # to make things consistent
                     if isinstance(value, basestring):
                         value = [value, ]
+                elif key == 'pr_prefix':
+                    # make sure that pr prefixes don't contain a PIPE
+                    if "|" in value:
+                        continue
                 # cast ints and floats to str
                 if isinstance(value, (int, float)) and not isinstance(value, bool):
                     value = str(value)
+
                 setattr(self, key, value)
 
     @staticmethod

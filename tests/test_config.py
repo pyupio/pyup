@@ -35,6 +35,18 @@ class ConfigTestCase(TestCase):
         self.assertEqual(config.schedule, "")
         self.assertEqual(config.assignees, [])
         self.assertEqual(config.update, "all")
+        self.assertEqual(config.pr_prefix, "")
+
+    def test_pr_prefix(self):
+        config = Config()
+        self.assertEqual(config.pr_prefix, '')
+
+        config.update_config({"pr_prefix": "Some Prefix"})
+        self.assertEqual(config.pr_prefix, "Some Prefix")
+
+        config.pr_prefix = ""
+        config.update_config({"pr_prefix": "Some | Prefix"})
+        self.assertEqual(config.pr_prefix, "")
 
     def test_can_pin(self):
         config = Config()
