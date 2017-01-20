@@ -157,7 +157,7 @@ class Bot(object):
         # todo: This block needs to be refactored
         for title, body, update_branch, updates in self.iter_updates(initial, scheduled):
             if self.config.pr_prefix:
-                title = "{prefix} | {title}".format(prefix=self.config.pr_prefix, title=title)
+                title = "{prefix} {title}".format(prefix=self.config.pr_prefix, title=title)
             if initial_pr:
                 pull_request = initial_pr
             elif self.can_pull(initial, scheduled) and title not in [pr.title for pr in self.pull_requests]:
@@ -219,7 +219,7 @@ class Bot(object):
                     if pr.is_update and \
                         pr.is_open and \
                             not same_title and \
-                            pr.requirement == update.requirement.key:
+                            pr.get_requirement(self.config.pr_prefix) == update.requirement.key:
                         # there's a possible race condition where multiple updates with more than
                         # one target version conflict with each other (closing each others PRs).
                         # Check that's not the case here
@@ -344,7 +344,7 @@ class Bot(object):
 
             title = 'Config file for pyup.io'
             if self.config.pr_prefix:
-                title = "{prefix} | {title}".format(prefix=self.config.pr_prefix, title=title)
+                title = "{prefix} {title}".format(prefix=self.config.pr_prefix, title=title)
             body = 'Hi there and thanks for using pyup.io!\n' \
                    '\n' \
                    "Since you are using a non-default config I've created one for you.\n\n" \

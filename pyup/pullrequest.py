@@ -24,9 +24,7 @@ class PullRequest(object):
         return isinstance(other, self.__class__) and self.number == other.number
 
     def canonical_title(self, prefix):
-        if prefix:
-            return self.title.replace("{} | ".format(prefix), "")
-        return self.title
+        return self.title.replace("{} ".format(prefix), "") if prefix else self.title
 
     @property
     def type(self):
@@ -72,14 +70,10 @@ class PullRequest(object):
     def is_open(self):
         return self.state == "open"
 
-    @property
-    def requirement(self):
+    def get_requirement(self, prefix=""):
         if self.type != "initial":
-            # if the pr title contains a pipe, remove everything prior as it is a prefix
-            if "|" in self.title:
-                parts = self.title.split(" | ")[1].split(" ")
-            else:
-                parts = self.title.split(" ")
+            title = self.canonical_title(prefix)
+            parts = title.split(" ")
             if len(parts) >= 2:
                 return parts[1].lower()
         return None

@@ -227,7 +227,7 @@ class BotApplyUpdateTest(TestCase):
             body='',
             initial=False,
             new_branch=u'pyup-',
-            title=u'Some Prefix | The PR',
+            title=u'Some Prefix The PR',
             updates=[update]
         )
 
@@ -674,7 +674,7 @@ class CloseStalePRsTestCase(TestCase):
         self.other_pr.is_open = True
         self.other_pr.title = "Second PR"
         self.other_pr.canonical_title.return_value = "Second PR"
-        self.other_pr.requirement = "some-req"
+        self.other_pr.get_requirement.return_value = "some-req"
         self.other_pr.is_update = True
         self.other_pr.is_initial = False
 
@@ -786,7 +786,7 @@ class CloseStalePRsTestCase(TestCase):
 
     def test_requirement_doesnt_match(self):
         bot = bot_factory(bot_token="foo", prs=[self.other_pr])
-        self.other_pr.requirement = "other-req"
+        self.other_pr.get_requirement.return_value = "other-req"
         commiter = Mock()
         bot.provider.get_pull_request_committer.return_value = [commiter]
 

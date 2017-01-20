@@ -77,25 +77,25 @@ class PullRequestRequirementTestCase(TestCase):
 
     def test_initial_non(self):
         pr = pullrequest_factory(title="Initial PR")
-        self.assertEqual(pr.requirement, None)
+        self.assertEqual(pr.get_requirement(), None)
 
     def test_pin(self):
         pr = pullrequest_factory(title="Pin django")
-        self.assertEqual(pr.requirement, "django")
+        self.assertEqual(pr.get_requirement(), "django")
 
     def test_update(self):
         pr = pullrequest_factory(title="Update django")
-        self.assertEqual(pr.requirement, "django")
+        self.assertEqual(pr.get_requirement(), "django")
 
     def test_some_bogus(self):
         pr = pullrequest_factory(title="Uhm?")
-        self.assertEqual(pr.requirement, None)
+        self.assertEqual(pr.get_requirement(), None)
 
     def test_with_prefix(self):
         pr = pullrequest_factory(title="Some Prefix | Update django")
-        self.assertEqual(pr.requirement, 'django')
+        self.assertEqual(pr.get_requirement("Some Prefix |"), 'django')
 
         flask = pullrequest_factory(title="Pin flask")
         flask_prefix = pullrequest_factory(title="Some Prefix | Pin flask")
-        self.assertIsNotNone(flask.requirement)
-        self.assertEqual(flask.requirement, flask_prefix.requirement)
+        self.assertIsNotNone(flask.get_requirement())
+        self.assertEqual(flask.get_requirement(), flask_prefix.get_requirement("Some Prefix |"))
