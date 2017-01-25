@@ -114,6 +114,10 @@ class Bot(object):
 
     def apply_updates(self, initial, scheduled):
 
+        # make sure that the bot is a collaborator (if run by a bot)
+        if self.bot_token:
+            self.provider.get_pull_request_permissions(user=self.bot, repo=self.user_repo)
+
         InitialUpdateClass = self.req_bundle.get_initial_update_class()
 
         if initial:
@@ -289,7 +293,7 @@ class Bot(object):
             self.provider.create_branch(
                 base_branch=self.config.branch,
                 new_branch=new_branch,
-                repo=self.user_repo
+                repo=self.bot_repo if self.bot_token else self.user_repo
             )
             logger.info("Created branch {} from {}".format(new_branch, self.config.branch))
             return True
@@ -323,23 +327,21 @@ class Bot(object):
                 logger.info(
                     "Config file exists, updating config for sha {}".format(content_file.sha))
                 commit = self.provider.create_commit(
-                    repo=self.user_repo,
+                    repo=self.bot_repo if self.bot_token else self.user_repo,
                     path="/.pyup.yml",
                     branch=branch,
                     content=content,
                     commit_message="update pyup.io config file",
-                    committer=self.bot if self.bot_token else self.user,
                     sha=content_file.sha
                 )
             logger.info("No config file found, writing new config file")
             # there's no config file present, write a new config file and commit it
             commit = self.provider.create_and_commit_file(
-                repo=self.user_repo,
+                repo=self.bot_repo if self.bot_token else self.user_repo,
                 path="/.pyup.yml",
                 branch=branch,
                 content=content,
                 commit_message="create pyup.io config file",
-                committer=self.bot if self.bot_token else self.user,
             )
 
             title = 'Config file for pyup.io'
@@ -374,13 +376,12 @@ class Bot(object):
                 content = update.requirement.update_content(content, self.config.update_hashes)
                 if content != old_content:
                     new_sha = self.provider.create_commit(
-                        repo=self.user_repo,
+                        repo=self.bot_repo if self.bot_token else self.user_repo,
                         path=update.requirement_file.path,
                         branch=new_branch,
                         content=content,
                         commit_message=update.commit_message,
                         sha=sha,
-                        committer=self.bot if self.bot_token else self.user,
                     )
                     updated_files[update.requirement_file.path] = {"sha": new_sha,
                                                                    "content": content}
@@ -407,23 +408,6 @@ class Bot(object):
         )
 
     def create_pull_request(self, title, body, new_branch):
-
-        # if we have a bot user that creates the PR, we might run into problems on private
-        # repos because the bot has to be a collaborator. We try to submit the PR before checking
-        # the permissions because that saves us API calls in most cases
-        if self.bot_token:
-            try:
-                return self.provider.create_pull_request(
-                    repo=self.bot_repo,
-                    title=title,
-                    body=body,
-                    base_branch=self.config.branch,
-                    new_branch=new_branch,
-                    pr_label=self.config.label_prs,
-                    assignees=self.config.assignees
-                )
-            except NoPermissionError:
-                self.provider.get_pull_request_permissions(self.bot, self.user_repo)
 
         return self.provider.create_pull_request(
             repo=self.bot_repo if self.bot_token else self.user_repo,

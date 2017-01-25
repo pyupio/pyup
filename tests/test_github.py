@@ -139,13 +139,12 @@ class ProviderTest(TestCase):
     def test_create_commit(self, time):
         self.repo.update_file.return_value = {"commit": Mock(), "content": Mock()}
         self.provider.get_committer_data = Mock(return_value = "foo@bar.com")
-        self.provider.create_commit("path", "branch", "commit", "content", "sha", self.repo, "com")
+        self.provider.create_commit("path", "branch", "commit", "content", "sha", self.repo)
         self.assertEquals(self.repo.update_file.call_count, 1)
 
         self.repo.update_file.side_effect = GithubException(data="", status=1)
         with self.assertRaises(GithubException):
-            self.provider.create_commit("path", "branch", "commit", "content", "sha", self.repo,
-                                        "com")
+            self.provider.create_commit("path", "branch", "commit", "content", "sha", self.repo)
 
     def test_create_and_commit_file(self):
         repo = Mock()
@@ -165,14 +164,12 @@ class ProviderTest(TestCase):
             commit_message=commit_message,
             branch=branch,
             content=content,
-            committer=committer
         )
         repo.create_file.assert_called_once_with(
             path=path,
             message=commit_message,
             content=content,
             branch=branch,
-            committer='committer-data'
         )
 
     def test_get_committer_data(self):
