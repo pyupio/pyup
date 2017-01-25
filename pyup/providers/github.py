@@ -72,19 +72,14 @@ class Provider(object):
             ))
             return None, None
 
-    def create_and_commit_file(self, repo, path, branch, content, commit_message):
-        try:
-            return repo.create_file(
-                path=path,
-                message=commit_message,
-                content=content,
-                branch=branch,
-            )
-        except GithubException as e:  # pragma: no cover
-            # if the error status is 404 we might need to add the bot as collaborator
-            if e.status == 404:
-                raise NoPermissionError
-            raise e
+    def create_and_commit_file(self, repo, path, branch, content, commit_message, committer):
+        return repo.create_file(
+            path=path,
+            message=commit_message,
+            content=content,
+            branch=branch,
+            committer=self.get_committer_data(committer),
+        )
 
     def get_requirement_file(self, repo, path, branch):
         content, file_obj = self.get_file(repo, path, branch)
@@ -134,7 +129,7 @@ class Provider(object):
         ref = repo.get_git_ref("/".join(["heads", branch]))
         ref.delete()
 
-    def create_commit(self, path, branch, commit_message, content, sha, repo):
+    def create_commit(self, path, branch, commit_message, content, sha, repo, committer):
         # there's a rare bug in the github API when committing too fast on really beefy
         # hardware with Gigabit NICs (probably because they do some async stuff).
         # If we encounter an error, the loop waits for 1/2/3 seconds before trying again.
@@ -150,20 +145,15 @@ class Provider(object):
                     content=content,
                     branch=branch,
                     sha=sha,
+                    committer=self.get_committer_data(committer),
                 )
                 return data["content"].sha
-            except GithubException as e:  # pragma: no cover
-                # if the error status is 404 we might need to add the bot as collaborator
-                if e.status == 404:
-                    raise NoPermissionError
-                elif e.status == 409:
-                    if i == 6:
-                        logger.error("Unable to create commit on {repo} for path {path}".format(
-                            repo=repo,
-                            path=path
-                        ), exc_info=True)
-                        raise e
-                else:
+            except GithubException as e:
+                if i == 6:
+                    logger.error("Unable to create commit on {repo} for path {path}".format(
+                        repo=repo,
+                        path=path
+                    ), exc_info=True)
                     raise e
                 time.sleep(i)
 

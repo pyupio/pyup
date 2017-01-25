@@ -599,6 +599,61 @@ class BotCreatePullRequestTest(TestCase):
         })
         self.assertEqual(bot.provider.get_pull_request_permissions.called, False)
 
+    def test_bot_permission_error_resolved(self):
+        bot = bot_factory(bot_token="foo")
+        bot.provider.create_pull_request.side_effect = [NoPermissionError, "the foo"]
+        bot._bot_repo = "BOT REPO"
+        bot._user_repo = "USER REPO"
+        bot.create_pull_request("title", "body", "new_branch")
+        self.assertEqual(bot.provider.create_pull_request.called, True)
+        self.assertEqual(bot.provider.create_pull_request.call_args_list[0][1], {
+            "base_branch": "base_branch",
+            "new_branch": "new_branch",
+            "repo": "BOT REPO",
+            "body": "body",
+            "title": "title",
+            "pr_label": False,
+            "assignees": []
+        })
+        self.assertEqual(bot.provider.create_pull_request.call_args_list[1][1], {
+            "base_branch": "base_branch",
+            "new_branch": "new_branch",
+            "repo": "BOT REPO",
+            "body": "body",
+            "title": "title",
+            "pr_label": False,
+            "assignees": []
+
+        })
+
+    def test_bot_permission_error_not_resolved(self):
+        bot = bot_factory(bot_token="foo")
+        bot.provider.create_pull_request.side_effect = [NoPermissionError, NoPermissionError]
+        bot._bot_repo = "BOT REPO"
+        bot._user_repo = "USER REPO"
+        with self.assertRaises(NoPermissionError):
+            bot.create_pull_request("title", "body", "new_branch")
+        self.assertEqual(bot.provider.create_pull_request.called, True)
+        self.assertEqual(bot.provider.create_pull_request.call_args_list[0][1], {
+            "base_branch": "base_branch",
+            "new_branch": "new_branch",
+            "repo": "BOT REPO",
+            "body": "body",
+            "title": "title",
+            "pr_label": False,
+            "assignees": []
+        })
+        self.assertEqual(bot.provider.create_pull_request.call_args_list[1][1], {
+            "base_branch": "base_branch",
+            "new_branch": "new_branch",
+            "repo": "BOT REPO",
+            "body": "body",
+            "title": "title",
+            "pr_label": False,
+            "assignees": []
+        })
+
+
 class CloseStalePRsTestCase(TestCase):
 
     def setUp(self):
