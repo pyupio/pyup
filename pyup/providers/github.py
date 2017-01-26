@@ -17,7 +17,9 @@ class Provider(object):
         return this.login == that.login
 
     def _api(self, token):
-        return Github(token)
+        if not self.__api:
+            self.__api = Github(token)
+        return self.__api
 
     def get_user(self, token):
         return self._api(token).get_user()
