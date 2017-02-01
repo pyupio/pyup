@@ -731,6 +731,24 @@ class CloseStalePRsTestCase(TestCase):
             prefix="pyup-"
         )
 
+    def test_close_integration(self):
+        bot = bot_factory(bot_token="foo", prs=[self.other_pr])
+        bot.integration = True
+        bot.provider.integration = True
+        commiter = Mock()
+        bot.provider.get_pull_request_committer.return_value = [commiter]
+
+        bot.close_stale_prs(self.update, self.pr, False)
+
+        bot.provider.get_pull_request_committer.assert_called_once_with(bot.user_repo, self.other_pr)
+        bot.provider.close_pull_request.assert_called_once_with(
+            bot_repo=bot.bot_repo,
+            user_repo=bot.user_repo,
+            pull_request=self.other_pr,
+            comment="Closing this in favor of #100",
+            prefix="pyup-"
+        )
+
     def test_close_success_with_prefix(self):
         bot = bot_factory(bot_token="foo", prs=[self.other_pr])
         bot.config.pr_prefix = "Some Prefix"

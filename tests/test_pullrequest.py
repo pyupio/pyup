@@ -50,6 +50,21 @@ class PullRequestTypeTest(TestCase):
         self.assertEqual(pr.type, "scheduled")
         self.assertTrue(pr.is_scheduled)
 
+    def test_is_valid(self):
+        pr = pullrequest_factory(title="Scheduled foo in bar")
+        self.assertTrue(pr.is_valid)
+
+        pr = pullrequest_factory(title="Compile foo.txt")
+        self.assertTrue(pr.is_valid)
+
+        pr = pullrequest_factory(title="Initial Update")
+        self.assertTrue(pr.is_valid)
+
+        pr = pullrequest_factory(title="Pin this on thta")
+        self.assertTrue(pr.is_valid)
+
+        pr = pullrequest_factory(title="Update this and that")
+        self.assertTrue(pr.is_valid)
 
 class PullRequestEQTest(TestCase):
     def test_is_eq(self):

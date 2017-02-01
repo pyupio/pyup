@@ -12,10 +12,11 @@ logger = logging.getLogger(__name__)
 
 class Bot(object):
     def __init__(self, repo, user_token, bot_token=None,
-                 provider=GithubProvider, bundle=RequirementsBundle, config=Config):
+                 provider=GithubProvider, bundle=RequirementsBundle, config=Config,
+                 integration=False):
         self.bot_token = bot_token
         self.req_bundle = bundle()
-        self.provider = provider(self.req_bundle)
+        self.provider = provider(self.req_bundle, integration)
         self.user_token = user_token
         self.bot_token = bot_token
         self.fetched_files = []
@@ -29,6 +30,8 @@ class Bot(object):
         self.write_config = {}
 
         self._fetched_prs = False
+
+        self.integration = integration
 
     @property
     def user_repo(self):
@@ -57,8 +60,13 @@ class Bot(object):
     @property
     def pull_requests(self):
         if not self._fetched_prs:
-            self.req_bundle.pull_requests = [pr for pr in self.provider.iter_issues(
-                repo=self.user_repo, creator=self.bot if self.bot_token else self.user)]
+            self.req_bundle.pull_requests = [
+                pr for pr in self.provider.iter_issues(
+                    repo=self.user_repo,
+                    creator=self.bot if self.bot_token else self.user
+                )
+                if pr.is_valid
+            ]
             self._fetched_prs = True
         return self.req_bundle.pull_requests
 
@@ -196,11 +204,10 @@ class Bot(object):
         :param update:
         :param pull_request:
         """
-        logger.info("Preparing to close stale PRs for {}".format(pull_request.title))
+        closed = []
         if self.bot_token and not pull_request.is_initial:
             for pr in self.pull_requests:
                 close_pr = False
-                logger.info("Checking PR {}".format(pr.title))
                 same_title = \
                     pr.canonical_title(self.config.pr_prefix) == \
                     pull_request.canonical_title(self.config.pr_prefix)
@@ -227,6 +234,7 @@ class Bot(object):
                             close_pr = True
 
                 if close_pr and self.is_bot_the_only_committer(pr=pr):
+                    logger.info("Closing stale PR {} for {}".format(pr.title, pull_request.title))
                     self.provider.close_pull_request(
                         bot_repo=self.bot_repo,
                         user_repo=self.user_repo,
@@ -235,6 +243,11 @@ class Bot(object):
                             pull_request.number),
                         prefix=self.config.branch_prefix
                     )
+                    pr.state = "closed"
+                    closed.append(pr)
+        for closed_pr in closed:
+            self.pull_requests.remove(closed_pr)
+
 
     def is_bot_the_only_committer(self, pr):
         """
@@ -242,12 +255,17 @@ class Bot(object):
         :param update: Update to check
         :return: bool - True if conflict found
         """
-        logger.info("check if bot is only committer")
         committer = self.provider.get_pull_request_committer(
             self.user_repo,
             pr)
         # flatten the list and remove duplicates
         committer_set = set([c.login for c in committer])
+
+        # it's impossible to get the bots login if this is an integration, just check that
+        # there's only one commit in the commit history.
+        if self.integration:
+            return len(committer_set) == 1
+
         # check that there's exactly one committer in this PRs commit history and
         # that the committer is the bot
         return len(committer_set) == 1 and \
