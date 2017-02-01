@@ -5,12 +5,14 @@ from pyup.pullrequest import PullRequest
 from datetime import datetime, timedelta
 
 
-def pullrequest_factory(title, state="open", url="http://foo.bar", created_at=datetime.now()):
+def pullrequest_factory(title, state="open", url="http://foo.bar",
+                        created_at=datetime.now(), number=1):
     return PullRequest(
         title=title,
         state=state,
         url=url,
-        created_at=created_at
+        created_at=created_at,
+        number=number
     )
 
 
@@ -68,14 +70,14 @@ class PullRequestTypeTest(TestCase):
 
 class PullRequestEQTest(TestCase):
     def test_is_eq(self):
-        pr1 = pullrequest_factory("yay")
-        pr2 = pullrequest_factory("yay", created_at=datetime.now() + timedelta(minutes=4))
+        pr1 = pullrequest_factory("yay", number=1)
+        pr2 = pullrequest_factory("yay", number=2)
         self.assertNotEqual(pr1, pr2)
-        pr1.created_at = pr2.created_at
+        pr1.number = pr2.number
         self.assertEqual(pr1, pr2)
-        pr1.title = "yayy"
+        pr1.number = 3
         self.assertNotEqual(pr1, pr2)
-        pr2.title = "yayy"
+        pr2.number = 3
         self.assertEqual(pr1, pr2)
 
 
