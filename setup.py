@@ -20,7 +20,10 @@ requirements = [
     "click",
     "tqdm",
     "pyyaml",
-    "hashin-pyup"
+    "hashin-pyup",
+    "packaging",
+    "six",
+    "setuptools<=26.1.1"
 ]
 
 test_requirements = [

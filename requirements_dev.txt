@@ -9,4 +9,4 @@ cryptography==1.7.1
 PyYAML==3.11
 requests-mock==1.2.0
 hashin-pyup==0.7.2
-setuptools==29.0.1
+setuptools==26.1.1
