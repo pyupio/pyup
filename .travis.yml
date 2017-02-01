@@ -3,7 +3,6 @@ after_success:
 - codecov
 before_install:
 - pip install codecov
-- pip install -e git://github.com/jayfk/hashin#egg=hashin
 deploy:
   true:
     condition: $TOXENV == py27
