@@ -207,7 +207,7 @@ class RequirementFile(object):
                     req.line = line
                     if req.package is not None:
                         self._requirements.append(req)
-                except ValueError as e:
+                except ValueError:
                     continue
         self._is_valid = len(self._requirements) > 0 or len(self._other_files) > 0
 
@@ -364,7 +364,6 @@ class Requirement(object):
         if self.extras:
             return "{}[{}]".format(self.name, ",".join(self.extras))
         return self.name
-
 
     def get_hashes(self, version):
         data = hashin.get_package_hashes(

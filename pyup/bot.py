@@ -168,7 +168,8 @@ class Bot(object):
                 title = "{prefix} {title}".format(prefix=self.config.pr_prefix, title=title)
             if initial_pr:
                 pull_request = initial_pr
-            elif self.can_pull(initial, scheduled) and title not in [pr.title for pr in self.pull_requests]:
+            elif self.can_pull(initial, scheduled) and \
+                    title not in [pr.title for pr in self.pull_requests]:
                 update_branch = self.config.branch_prefix + update_branch
                 pull_request = self.commit_and_pull(
                     initial=initial,
@@ -248,7 +249,6 @@ class Bot(object):
         for closed_pr in closed:
             self.pull_requests.remove(closed_pr)
 
-
     def is_bot_the_only_committer(self, pr):
         """
         Checks if the bot is the only committer for the given pull request.
@@ -268,8 +268,7 @@ class Bot(object):
 
         # check that there's exactly one committer in this PRs commit history and
         # that the committer is the bot
-        return len(committer_set) == 1 and \
-               self.provider.is_same_user(self.bot, committer[0])
+        return len(committer_set) == 1 and self.provider.is_same_user(self.bot, committer[0])
 
     def has_conflicting_update(self, update):
         """
@@ -282,10 +281,14 @@ class Bot(object):
         # with both `initial` and `scheduled` == False
         for _, _, _, updates in self.iter_updates(initial=False, scheduled=False):
             for _update in updates:
-                if (update.requirement.key == _update.requirement.key and
-                        (update.commit_message != _update.commit_message or
-                                 update.requirement.latest_version_within_specs !=
-                                 _update.requirement.latest_version_within_specs)):
+                if (
+                        update.requirement.key == _update.requirement.key and
+                        (
+                                update.commit_message != _update.commit_message or
+                                update.requirement.latest_version_within_specs !=
+                                _update.requirement.latest_version_within_specs
+                        )
+                ):
                     logger.info("{} conflicting with {}/{}".format(
                         update.requirement.key,
                         update.requirement.latest_version_within_specs,
@@ -340,7 +343,7 @@ class Bot(object):
                 # a config file exists, update and commit it
                 logger.info(
                     "Config file exists, updating config for sha {}".format(content_file.sha))
-                commit = self.provider.create_commit(
+                self.provider.create_commit(
                     repo=self.user_repo,
                     path="/.pyup.yml",
                     branch=branch,
@@ -351,7 +354,7 @@ class Bot(object):
                 )
             logger.info("No config file found, writing new config file")
             # there's no config file present, write a new config file and commit it
-            commit = self.provider.create_and_commit_file(
+            self.provider.create_and_commit_file(
                 repo=self.user_repo,
                 path="/.pyup.yml",
                 branch=branch,
