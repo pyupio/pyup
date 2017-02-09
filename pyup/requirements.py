@@ -263,6 +263,18 @@ class Requirement(object):
         return False
 
     @property
+    def is_compatible(self):
+        if len(self.specs) == 1 and self.specs[0][0] == "~=":
+            return True
+        return False
+
+    @property
+    def is_open_ranged(self):
+        if len(self.specs) == 1 and self.specs[0][0] == ">=":
+            return True
+        return False
+
+    @property
     def is_ranged(self):
         return len(self.specs) >= 1 and not self.is_pinned
 
@@ -288,7 +300,7 @@ class Requirement(object):
 
     @property
     def version(self):
-        if self.is_pinned:
+        if self.is_pinned or self.is_compatible:
             return self.specs[0][1]
 
         specs = self.specs
@@ -320,8 +332,9 @@ class Requirement(object):
 
     @staticmethod
     def get_latest_version_within_specs(specs, versions, prereleases=None):
+        # build up a spec set and convert compatible specs to pinned ones
         spec_set = SpecifierSet(
-            ",".join(["".join([x, y]) for x, y in specs])
+            ",".join(["".join([x.replace("~=", "=="), y]) for x, y in specs])
         )
         candidates = []
         for version in versions:
@@ -341,7 +354,7 @@ class Requirement(object):
 
     @property
     def needs_update(self):
-        if self.is_pinned or self.is_ranged:
+        if self.is_pinned or self.is_ranged or self.is_compatible:
             return self.is_outdated
         return True
 

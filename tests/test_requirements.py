@@ -12,6 +12,36 @@ import os
 
 class RequirementUpdateContent(TestCase):
 
+    def test_compatible(self):
+
+        with patch('pyup.requirements.Requirement.latest_version_within_specs',
+                   new_callable=PropertyMock,
+                   return_value="2.9.5"):
+            content = "Jinja2~=2.9.4         # via flask"
+            req_file = RequirementFile("req.txt", content)
+            req = list(req_file.requirements)[0]
+            self.assertEqual(
+                Requirement.parse("Jinja2~=2.9.4         # via flask", 1),
+                req
+            )
+
+            self.assertEqual(req.update_content(content), "Jinja2==2.9.5         # via flask")
+
+    def test_compatible_matching_latest(self):
+
+        with patch('pyup.requirements.Requirement.latest_version_within_specs',
+                   new_callable=PropertyMock,
+                   return_value="2.9.5"):
+            content = "Jinja2~=2.9.5         # via flask"
+            req_file = RequirementFile("req.txt", content)
+            req = list(req_file.requirements)[0]
+            self.assertEqual(
+                Requirement.parse("Jinja2~=2.9.5         # via flask", 1),
+                req
+            )
+
+            self.assertEqual(req.update_content(content), "Jinja2==2.9.5         # via flask")
+
     def test_update_contains_correct_sep_char(self):
 
         with patch('pyup.requirements.Requirement.latest_version_within_specs',
@@ -345,6 +375,41 @@ class RequirementTestCase(TestCase):
         req = Requirement.parse("Django==1.4", 0)
         self.assertEqual(req.is_loose, False)
 
+    def test_is_compatible(self):
+        req = Requirement.parse("Django~=1.5", 0)
+        self.assertEqual(req.is_compatible, True)
+
+        req = Requirement.parse("Django<=1.4,>1.5", 0)
+        self.assertEqual(req.is_compatible, False)
+
+        req = Requirement.parse("Django===1.4", 0)
+        self.assertEqual(req.is_compatible, False)
+
+        req = Requirement.parse("Django<=1.4,>=1.33", 0)
+        self.assertEqual(req.is_compatible, False)
+
+        req = Requirement.parse("Django==1.4", 0)
+        self.assertEqual(req.is_compatible, False)
+
+    def test_is_open_ranged(self):
+        req = Requirement.parse("Django>=1.5", 0)
+        self.assertEqual(req.is_open_ranged, True)
+
+        req = Requirement.parse("Django<=1.4,>1.5", 0)
+        self.assertEqual(req.is_open_ranged, False)
+
+        req = Requirement.parse("Django===1.4", 0)
+        self.assertEqual(req.is_open_ranged, False)
+
+        req = Requirement.parse("Django<=1.4,>=1.33", 0)
+        self.assertEqual(req.is_open_ranged, False)
+
+        req = Requirement.parse("Django==1.4", 0)
+        self.assertEqual(req.is_open_ranged, False)
+
+        req = Requirement.parse("Django>=1.4,<=1.7", 0)
+        self.assertEqual(req.is_open_ranged, False)
+
     def test_package_filter_present(self):
         req = Requirement.parse("Django", 0)
         self.assertEqual(req.filter, False)
@@ -569,6 +634,10 @@ class RequirementTestCase(TestCase):
 
             # is not pinned
             r = Requirement.parse("Django", 0)
+            self.assertEqual(r.needs_update, True)
+
+            # is compatible
+            r = Requirement.parse("Django~=1.7", 0)
             self.assertEqual(r.needs_update, True)
 
     def test_str(self):
