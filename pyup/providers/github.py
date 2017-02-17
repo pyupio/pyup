@@ -37,6 +37,10 @@ class Provider(object):
             raise RepoDoesNotExistError()
 
     def get_pull_request_permissions(self, user, repo):
+        # it's impossible to call this as an integration
+        if self.integration:
+            return True
+
         try:
             return repo.add_to_collaborators(user.login)
         except GithubException:
