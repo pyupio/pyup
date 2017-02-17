@@ -3,7 +3,7 @@
 History
 -------
 
-0.6.0 (2016-2-1)
+0.6.0 (2017-2-1)
 ----------------
 
 * Fixed the CLI, it should be working again
