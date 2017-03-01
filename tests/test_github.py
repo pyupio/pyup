@@ -32,7 +32,7 @@ class ProviderTest(TestCase):
     def test_api(self, github_mock):
         prov = Provider(bundle=RequirementsBundle())
         prov._api("foo")
-        github_mock.assert_called_once_with("foo")
+        github_mock.assert_called_once_with("foo", timeout=50)
 
     def test_get_user(self):
         self.provider.get_user("foo")
