@@ -71,3 +71,12 @@ This will create a new branch and a pull request for every single update. Run a 
 that auto-updates your repository once in a while (e.g. every day) to stay on latest.
 
 
+Pyup also has experimental support for Gitlab.  Generate a personal access token
+from your profile settings (eg. https://gitlab.com/profile/personal_access_tokens),
+then run pyup from the cli::
+
+    # gitlab.com:
+    $ pyup --repo=username/repo --user-token=<YOUR_TOKEN>
+
+    # other:
+    $ pyup --repo=username/repo --user-token=<YOUR_TOKEN>@https://your.gitlab/

@@ -3,6 +3,7 @@ from pyup import __version__
 from pyup.bot import DryBot, Bot
 from pyup.requirements import RequirementFile, RequirementsBundle
 from pyup.providers.github import Provider as GithubProvider
+from pyup.providers.gitlab import Provider as GitlabProvider
 import click
 from tqdm import tqdm
 import logging
@@ -13,7 +14,7 @@ import logging
 @click.option('--repo', prompt='repository', help='')
 @click.option('--user-token', prompt='user token', help='')
 @click.option('--bot-token', help='', default=None)
-@click.option('--provider', help='', default="github")
+@click.option('--provider', help='API to use; either github or gitlab', default="github")
 @click.option('--dry', help='Run the bot without committing', default=False)
 @click.option('--branch', help='Set the branch the bot should use', default='master')
 @click.option('--initial', help='Set this to bundle all PRs into a large one',
@@ -26,6 +27,8 @@ def main(repo, user_token, bot_token, provider, dry, branch, initial, pin, close
 
     if provider == 'github':
         ProviderClass = GithubProvider
+    elif provider == 'gitlab':
+        ProviderClass = GitlabProvider
     else:
         raise NotImplementedError
 
