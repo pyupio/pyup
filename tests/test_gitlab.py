@@ -64,17 +64,11 @@ class ProviderTest(TestCase):
             "foo"
         )
 
-    @skip
     def test_get_pull_request_permissions(self):
         # TODO: PORT
         user = Mock()
         user.login = "some-dude"
         self.provider.get_pull_request_permissions(user, self.repo)
-        self.repo.add_to_collaborators.assert_called_once_with("some-dude")
-
-        self.repo.add_to_collaborators.side_effect = GithubException(data="", status=1)
-        with self.assertRaises(errors.NoPermissionError):
-            self.provider.get_pull_request_permissions(user, self.repo)
 
     def test_iter_git_tree(self):
         mocked_items = [{"type": "type", "path": "path"}]
