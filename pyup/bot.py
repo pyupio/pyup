@@ -481,7 +481,7 @@ class Bot(object):
                         if path.endswith("txt") or path.endswith("pip"):
                             self.add_requirement_file(path, sha)
         for req_file in self.config.requirements:
-            self.add_requirement_file(req_file.path)
+            self.add_requirement_file(req_file.path, sha=sha)
 
     # if this function gets updated, the gist at https://gist.github.com/jayfk/c6509bbaf4429052ca3f
     # needs to be updated too
@@ -494,7 +494,7 @@ class Bot(object):
             if req_file is not None:
                 self.req_bundle.append(req_file)
                 for other_file in req_file.other_files:
-                    self.add_requirement_file(other_file)
+                    self.add_requirement_file(other_file, sha=sha)
 
 
 class DryBot(Bot):
