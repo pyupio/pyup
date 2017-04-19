@@ -86,8 +86,8 @@ class RequirementUpdateContent(TestCase):
         with patch('pyup.requirements.Requirement.latest_version_within_specs',
                    new_callable=PropertyMock,
                    return_value="1.4.2"):
-            content = "alembic==0.8.9 # yay \\\n" \
-                      "        --hash=sha256:abcde"
+            content = "alembic==0.8.9 \\\n" \
+                      "        --hash=sha256:abcde # yay"
             req_file = RequirementFile("req.txt", content)
             req = list(req_file.requirements)[0]
             self.assertEqual(
@@ -96,9 +96,9 @@ class RequirementUpdateContent(TestCase):
             )
 
             new_content = req.update_content(content)
-            self.assertEqual(new_content, "alembic==1.4.2 # yay \\\n"
+            self.assertEqual(new_content, "alembic==1.4.2 \\\n"
                                                           "    --hash=sha256:123 \\\n"
-                                                          "    --hash=sha256:456")
+                                                          "    --hash=sha256:456 # yay")
 
     @patch("pyup.requirements.hashin.get_package_hashes")
     def test_update_with_hashes_and_comment_and_env_markers(self, get_hashes_mock):
@@ -109,8 +109,8 @@ class RequirementUpdateContent(TestCase):
         with patch('pyup.requirements.Requirement.latest_version_within_specs',
                    new_callable=PropertyMock,
                    return_value="1.4.2"):
-            content = "alembic==0.8.9; sys_platform != 'win32' # yay \\\n" \
-                      "        --hash=sha256:abcde"
+            content = "alembic==0.8.9; sys_platform != 'win32' \\\n" \
+                      "        --hash=sha256:abcde # yay"
             req_file = RequirementFile("req.txt", content)
             req = list(req_file.requirements)[0]
             self.assertEqual(
@@ -118,9 +118,73 @@ class RequirementUpdateContent(TestCase):
                 req
             )
 
-            self.assertEqual(req.update_content(content), "alembic==1.4.2; sys_platform != 'win32' # yay \\\n"
+            new_content = req.update_content(content)
+            self.assertEqual(new_content, "alembic==1.4.2; sys_platform != 'win32' \\\n"
                                                           "    --hash=sha256:123 \\\n"
-                                                          "    --hash=sha256:456")
+                                                          "    --hash=sha256:456 # yay")
+
+    @patch("pyup.requirements.hashin.get_package_hashes")
+    def test_update_with_hashes_and_comment_all_in_one_line(self, get_hashes_mock):
+        get_hashes_mock.return_value = {
+            "hashes": [{"hash": "123"}, {"hash": "456"}]
+        }
+        with patch('pyup.requirements.Requirement.latest_version_within_specs',
+                   new_callable=PropertyMock,
+                   return_value="1.4.2"):
+            content = "alembic==0.8.9 --hash=sha256:abcde # yay"
+            req_file = RequirementFile("req.txt", content)
+            req = list(req_file.requirements)[0]
+            self.assertEqual(
+                Requirement.parse("alembic==0.8.9", 1),
+                req
+            )
+
+            new_content = req.update_content(content)
+            self.assertEqual(new_content, "alembic==1.4.2 \\\n"
+                                          "    --hash=sha256:123 \\\n"
+                                          "    --hash=sha256:456 # yay")
+
+    @patch("pyup.requirements.hashin.get_package_hashes")
+    def test_update_with_hashes_and_comment_and_env_markers_all_in_one_line(self, get_hashes_mock):
+        get_hashes_mock.return_value = {
+            "hashes": [{"hash": "123"}, {"hash": "456"}]
+        }
+        with patch('pyup.requirements.Requirement.latest_version_within_specs',
+                   new_callable=PropertyMock,
+                   return_value="1.4.2"):
+            content = "alembic==0.8.9; sys_platform != 'win32' --hash=sha256:abcde # yay"
+            req_file = RequirementFile("req.txt", content)
+            req = list(req_file.requirements)[0]
+            self.assertEqual(
+                Requirement.parse("alembic==0.8.9; sys_platform != 'win32'", 1),
+                req
+            )
+
+            new_content = req.update_content(content)
+            self.assertEqual(new_content, "alembic==1.4.2; sys_platform != 'win32' \\\n"
+                                          "    --hash=sha256:123 \\\n"
+                                          "    --hash=sha256:456 # yay")
+
+    @patch("pyup.requirements.hashin.get_package_hashes")
+    def test_update_with_hashes_in_one_line(self, get_hashes_mock):
+        get_hashes_mock.return_value = {
+            "hashes": [{"hash": "123"}, {"hash": "456"}]
+        }
+        with patch('pyup.requirements.Requirement.latest_version_within_specs',
+                   new_callable=PropertyMock,
+                   return_value="1.4.2"):
+            content = "alembic==0.8.9 --hash=sha256:abcde"
+            req_file = RequirementFile("req.txt", content)
+            req = list(req_file.requirements)[0]
+            self.assertEqual(
+                Requirement.parse("alembic==0.8.9", 1),
+                req
+            )
+
+            new_content = req.update_content(content)
+            self.assertEqual(new_content, "alembic==1.4.2 \\\n"
+                                          "    --hash=sha256:123 \\\n"
+                                          "    --hash=sha256:456")
 
     def test_update_with_environment_markers(self):
         with patch('pyup.requirements.Requirement.latest_version_within_specs',

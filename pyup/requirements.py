@@ -396,13 +396,16 @@ class Requirement(object):
         :return: str, updated content
         """
         new_line = "{}=={}".format(self.full_name, self.latest_version_within_specs)
+        appendix = ''
         # leave environment markers intact
         if ";" in self.line:
-            new_line += ";" + self.line.split(";", 1)[1].split("#")[0].rstrip()
+            # condense multiline, split out the env marker, strip comments and --hashes
+            new_line += ";" + self.line.splitlines()[0].split(";", 1)[1] \
+                .split("#")[0].split("--hash")[0].rstrip()
         # add the comment
         if "#" in self.line:
             # split the line into parts: requirement and comment
-            parts = self.line.splitlines()[0].split("#")
+            parts = self.line.split("#")
             requirement, comment = parts[0], "#".join(parts[1:])
             # find all whitespaces between the requirement and the comment
             whitespaces = (hex(ord('\t')), hex(ord(' ')))
@@ -412,7 +415,7 @@ class Requirement(object):
                     trailing_whitespace += c
                 else:
                     break
-            new_line += trailing_whitespace + "#" + comment
+            appendix += trailing_whitespace + "#" + comment
         # if this is a hashed requirement, add a multiline break before the comment
         if self.hashes and not new_line.endswith("\\"):
             new_line += " \\"
@@ -424,7 +427,7 @@ class Requirement(object):
                 # append a new multiline break if this is not the last line
                 if len(new_hashes) > n + 1:
                     new_line += " \\"
-
+        new_line += appendix
         regex = r"^{}(?=\s*\r?\n?$)".format(re.escape(self.line))
 
         return re.sub(regex, new_line, content, flags=re.MULTILINE)
