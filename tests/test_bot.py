@@ -479,7 +479,7 @@ class BotGetAllRequirementsTest(TestCase):
         bot.add_requirement_file = Mock()
         bot.get_all_requirements()
         self.assertEqual(bot.add_requirement_file.called, True)
-        bot.add_requirement_file.assert_called_once_with("foo.txt")
+        bot.add_requirement_file.assert_called_once_with("foo.txt", sha=None)
 
 
 class BotAddRequirementFileTest(TestCase):
