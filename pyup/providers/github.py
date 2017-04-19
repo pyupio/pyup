@@ -9,8 +9,9 @@ logger = logging.getLogger(__name__)
 
 
 class Provider(object):
-    def __init__(self, bundle):
+    def __init__(self, bundle, integration=False):
         self.bundle = bundle
+        self.integration = integration
 
     @classmethod
     def is_same_user(cls, this, that):
@@ -18,7 +19,7 @@ class Provider(object):
 
     def _api(self, token):
         if not self.__api:
-            self.__api = Github(token)
+            self.__api = Github(token, timeout=50)
         return self.__api
 
     def get_user(self, token):
@@ -38,6 +39,10 @@ class Provider(object):
             raise RepoDoesNotExistError()
 
     def get_pull_request_permissions(self, user, repo):
+        # it's impossible to call this as an integration
+        if self.integration:
+            return True
+
         try:
             return repo.add_to_collaborators(user.login)
         except GithubException:
@@ -75,12 +80,18 @@ class Provider(object):
             return None, None
 
     def create_and_commit_file(self, repo, path, branch, content, commit_message, committer):
+        # integrations don't support committer data being set. Add this as extra kwarg
+        # if we're not dealing with an integration token
+        extra_kwargs = {}
+        if not self.integration:
+            extra_kwargs["committer"] = self.get_committer_data(committer)
+
         return repo.create_file(
             path=path,
             message=commit_message,
             content=content,
             branch=branch,
-            committer=self.get_committer_data(committer),
+            **extra_kwargs
         )
 
     def get_requirement_file(self, repo, path, branch):
@@ -139,6 +150,12 @@ class Provider(object):
         if not path.startswith("/"):
             path = "/" + path
 
+        # integrations don't support committer data being set. Add this as extra kwarg
+        # if we're not dealing with an integration token
+        extra_kwargs = {}
+        if not self.integration:
+            extra_kwargs["committer"] = self.get_committer_data(committer)
+
         for i in range(1, 7):
             try:
                 data = repo.update_file(
@@ -147,7 +164,7 @@ class Provider(object):
                     content=content,
                     branch=branch,
                     sha=sha,
-                    committer=self.get_committer_data(committer),
+                    **extra_kwargs
                 )
                 return data["content"].sha
             except GithubException as e:
@@ -259,7 +276,13 @@ class Provider(object):
             raise
 
     def iter_issues(self, repo, creator):
-        for issue in repo.get_issues(creator=creator.login):
+        # integrations don't support the creator param. Add this as extra kwarg
+        # if we're not dealing with an integration token
+        extra_kwargs = {}
+        if not self.integration:
+            extra_kwargs["creator"] = creator.login
+
+        for issue in repo.get_issues(**extra_kwargs):
             yield self.bundle.get_pull_request_class()(
                 state=issue.state,
                 title=issue.title,

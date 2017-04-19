@@ -19,7 +19,12 @@ requirements = [
     "pygithub",
     "click",
     "tqdm",
-    "pyyaml"
+    "pyyaml",
+    "hashin-pyup",
+    "packaging",
+    "six",
+    "setuptools<=26.1.1",
+    "python-gitlab"
 ]
 
 test_requirements = [
@@ -30,7 +35,7 @@ test_requirements = [
 
 setup(
     name='pyupio',
-    version='0.5.0',
+    version='0.6.0',
     description="A tool to update all your projects requirements",
     long_description=readme + '\n\n' + history,
     author="Jannis Gebauer",

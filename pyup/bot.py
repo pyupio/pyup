@@ -12,10 +12,11 @@ logger = logging.getLogger(__name__)
 
 class Bot(object):
     def __init__(self, repo, user_token, bot_token=None,
-                 provider=GithubProvider, bundle=RequirementsBundle, config=Config):
+                 provider=GithubProvider, bundle=RequirementsBundle, config=Config,
+                 integration=False):
         self.bot_token = bot_token
         self.req_bundle = bundle()
-        self.provider = provider(self.req_bundle)
+        self.provider = provider(self.req_bundle, integration)
         self.user_token = user_token
         self.bot_token = bot_token
         self.fetched_files = []
@@ -29,6 +30,8 @@ class Bot(object):
         self.write_config = {}
 
         self._fetched_prs = False
+
+        self.integration = integration
 
     @property
     def user_repo(self):
@@ -57,8 +60,13 @@ class Bot(object):
     @property
     def pull_requests(self):
         if not self._fetched_prs:
-            self.req_bundle.pull_requests = [pr for pr in self.provider.iter_issues(
-                repo=self.user_repo, creator=self.bot if self.bot_token else self.user)]
+            self.req_bundle.pull_requests = [
+                pr for pr in self.provider.iter_issues(
+                    repo=self.user_repo,
+                    creator=self.bot if self.bot_token else self.user
+                )
+                if pr.is_valid
+            ]
             self._fetched_prs = True
         return self.req_bundle.pull_requests
 
@@ -160,7 +168,8 @@ class Bot(object):
                 title = "{prefix} {title}".format(prefix=self.config.pr_prefix, title=title)
             if initial_pr:
                 pull_request = initial_pr
-            elif self.can_pull(initial, scheduled) and title not in [pr.title for pr in self.pull_requests]:
+            elif self.can_pull(initial, scheduled) and \
+                    title not in [pr.title for pr in self.pull_requests]:
                 update_branch = self.config.branch_prefix + update_branch
                 pull_request = self.commit_and_pull(
                     initial=initial,
@@ -196,11 +205,10 @@ class Bot(object):
         :param update:
         :param pull_request:
         """
-        logger.info("Preparing to close stale PRs for {}".format(pull_request.title))
+        closed = []
         if self.bot_token and not pull_request.is_initial:
             for pr in self.pull_requests:
                 close_pr = False
-                logger.info("Checking PR {}".format(pr.title))
                 same_title = \
                     pr.canonical_title(self.config.pr_prefix) == \
                     pull_request.canonical_title(self.config.pr_prefix)
@@ -227,6 +235,7 @@ class Bot(object):
                             close_pr = True
 
                 if close_pr and self.is_bot_the_only_committer(pr=pr):
+                    logger.info("Closing stale PR {} for {}".format(pr.title, pull_request.title))
                     self.provider.close_pull_request(
                         bot_repo=self.bot_repo,
                         user_repo=self.user_repo,
@@ -235,6 +244,10 @@ class Bot(object):
                             pull_request.number),
                         prefix=self.config.branch_prefix
                     )
+                    pr.state = "closed"
+                    closed.append(pr)
+        for closed_pr in closed:
+            self.pull_requests.remove(closed_pr)
 
     def is_bot_the_only_committer(self, pr):
         """
@@ -242,16 +255,20 @@ class Bot(object):
         :param update: Update to check
         :return: bool - True if conflict found
         """
-        logger.info("check if bot is only committer")
         committer = self.provider.get_pull_request_committer(
             self.user_repo,
             pr)
         # flatten the list and remove duplicates
         committer_set = set([c.login for c in committer])
+
+        # it's impossible to get the bots login if this is an integration, just check that
+        # there's only one commit in the commit history.
+        if self.integration:
+            return len(committer_set) == 1
+
         # check that there's exactly one committer in this PRs commit history and
         # that the committer is the bot
-        return len(committer_set) == 1 and \
-               self.provider.is_same_user(self.bot, committer[0])
+        return len(committer_set) == 1 and self.provider.is_same_user(self.bot, committer[0])
 
     def has_conflicting_update(self, update):
         """
@@ -264,10 +281,14 @@ class Bot(object):
         # with both `initial` and `scheduled` == False
         for _, _, _, updates in self.iter_updates(initial=False, scheduled=False):
             for _update in updates:
-                if (update.requirement.key == _update.requirement.key and
-                        (update.commit_message != _update.commit_message or
-                                 update.requirement.latest_version_within_specs !=
-                                 _update.requirement.latest_version_within_specs)):
+                if (
+                        update.requirement.key == _update.requirement.key and
+                        (
+                                update.commit_message != _update.commit_message or
+                                update.requirement.latest_version_within_specs !=
+                                _update.requirement.latest_version_within_specs
+                        )
+                ):
                     logger.info("{} conflicting with {}/{}".format(
                         update.requirement.key,
                         update.requirement.latest_version_within_specs,
@@ -322,7 +343,7 @@ class Bot(object):
                 # a config file exists, update and commit it
                 logger.info(
                     "Config file exists, updating config for sha {}".format(content_file.sha))
-                commit = self.provider.create_commit(
+                self.provider.create_commit(
                     repo=self.user_repo,
                     path="/.pyup.yml",
                     branch=branch,
@@ -333,7 +354,7 @@ class Bot(object):
                 )
             logger.info("No config file found, writing new config file")
             # there's no config file present, write a new config file and commit it
-            commit = self.provider.create_and_commit_file(
+            self.provider.create_and_commit_file(
                 repo=self.user_repo,
                 path="/.pyup.yml",
                 branch=branch,
@@ -460,7 +481,7 @@ class Bot(object):
                         if path.endswith("txt") or path.endswith("pip"):
                             self.add_requirement_file(path, sha)
         for req_file in self.config.requirements:
-            self.add_requirement_file(req_file.path)
+            self.add_requirement_file(req_file.path, sha=sha)
 
     # if this function gets updated, the gist at https://gist.github.com/jayfk/c6509bbaf4429052ca3f
     # needs to be updated too
@@ -473,7 +494,7 @@ class Bot(object):
             if req_file is not None:
                 self.req_bundle.append(req_file)
                 for other_file in req_file.other_files:
-                    self.add_requirement_file(other_file)
+                    self.add_requirement_file(other_file, sha=sha)
 
 
 class DryBot(Bot):

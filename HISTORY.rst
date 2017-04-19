@@ -3,6 +3,18 @@
 History
 -------
 
+0.6.0 (2017-2-1)
+----------------
+
+* Fixed the CLI, it should be working again
+* Now supports GitHub Integrations (experimental)
+* Added new config: PR prefixes, branch prefixes
+* Fixed an error not correclty formatting whitespace
+* Added support for hashed requirement files
+* The bot is now able to write config files to the repo
+* Support for environment markers in requirements has been added
+* It's now possible to have finer grained control over what's being updated.
+
 0.5.0 (2016-10-21)
 ------------------
 * The bot now parses requirement extras correctly

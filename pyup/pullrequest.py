@@ -70,6 +70,12 @@ class PullRequest(object):
     def is_open(self):
         return self.state == "open"
 
+    @property
+    def is_valid(self):
+        return self.is_update or self.is_security \
+               or self.is_pin or self.is_initial \
+               or self.is_compile or self.is_scheduled
+
     def get_requirement(self, prefix=""):
         if self.type != "initial":
             title = self.canonical_title(prefix)

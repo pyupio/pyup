@@ -12,6 +12,36 @@ import os
 
 class RequirementUpdateContent(TestCase):
 
+    def test_compatible(self):
+
+        with patch('pyup.requirements.Requirement.latest_version_within_specs',
+                   new_callable=PropertyMock,
+                   return_value="2.9.5"):
+            content = "Jinja2~=2.9.4         # via flask"
+            req_file = RequirementFile("req.txt", content)
+            req = list(req_file.requirements)[0]
+            self.assertEqual(
+                Requirement.parse("Jinja2~=2.9.4         # via flask", 1),
+                req
+            )
+
+            self.assertEqual(req.update_content(content), "Jinja2==2.9.5         # via flask")
+
+    def test_compatible_matching_latest(self):
+
+        with patch('pyup.requirements.Requirement.latest_version_within_specs',
+                   new_callable=PropertyMock,
+                   return_value="2.9.5"):
+            content = "Jinja2~=2.9.5         # via flask"
+            req_file = RequirementFile("req.txt", content)
+            req = list(req_file.requirements)[0]
+            self.assertEqual(
+                Requirement.parse("Jinja2~=2.9.5         # via flask", 1),
+                req
+            )
+
+            self.assertEqual(req.update_content(content), "Jinja2==2.9.5         # via flask")
+
     def test_update_contains_correct_sep_char(self):
 
         with patch('pyup.requirements.Requirement.latest_version_within_specs',
@@ -56,8 +86,8 @@ class RequirementUpdateContent(TestCase):
         with patch('pyup.requirements.Requirement.latest_version_within_specs',
                    new_callable=PropertyMock,
                    return_value="1.4.2"):
-            content = "alembic==0.8.9 # yay \\\n" \
-                      "        --hash=sha256:abcde"
+            content = "alembic==0.8.9 \\\n" \
+                      "        --hash=sha256:abcde # yay"
             req_file = RequirementFile("req.txt", content)
             req = list(req_file.requirements)[0]
             self.assertEqual(
@@ -66,9 +96,9 @@ class RequirementUpdateContent(TestCase):
             )
 
             new_content = req.update_content(content)
-            self.assertEqual(new_content, "alembic==1.4.2 # yay \\\n"
+            self.assertEqual(new_content, "alembic==1.4.2 \\\n"
                                                           "    --hash=sha256:123 \\\n"
-                                                          "    --hash=sha256:456")
+                                                          "    --hash=sha256:456 # yay")
 
     @patch("pyup.requirements.hashin.get_package_hashes")
     def test_update_with_hashes_and_comment_and_env_markers(self, get_hashes_mock):
@@ -79,8 +109,8 @@ class RequirementUpdateContent(TestCase):
         with patch('pyup.requirements.Requirement.latest_version_within_specs',
                    new_callable=PropertyMock,
                    return_value="1.4.2"):
-            content = "alembic==0.8.9; sys_platform != 'win32' # yay \\\n" \
-                      "        --hash=sha256:abcde"
+            content = "alembic==0.8.9; sys_platform != 'win32' \\\n" \
+                      "        --hash=sha256:abcde # yay"
             req_file = RequirementFile("req.txt", content)
             req = list(req_file.requirements)[0]
             self.assertEqual(
@@ -88,9 +118,73 @@ class RequirementUpdateContent(TestCase):
                 req
             )
 
-            self.assertEqual(req.update_content(content), "alembic==1.4.2; sys_platform != 'win32' # yay \\\n"
+            new_content = req.update_content(content)
+            self.assertEqual(new_content, "alembic==1.4.2; sys_platform != 'win32' \\\n"
                                                           "    --hash=sha256:123 \\\n"
-                                                          "    --hash=sha256:456")
+                                                          "    --hash=sha256:456 # yay")
+
+    @patch("pyup.requirements.hashin.get_package_hashes")
+    def test_update_with_hashes_and_comment_all_in_one_line(self, get_hashes_mock):
+        get_hashes_mock.return_value = {
+            "hashes": [{"hash": "123"}, {"hash": "456"}]
+        }
+        with patch('pyup.requirements.Requirement.latest_version_within_specs',
+                   new_callable=PropertyMock,
+                   return_value="1.4.2"):
+            content = "alembic==0.8.9 --hash=sha256:abcde # yay"
+            req_file = RequirementFile("req.txt", content)
+            req = list(req_file.requirements)[0]
+            self.assertEqual(
+                Requirement.parse("alembic==0.8.9", 1),
+                req
+            )
+
+            new_content = req.update_content(content)
+            self.assertEqual(new_content, "alembic==1.4.2 \\\n"
+                                          "    --hash=sha256:123 \\\n"
+                                          "    --hash=sha256:456 # yay")
+
+    @patch("pyup.requirements.hashin.get_package_hashes")
+    def test_update_with_hashes_and_comment_and_env_markers_all_in_one_line(self, get_hashes_mock):
+        get_hashes_mock.return_value = {
+            "hashes": [{"hash": "123"}, {"hash": "456"}]
+        }
+        with patch('pyup.requirements.Requirement.latest_version_within_specs',
+                   new_callable=PropertyMock,
+                   return_value="1.4.2"):
+            content = "alembic==0.8.9; sys_platform != 'win32' --hash=sha256:abcde # yay"
+            req_file = RequirementFile("req.txt", content)
+            req = list(req_file.requirements)[0]
+            self.assertEqual(
+                Requirement.parse("alembic==0.8.9; sys_platform != 'win32'", 1),
+                req
+            )
+
+            new_content = req.update_content(content)
+            self.assertEqual(new_content, "alembic==1.4.2; sys_platform != 'win32' \\\n"
+                                          "    --hash=sha256:123 \\\n"
+                                          "    --hash=sha256:456 # yay")
+
+    @patch("pyup.requirements.hashin.get_package_hashes")
+    def test_update_with_hashes_in_one_line(self, get_hashes_mock):
+        get_hashes_mock.return_value = {
+            "hashes": [{"hash": "123"}, {"hash": "456"}]
+        }
+        with patch('pyup.requirements.Requirement.latest_version_within_specs',
+                   new_callable=PropertyMock,
+                   return_value="1.4.2"):
+            content = "alembic==0.8.9 --hash=sha256:abcde"
+            req_file = RequirementFile("req.txt", content)
+            req = list(req_file.requirements)[0]
+            self.assertEqual(
+                Requirement.parse("alembic==0.8.9", 1),
+                req
+            )
+
+            new_content = req.update_content(content)
+            self.assertEqual(new_content, "alembic==1.4.2 \\\n"
+                                          "    --hash=sha256:123 \\\n"
+                                          "    --hash=sha256:456")
 
     def test_update_with_environment_markers(self):
         with patch('pyup.requirements.Requirement.latest_version_within_specs',
@@ -345,6 +439,41 @@ class RequirementTestCase(TestCase):
         req = Requirement.parse("Django==1.4", 0)
         self.assertEqual(req.is_loose, False)
 
+    def test_is_compatible(self):
+        req = Requirement.parse("Django~=1.5", 0)
+        self.assertEqual(req.is_compatible, True)
+
+        req = Requirement.parse("Django<=1.4,>1.5", 0)
+        self.assertEqual(req.is_compatible, False)
+
+        req = Requirement.parse("Django===1.4", 0)
+        self.assertEqual(req.is_compatible, False)
+
+        req = Requirement.parse("Django<=1.4,>=1.33", 0)
+        self.assertEqual(req.is_compatible, False)
+
+        req = Requirement.parse("Django==1.4", 0)
+        self.assertEqual(req.is_compatible, False)
+
+    def test_is_open_ranged(self):
+        req = Requirement.parse("Django>=1.5", 0)
+        self.assertEqual(req.is_open_ranged, True)
+
+        req = Requirement.parse("Django<=1.4,>1.5", 0)
+        self.assertEqual(req.is_open_ranged, False)
+
+        req = Requirement.parse("Django===1.4", 0)
+        self.assertEqual(req.is_open_ranged, False)
+
+        req = Requirement.parse("Django<=1.4,>=1.33", 0)
+        self.assertEqual(req.is_open_ranged, False)
+
+        req = Requirement.parse("Django==1.4", 0)
+        self.assertEqual(req.is_open_ranged, False)
+
+        req = Requirement.parse("Django>=1.4,<=1.7", 0)
+        self.assertEqual(req.is_open_ranged, False)
+
     def test_package_filter_present(self):
         req = Requirement.parse("Django", 0)
         self.assertEqual(req.filter, False)
@@ -569,6 +698,10 @@ class RequirementTestCase(TestCase):
 
             # is not pinned
             r = Requirement.parse("Django", 0)
+            self.assertEqual(r.needs_update, True)
+
+            # is compatible
+            r = Requirement.parse("Django~=1.7", 0)
             self.assertEqual(r.needs_update, True)
 
     def test_str(self):

@@ -207,7 +207,7 @@ class RequirementFile(object):
                     req.line = line
                     if req.package is not None:
                         self._requirements.append(req)
-                except ValueError as e:
+                except ValueError:
                     continue
         self._is_valid = len(self._requirements) > 0 or len(self._other_files) > 0
 
@@ -263,6 +263,18 @@ class Requirement(object):
         return False
 
     @property
+    def is_compatible(self):
+        if len(self.specs) == 1 and self.specs[0][0] == "~=":
+            return True
+        return False
+
+    @property
+    def is_open_ranged(self):
+        if len(self.specs) == 1 and self.specs[0][0] == ">=":
+            return True
+        return False
+
+    @property
     def is_ranged(self):
         return len(self.specs) >= 1 and not self.is_pinned
 
@@ -288,7 +300,7 @@ class Requirement(object):
 
     @property
     def version(self):
-        if self.is_pinned:
+        if self.is_pinned or self.is_compatible:
             return self.specs[0][1]
 
         specs = self.specs
@@ -320,8 +332,9 @@ class Requirement(object):
 
     @staticmethod
     def get_latest_version_within_specs(specs, versions, prereleases=None):
+        # build up a spec set and convert compatible specs to pinned ones
         spec_set = SpecifierSet(
-            ",".join(["".join([x, y]) for x, y in specs])
+            ",".join(["".join([x.replace("~=", "=="), y]) for x, y in specs])
         )
         candidates = []
         for version in versions:
@@ -341,7 +354,7 @@ class Requirement(object):
 
     @property
     def needs_update(self):
-        if self.is_pinned or self.is_ranged:
+        if self.is_pinned or self.is_ranged or self.is_compatible:
             return self.is_outdated
         return True
 
@@ -365,7 +378,6 @@ class Requirement(object):
             return "{}[{}]".format(self.name, ",".join(self.extras))
         return self.name
 
-
     def get_hashes(self, version):
         data = hashin.get_package_hashes(
             self.name,
@@ -384,13 +396,16 @@ class Requirement(object):
         :return: str, updated content
         """
         new_line = "{}=={}".format(self.full_name, self.latest_version_within_specs)
+        appendix = ''
         # leave environment markers intact
         if ";" in self.line:
-            new_line += ";" + self.line.split(";", 1)[1].split("#")[0].rstrip()
+            # condense multiline, split out the env marker, strip comments and --hashes
+            new_line += ";" + self.line.splitlines()[0].split(";", 1)[1] \
+                .split("#")[0].split("--hash")[0].rstrip()
         # add the comment
         if "#" in self.line:
             # split the line into parts: requirement and comment
-            parts = self.line.splitlines()[0].split("#")
+            parts = self.line.split("#")
             requirement, comment = parts[0], "#".join(parts[1:])
             # find all whitespaces between the requirement and the comment
             whitespaces = (hex(ord('\t')), hex(ord(' ')))
@@ -400,7 +415,7 @@ class Requirement(object):
                     trailing_whitespace += c
                 else:
                     break
-            new_line += trailing_whitespace + "#" + comment
+            appendix += trailing_whitespace + "#" + comment
         # if this is a hashed requirement, add a multiline break before the comment
         if self.hashes and not new_line.endswith("\\"):
             new_line += " \\"
@@ -412,7 +427,7 @@ class Requirement(object):
                 # append a new multiline break if this is not the last line
                 if len(new_hashes) > n + 1:
                     new_line += " \\"
-
+        new_line += appendix
         regex = r"^{}(?=\s*\r?\n?$)".format(re.escape(self.line))
 
         return re.sub(regex, new_line, content, flags=re.MULTILINE)

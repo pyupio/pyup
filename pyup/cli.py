@@ -3,6 +3,7 @@ from pyup import __version__
 from pyup.bot import DryBot, Bot
 from pyup.requirements import RequirementFile, RequirementsBundle
 from pyup.providers.github import Provider as GithubProvider
+from pyup.providers.gitlab import Provider as GitlabProvider
 import click
 from tqdm import tqdm
 import logging
@@ -13,7 +14,7 @@ import logging
 @click.option('--repo', prompt='repository', help='')
 @click.option('--user-token', prompt='user token', help='')
 @click.option('--bot-token', help='', default=None)
-@click.option('--provider', help='', default="github")
+@click.option('--provider', help='API to use; either github or gitlab', default="github")
 @click.option('--dry', help='Run the bot without committing', default=False)
 @click.option('--branch', help='Set the branch the bot should use', default='master')
 @click.option('--initial', help='Set this to bundle all PRs into a large one',
@@ -26,6 +27,8 @@ def main(repo, user_token, bot_token, provider, dry, branch, initial, pin, close
 
     if provider == 'github':
         ProviderClass = GithubProvider
+    elif provider == 'gitlab':
+        ProviderClass = GitlabProvider
     else:
         raise NotImplementedError
 
@@ -55,9 +58,9 @@ class CLIBot(Bot):
         bundle = CLIBundle
         super(CLIBot, self).__init__(repo, user_token, bot_token, provider, bundle)
 
-    def iter_updates(self, initial):
+    def iter_updates(self, initial, scheduled):
 
-        ls = list(super(CLIBot, self).iter_updates(initial))
+        ls = list(super(CLIBot, self).iter_updates(initial, scheduled))
 
         if not initial:
             ls = tqdm(ls, desc="Updating ...")
@@ -83,7 +86,7 @@ class CLIBundle(RequirementsBundle):
 
 
 class CLIRequirementFile(RequirementFile):
-    def iter_lines(self):
+    def iter_lines(self, lineno=0):
         bar = tqdm(self.content.splitlines(), desc="Processing {}".format(self.path))
         for item in bar:
             yield item
