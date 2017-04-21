@@ -145,6 +145,28 @@ class RequirementUpdateContent(TestCase):
                                           "    --hash=sha256:456 # yay")
 
     @patch("pyup.requirements.hashin.get_package_hashes")
+    def test_taskcluster_215(self, get_hashes_mock):
+        get_hashes_mock.return_value = {
+            "hashes": [{"hash": "123"}, {"hash": "456"}]
+        }
+        with patch('pyup.requirements.Requirement.latest_version_within_specs',
+                   new_callable=PropertyMock,
+                   return_value="1.4.2"):
+            content = "taskcluster==0.3.4 --hash sha256:d4fe5e2a44fe27e195b92830ece0a6eb9eb7ad9dc556a0cb16f6f2a6429f1b65"
+            req_file = RequirementFile("req.txt", content)
+            req = list(req_file.requirements)[0]
+            self.assertEqual(
+                Requirement.parse("taskcluster==0.3.4", 1),
+                req
+            )
+
+            new_content = req.update_content(content)
+            self.assertEqual(new_content, "taskcluster==1.4.2 \\\n"
+                                          "    --hash=sha256:123 \\\n"
+                                          "    --hash=sha256:456")
+
+
+    @patch("pyup.requirements.hashin.get_package_hashes")
     def test_update_with_hashes_and_comment_and_env_markers_all_in_one_line(self, get_hashes_mock):
         get_hashes_mock.return_value = {
             "hashes": [{"hash": "123"}, {"hash": "456"}]

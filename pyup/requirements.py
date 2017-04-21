@@ -145,7 +145,7 @@ class RequirementFile(object):
         :param line:
         :return:
         """
-        regex = r"--hash=[\w]+:[\w]+"
+        regex = r"--hash[=| ][\w]+:[\w]+"
         hashes = []
         for match in re.finditer(regex, line):
             hashes.append(line[match.start():match.end()])
@@ -429,7 +429,6 @@ class Requirement(object):
                     new_line += " \\"
         new_line += appendix
         regex = r"^{}(?=\s*\r?\n?$)".format(re.escape(self.line))
-
         return re.sub(regex, new_line, content, flags=re.MULTILINE)
 
     @classmethod
