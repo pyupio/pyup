@@ -107,7 +107,8 @@ class RequirementFile(object):
         self._is_valid = None
 
     def __str__(self):
-        return "RequirementFile(path='{path}', sha='{sha}', content='{content}')".format(
+        return "{klass}(path='{path}', sha='{sha}', content='{content}')".format(
+            klass=self.__class__.__name__,
             path=self.path,
             content=self.content[:30] + "[truncated]" if len(self.content) > 30 else self.content,
             sha=self.sha
@@ -227,6 +228,34 @@ class RequirementFile(object):
 
     def get_requirement_class(self):   # pragma: no cover
         return Requirement
+
+
+class SetupPyFile(RequirementFile):
+    def _parse(self):
+        self._requirements, self._other_files = [], []
+
+        Klass = self.get_requirement_class()
+
+        def setup(*args, **kwargs):
+            reqs = kwargs.get('install_requires', []) + kwargs.get('tests_require', [])
+
+            for num, line in enumerate(reqs):
+                req = Klass.parse(line, num)
+
+                if req.package:
+                    self._requirements.append(req)
+
+        try:
+            module = __import__('setuptools')
+        except ImportError:
+            module = __import__('distutils.core')
+
+        old_setup = module.setup
+        module.setup = setup
+
+        exec(self.content, globals())
+
+        module.setup = old_setup
 
 
 class Requirement(object):
