@@ -161,7 +161,7 @@ class Provider(object):
         for i in range(1, 7):
             try:
                 data = repo.update_file(
-                    path=path,
+                    path=quote(path),
                     message=commit_message,
                     content=content,
                     branch=branch,
