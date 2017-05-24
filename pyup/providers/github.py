@@ -64,7 +64,7 @@ class Provider(object):
 
     def get_file(self, repo, path, branch):
         logger.info("Getting file at {} for branch {}".format(path, branch))
-        # if the path has not root, add it
+        # if the path has no root, add it
         if not path.startswith("/"):
             path = "/" + path
         try:
