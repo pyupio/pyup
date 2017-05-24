@@ -3,6 +3,10 @@ from __future__ import absolute_import, print_function
 import time
 import logging
 from github import Github, GithubException, UnknownObjectException, InputGitAuthor
+try:
+    from urllib import quote  # Python 2.X
+except ImportError:
+    from urllib.parse import quote  # Python 3+
 from ..errors import BranchExistsError, NoPermissionError, RepoDoesNotExistError
 
 logger = logging.getLogger(__name__)
@@ -68,7 +72,7 @@ class Provider(object):
         if not path.startswith("/"):
             path = "/" + path
         try:
-            contentfile = repo.get_contents(path, ref=branch)
+            contentfile = repo.get_contents(quote(path), ref=branch)
             return contentfile.decoded_content.decode("utf-8"), contentfile
         except GithubException:
             logger.warning("Unable to get {path} on {repo}".format(
