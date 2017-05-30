@@ -155,7 +155,7 @@ class RequirementFile(object):
         self._requirements, self._other_files = [], []
         index_server = None
         for num, line in enumerate(self.iter_lines()):
-            line = line.strip()
+            line = line.rstrip()
             if not line:
                 continue
             elif "pyup: ignore file" in line and num in [0, 1]:

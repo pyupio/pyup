@@ -12,6 +12,21 @@ import os
 
 class RequirementUpdateContent(TestCase):
 
+    def test_multispace(self):
+
+        with patch('pyup.requirements.Requirement.latest_version_within_specs',
+                   new_callable=PropertyMock,
+                   return_value="2.9.5"):
+            content = "                   pass"
+            req_file = RequirementFile("req.txt", content)
+            req = list(req_file.requirements)[0]
+            self.assertEqual(
+                Requirement.parse("pass", 1),
+                req
+            )
+            updated = req.update_content(content)
+            self.assertEqual(updated, "pass==2.9.5")
+
     def test_compatible(self):
 
         with patch('pyup.requirements.Requirement.latest_version_within_specs',
