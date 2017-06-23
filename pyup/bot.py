@@ -164,6 +164,12 @@ class Bot(object):
 
         # todo: This block needs to be refactored
         for title, body, update_branch, updates in self.iter_updates(initial, scheduled):
+            # some scheduled updates don't have commits in them. This happens if a package is
+            # outdated, but the config file is blocking the update (insecure, no updates).
+            # check if this is the case here.
+            if not updates:
+                continue
+
             if self.config.pr_prefix:
                 title = "{prefix} {title}".format(prefix=self.config.pr_prefix, title=title)
             if initial_pr:
