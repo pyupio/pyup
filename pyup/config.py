@@ -24,6 +24,9 @@ class Config(object):
 
     UPDATE_ALL = "all"
     UPDATE_INSECURE = "insecure"
+    # the docs had a typo at some point that incorrectly reffered to 'security'
+    # instead of 'insecure'.
+    UPDATE_INSECURE_TYPO = "security"
     UPDATE_NONE = ["False", "false", False, None]
 
     def __init__(self):
@@ -123,7 +126,8 @@ class Config(object):
         :return: bool
         """
         return self._get_requirement_attr("update", path=path) in (Config.UPDATE_ALL,
-                                                                   Config.UPDATE_INSECURE)
+                                                                   Config.UPDATE_INSECURE,
+                                                                   Config.UPDATE_INSECURE_TYPO)
 
     def is_valid_schedule(self):
         return SCHEDULE_REGEX.search(self.schedule) is not None
