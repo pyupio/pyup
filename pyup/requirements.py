@@ -8,6 +8,9 @@ from .pullrequest import PullRequest
 import logging
 from .package import Package, fetch_package
 import re
+import yaml
+import StringIO
+from ConfigParser import SafeConfigParser, NoOptionError
 
 # see https://gist.github.com/dperini/729294
 URL_REGEX = re.compile(
@@ -47,6 +50,13 @@ PYTHON_VERSIONS = [
     "2.7", "3.0", "3.1", "3.2", "3.3", "3.4", "3.5", "3.6"
 ]
 logger = logging.getLogger(__name__)
+
+
+class FILE_TYPES(object):
+
+    REQUIREMENTS_TXT = "REQUIREMENTS_TXT"
+    CONDA_FILE = "CONDA_FILE"
+    TOX_INI = "TOX_INI"
 
 
 class RequirementsBundle(list):
@@ -151,8 +161,7 @@ class RequirementFile(object):
             hashes.append(line[match.start():match.end()])
         return re.sub(regex, "", line).strip(), hashes
 
-    def _parse(self):
-        self._requirements, self._other_files = [], []
+    def _parse_requirements_txt(self):
         index_server = None
         for num, line in enumerate(self.iter_lines()):
             line = line.rstrip()
@@ -167,7 +176,7 @@ class RequirementFile(object):
                 continue
             if line.startswith('-i') or \
                 line.startswith('--index-url') or \
-                    line.startswith('--extra-index-url'):
+                line.startswith('--extra-index-url'):
                 # this file is using a private index server, try to parse it
                 index_server = self.parse_index_server(line)
                 continue
@@ -176,7 +185,7 @@ class RequirementFile(object):
             elif line.startswith('-f') or line.startswith('--find-links') or \
                 line.startswith('--no-index') or line.startswith('--allow-external') or \
                 line.startswith('--allow-unverified') or line.startswith('-Z') or \
-                    line.startswith('--always-unzip'):
+                line.startswith('--always-unzip'):
                 continue
             else:
                 try:
@@ -209,6 +218,45 @@ class RequirementFile(object):
                         self._requirements.append(req)
                 except ValueError:
                     continue
+
+    def _parse_conda_yml(self):
+        try:
+            data = yaml.safe_load(self.content)
+            if 'dependencies' in data and isinstance(data['dependencies'], list):
+                for dep in data['dependencies']:
+                    if isinstance(dep, dict) and 'pip' in dep:
+                        for n, item in enumerate(dep['pip']):
+                            klass = self.get_requirement_class()
+                            req = klass.parse(item, n, file_type=FILE_TYPES.CONDA_FILE)
+                            if req.package is not None:
+                                self._requirements.append(req)
+        except yaml.YAMLError:
+            pass
+
+    def _parse_tox_ini(self):
+        klass = self.get_requirement_class()
+        parser = SafeConfigParser()
+        parser.readfp(StringIO.StringIO(self.content))
+        for section in parser.sections():
+            try:
+                content = parser.get(section=section, option="deps")
+                for n, line in enumerate(content.splitlines()):
+                    if line:
+                        req = klass.parse(line, n, file_type=FILE_TYPES.TOX_INI)
+                        print(req)
+                        if req.package is not None:
+                            self._requirements.append(req)
+            except NoOptionError:
+                pass
+
+    def _parse(self):
+        self._requirements, self._other_files = [], []
+        if self.path.endswith('.yml'):
+            self._parse_conda_yml()
+        elif self.path.endswith('.ini'):
+            self._parse_tox_ini()
+        else:
+            self._parse_requirements_txt()
         self._is_valid = len(self._requirements) > 0 or len(self._other_files) > 0
 
     def iter_lines(self, lineno=0):
@@ -230,7 +278,7 @@ class RequirementFile(object):
 
 
 class Requirement(object):
-    def __init__(self, name, specs, hashCmp, line, lineno, extras):
+    def __init__(self, name, specs, hashCmp, line, lineno, extras, file_type):
         self.name = name
         self.key = name.lower()
         self.specs = specs
@@ -243,6 +291,7 @@ class Requirement(object):
         self.hashes = []
         self._fetched_package = False
         self._package = None
+        self.file_type = file_type
 
     def __eq__(self, other):
         return (
@@ -428,11 +477,14 @@ class Requirement(object):
                 if len(new_hashes) > n + 1:
                     new_line += " \\"
         new_line += appendix
-        regex = r"^{}(?=\s*\r?\n?$)".format(re.escape(self.line))
+        if self.file_type == FILE_TYPES.REQUIREMENTS_TXT:
+            regex = r"^{}(?=\s*\r?\n?$)".format(re.escape(self.line))
+        elif self.file_type in [FILE_TYPES.CONDA_FILE, FILE_TYPES.TOX_INI]:
+            regex = r"{}(?=\s*\r?\n?$)".format(re.escape(self.line))
         return re.sub(regex, new_line, content, flags=re.MULTILINE)
 
     @classmethod
-    def parse(cls, s, lineno):
+    def parse(cls, s, lineno, file_type=FILE_TYPES.REQUIREMENTS_TXT):
         # setuptools requires a space before the comment. If this isn't the case, add it.
         if "\t#" in s:
             parsed, = parse_requirements(s.replace("\t#", "\t #"))
@@ -444,7 +496,8 @@ class Requirement(object):
             line=s,
             lineno=lineno,
             hashCmp=parsed.hashCmp,
-            extras=parsed.extras
+            extras=parsed.extras,
+            file_type=file_type
         )
 
     def get_package_class(self):  # pragma: no cover
