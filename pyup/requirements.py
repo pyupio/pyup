@@ -9,6 +9,8 @@ import logging
 from .package import Package, fetch_package
 import re
 import yaml
+import StringIO
+from ConfigParser import SafeConfigParser, NoOptionError
 
 # see https://gist.github.com/dperini/729294
 URL_REGEX = re.compile(
@@ -54,6 +56,7 @@ class FILE_TYPES(object):
 
     REQUIREMENTS_TXT = "REQUIREMENTS_TXT"
     CONDA_FILE = "CONDA_FILE"
+    TOX_INI = "TOX_INI"
 
 
 class RequirementsBundle(list):
@@ -228,14 +231,30 @@ class RequirementFile(object):
                             if req.package is not None:
                                 self._requirements.append(req)
         except yaml.YAMLError:
-            # todo: actual error handling here
-            import traceback
-            traceback.print_exc()
+            pass
+
+    def _parse_tox_ini(self):
+        klass = self.get_requirement_class()
+        parser = SafeConfigParser()
+        parser.readfp(StringIO.StringIO(self.content))
+        for section in parser.sections():
+            try:
+                content = parser.get(section=section, option="deps")
+                for n, line in enumerate(content.splitlines()):
+                    if line:
+                        req = klass.parse(line, n, file_type=FILE_TYPES.TOX_INI)
+                        print(req)
+                        if req.package is not None:
+                            self._requirements.append(req)
+            except NoOptionError:
+                pass
 
     def _parse(self):
         self._requirements, self._other_files = [], []
         if self.path.endswith('.yml'):
             self._parse_conda_yml()
+        elif self.path.endswith('.ini'):
+            self._parse_tox_ini()
         else:
             self._parse_requirements_txt()
         self._is_valid = len(self._requirements) > 0 or len(self._other_files) > 0
@@ -460,7 +479,7 @@ class Requirement(object):
         new_line += appendix
         if self.file_type == FILE_TYPES.REQUIREMENTS_TXT:
             regex = r"^{}(?=\s*\r?\n?$)".format(re.escape(self.line))
-        elif self.file_type == FILE_TYPES.CONDA_FILE:
+        elif self.file_type in [FILE_TYPES.CONDA_FILE, FILE_TYPES.TOX_INI]:
             regex = r"{}(?=\s*\r?\n?$)".format(re.escape(self.line))
         return re.sub(regex, new_line, content, flags=re.MULTILINE)
 
