@@ -46,7 +46,11 @@ class Provider(object):
             return True
 
         try:
-            return repo.add_to_collaborators(user.login)
+            # first, invite the bot to be a collaborator
+            invite = repo.add_to_collaborators(user.login)
+            # second, accept the invitation
+            if invite:
+                user.accept_invitation(invite)
         except GithubException:
             msg = "Unable to add {login} as a collaborator on {repo}.".format(
                 login=user.login,
