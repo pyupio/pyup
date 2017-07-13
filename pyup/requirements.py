@@ -117,7 +117,7 @@ class RequirementFile(object):
 
     def _parse(self):
         self._requirements, self._other_files = [], []
-        if self.path.endswith('.yml'):
+        if self.path.endswith('.yml') or self.path.endswith(".yaml"):
             self._parse_conda_yml()
         elif self.path.endswith('.ini'):
             self._parse_tox_ini()
