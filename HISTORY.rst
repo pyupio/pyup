@@ -3,6 +3,19 @@
 History
 -------
 
+0.7.0 (2017-7-13)
+-----------------
+
+* Fixed a bug on the CLI that prevented hashed requirements to be parsed correctly
+* Switched to the new dparse library, adding experimental support for tox and conda files.
+* Added support for GitHubs new collaborator invitation system.
+* The bot now correctly parses requirement files that begin with a whitespace.
+* Fixed a bug with requirement files that had special characters in the filepath.
+* Overall improvements with hashed requirement files. Almost all flavors should now be parsed
+ correctly
+* Added support for Gitlab, thanks a lot to @samdroid-apps
+* Added support for compatible releases
+
 0.6.0 (2017-2-1)
 ----------------
 
