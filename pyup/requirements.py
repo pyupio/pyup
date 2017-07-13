@@ -7,8 +7,6 @@ from .updates import InitialUpdate, SequentialUpdate, ScheduledUpdate
 from .pullrequest import PullRequest
 import logging
 from .package import Package, fetch_package
-import re
-import yaml
 
 from dparse import parse, parser, updater, filetypes
 from dparse.dependencies import Dependency
