@@ -87,6 +87,6 @@ class CLIBundle(RequirementsBundle):
 
 class CLIRequirementFile(RequirementFile):
     def iter_lines(self, lineno=0):
-        bar = tqdm(self.content.splitlines(), desc="Processing {}".format(self.path))
+        bar = tqdm(self.content.splitlines()[lineno:], desc="Processing {}".format(self.path))
         for item in bar:
             yield item
