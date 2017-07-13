@@ -348,8 +348,12 @@ class Requirement(object):
             for item in self.get_hashes(self.latest_version_within_specs):
                 hashes.append({"method": "sha256", "hash": item["hash"]})
 
-        return updater_class.update(content=content, dependency=dep, version=self.latest_version_within_specs,
-                             hashes=hashes)
+        return updater_class.update(
+            content=content,
+            dependency=dep,
+            version=self.latest_version_within_specs,
+            hashes=hashes
+        )
 
     @classmethod
     def parse(cls, s, lineno, file_type=filetypes.requirements_txt):
