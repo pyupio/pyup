@@ -12,6 +12,61 @@ import os
 
 class RequirementUpdateContent(TestCase):
 
+    def test_tox_ini(self):
+        with patch('pyup.requirements.Requirement.latest_version_within_specs',
+                   new_callable=PropertyMock,
+                   return_value="2.9.5"):
+            content = "[testenv:bandit]\n" \
+                      "commands =\n" \
+                      "\tbandit --ini setup.cfg -ii -l --recursive project_directory\n" \
+                      "deps =\n" \
+                      "\tbandit==1.4.0\n" \
+                      "\n" \
+                      "[testenv:manifest]\n" \
+                      "commands =\n" \
+                      "\tcheck-manifest --verbose\n"
+            req_file = RequirementFile("tox.ini", content)
+            req = list(req_file.requirements)[0]
+            self.assertEqual(
+                Requirement.parse("bandit==1.4.0", 1),
+                req
+            )
+            updated = req.update_content(content)
+            new_content = "[testenv:bandit]\n" \
+                      "commands =\n" \
+                      "\tbandit --ini setup.cfg -ii -l --recursive project_directory\n" \
+                      "deps =\n" \
+                      "\tbandit==2.9.5\n" \
+                      "\n" \
+                      "[testenv:manifest]\n" \
+                      "commands =\n" \
+                      "\tcheck-manifest --verbose\n"
+            self.assertEqual(updated, new_content)
+
+    def test_conda_file(self):
+
+        with patch('pyup.requirements.Requirement.latest_version_within_specs',
+                   new_callable=PropertyMock,
+                   return_value="2.9.5"):
+            content = "name: my_env\n" \
+                      "dependencies:\n" \
+                      "  - gevent=1.2.1\n" \
+                      "  - pip:\n" \
+                      "    - beautifulsoup4==1.2.3\n"
+            req_file = RequirementFile("req.yml", content)
+            req = list(req_file.requirements)[0]
+            self.assertEqual(
+                Requirement.parse("beautifulsoup4==1.2.3", 1),
+                req
+            )
+            updated = req.update_content(content)
+            new_content = "name: my_env\n" \
+                      "dependencies:\n" \
+                      "  - gevent=1.2.1\n" \
+                      "  - pip:\n" \
+                      "    - beautifulsoup4==2.9.5\n"
+            self.assertEqual(updated, new_content)
+
     def test_multispace(self):
 
         with patch('pyup.requirements.Requirement.latest_version_within_specs',

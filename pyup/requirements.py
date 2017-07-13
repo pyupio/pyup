@@ -8,40 +8,10 @@ from .pullrequest import PullRequest
 import logging
 from .package import Package, fetch_package
 import re
+import yaml
 
-# see https://gist.github.com/dperini/729294
-URL_REGEX = re.compile(
-    # protocol identifier
-    u"(?:(?:https?|ftp)://)"
-    # user:pass authentication
-    u"(?:\S+(?::\S*)?@)?"
-    u"(?:"
-    # IP address exclusion
-    # private & local networks
-    u"(?!(?:10|127)(?:\.\d{1,3}){3})"
-    u"(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})"
-    u"(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})"
-    # IP address dotted notation octets
-    # excludes loopback network 0.0.0.0
-    # excludes reserved space >= 224.0.0.0
-    # excludes network & broadcast addresses
-    # (first & last IP address of each class)
-    u"(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])"
-    u"(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}"
-    u"(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))"
-    u"|"
-    # host name
-    u"(?:(?:[a-z\u00a1-\uffff0-9]-?)*[a-z\u00a1-\uffff0-9]+)"
-    # domain name
-    u"(?:\.(?:[a-z\u00a1-\uffff0-9]-?)*[a-z\u00a1-\uffff0-9]+)*"
-    # TLD identifier
-    u"(?:\.(?:[a-z\u00a1-\uffff]{2,}))"
-    u")"
-    # port number
-    u"(?::\d{2,5})?"
-    # resource path
-    u"(?:/\S*)?",
-    re.UNICODE)
+from dparse import parse, parser, updater, filetypes
+from dparse.dependencies import Dependency
 
 PYTHON_VERSIONS = [
     "2.7", "3.0", "3.1", "3.2", "3.3", "3.4", "3.5", "3.6"
@@ -133,83 +103,54 @@ class RequirementFile(object):
 
     @staticmethod
     def parse_index_server(line):
-        matches = URL_REGEX.findall(line)
-        if matches:
-            url = matches[0]
-            return url if url.endswith("/") else url + "/"
-        return None
+        return parser.Parser.parse_index_server(line)
 
     def _hash_parser(self, line):
-        """
+        return parser.Parser.parse_hashes(line)
 
-        :param line:
-        :return:
-        """
-        regex = r"--hash[=| ][\w]+:[\w]+"
-        hashes = []
-        for match in re.finditer(regex, line):
-            hashes.append(line[match.start():match.end()])
-        return re.sub(regex, "", line).strip(), hashes
+    def _parse_requirements_txt(self):
+        self.parse_dependencies(filetypes.requirements_txt)
+
+    def _parse_conda_yml(self):
+        self.parse_dependencies(filetypes.conda_yml)
+
+    def _parse_tox_ini(self):
+        self.parse_dependencies(filetypes.tox_ini)
 
     def _parse(self):
         self._requirements, self._other_files = [], []
-        index_server = None
-        for num, line in enumerate(self.iter_lines()):
-            line = line.rstrip()
-            if not line:
-                continue
-            elif "pyup: ignore file" in line and num in [0, 1]:
-                # don't process this file, filter rule match to completely ignore it
-                self._is_valid = False
-                return
-            if line.startswith('#'):
-                # comments are lines that start with # only
-                continue
-            if line.startswith('-i') or \
-                line.startswith('--index-url') or \
-                    line.startswith('--extra-index-url'):
-                # this file is using a private index server, try to parse it
-                index_server = self.parse_index_server(line)
-                continue
-            elif line.startswith('-r') or line.startswith('--requirement'):
-                self._other_files.append(self.resolve_file(self.path, line))
-            elif line.startswith('-f') or line.startswith('--find-links') or \
-                line.startswith('--no-index') or line.startswith('--allow-external') or \
-                line.startswith('--allow-unverified') or line.startswith('-Z') or \
-                    line.startswith('--always-unzip'):
-                continue
-            else:
-                try:
-                    if "pyup: ignore" in line:
-                        # filter rule match to completely ignore this requirement
-                        continue
-                    parseable_line = line
-
-                    # multiline requirements are not parseable
-                    if "\\" in line:
-                        parseable_line = line.replace("\\", "")
-                        for next_line in self.iter_lines(num + 1):
-                            parseable_line += next_line.strip().replace("\\", "")
-                            line += "\n" + next_line
-                            if "\\" in next_line:
-                                continue
-                            break
-
-                    hashes = []
-                    if "--hash" in parseable_line:
-                        parseable_line, hashes = self._hash_parser(parseable_line)
-
-                    klass = self.get_requirement_class()
-                    req = klass.parse(parseable_line, num + 1)
-                    req.hashes = hashes
-                    req.index_server = index_server
-                    # replace the requirements line with the 'real' line
-                    req.line = line
-                    if req.package is not None:
-                        self._requirements.append(req)
-                except ValueError:
-                    continue
+        if self.path.endswith('.yml'):
+            self._parse_conda_yml()
+        elif self.path.endswith('.ini'):
+            self._parse_tox_ini()
+        else:
+            self._parse_requirements_txt()
         self._is_valid = len(self._requirements) > 0 or len(self._other_files) > 0
+
+    def parse_dependencies(self, file_type):
+
+        klass = self.get_requirement_class()
+        result = parse(
+            self.content,
+            path=self.path,
+            sha=self.sha,
+            file_type=file_type,
+            marker=(("pyup: ignore file",), ("pyup: ignore",))
+        )
+        for dep in result.dependencies:
+            req = klass(
+                name=dep.name,
+                specs=dep.specs,
+                line=dep.line,
+                lineno=dep.line_numbers[0] if dep.line_numbers else 0,
+                extras=dep.extras,
+                file_type=file_type,
+            )
+            if req.package:
+                req.hashes = dep.hashes
+                req.index_server = dep.index_server
+                self._requirements.append(req)
+        self._other_files = result.resolved_files
 
     def iter_lines(self, lineno=0):
         for line in self.content.splitlines()[lineno:]:
@@ -217,24 +158,17 @@ class RequirementFile(object):
 
     @classmethod
     def resolve_file(cls, file_path, line):
-        line = line.replace("-r ", "").replace("--requirement ", "")
-        parts = file_path.split("/")
-        if " #" in line:
-            line = line.split("#")[0].strip()
-        if len(parts) == 1:
-            return line
-        return "/".join(parts[:-1]) + "/" + line
+        return parser.Parser.resolve_file(file_path, line)
 
-    def get_requirement_class(self):   # pragma: no cover
+    def get_requirement_class(self):  # pragma: no cover
         return Requirement
 
 
 class Requirement(object):
-    def __init__(self, name, specs, hashCmp, line, lineno, extras):
+    def __init__(self, name, specs, line, lineno, extras, file_type):
         self.name = name
         self.key = name.lower()
         self.specs = specs
-        self.hashCmp = hashCmp
         self.line = line
         self.lineno = lineno
         self.index_server = None
@@ -243,6 +177,13 @@ class Requirement(object):
         self.hashes = []
         self._fetched_package = False
         self._package = None
+        self.file_type = file_type
+
+        self.hashCmp = (
+            self.key,
+            self.specs,
+            frozenset(self.extras),
+        )
 
     def __eq__(self, other):
         return (
@@ -389,50 +330,31 @@ class Requirement(object):
         return data["hashes"]
 
     def update_content(self, content, update_hashes=True):
-        """
-        Updates the requirement to the latest version for the given content and adds hashes
-        if neccessary.
-        :param content: str, content
-        :return: str, updated content
-        """
-        new_line = "{}=={}".format(self.full_name, self.latest_version_within_specs)
-        appendix = ''
-        # leave environment markers intact
-        if ";" in self.line:
-            # condense multiline, split out the env marker, strip comments and --hashes
-            new_line += ";" + self.line.splitlines()[0].split(";", 1)[1] \
-                .split("#")[0].split("--hash")[0].rstrip()
-        # add the comment
-        if "#" in self.line:
-            # split the line into parts: requirement and comment
-            parts = self.line.split("#")
-            requirement, comment = parts[0], "#".join(parts[1:])
-            # find all whitespaces between the requirement and the comment
-            whitespaces = (hex(ord('\t')), hex(ord(' ')))
-            trailing_whitespace = ''
-            for c in requirement[::-1]:
-                if hex(ord(c)) in whitespaces:
-                    trailing_whitespace += c
-                else:
-                    break
-            appendix += trailing_whitespace + "#" + comment
-        # if this is a hashed requirement, add a multiline break before the comment
-        if self.hashes and not new_line.endswith("\\"):
-            new_line += " \\"
-        # if this is a hashed requirement, add the hashes
-        if update_hashes and self.hashes:
-            new_hashes = self.get_hashes(self.latest_version_within_specs)
-            for n, new_hash in enumerate(new_hashes):
-                new_line += "\n    --hash=sha256:{}".format(new_hash["hash"])
-                # append a new multiline break if this is not the last line
-                if len(new_hashes) > n + 1:
-                    new_line += " \\"
-        new_line += appendix
-        regex = r"^{}(?=\s*\r?\n?$)".format(re.escape(self.line))
-        return re.sub(regex, new_line, content, flags=re.MULTILINE)
+        if self.file_type == filetypes.tox_ini:
+            updater_class = updater.ToxINIUpdater
+        elif self.file_type == filetypes.conda_yml:
+            updater_class = updater.CondaYMLUpdater
+        else:
+            updater_class = updater.RequirementsTXTUpdater
+        dep = Dependency(
+            name=self.name,
+            specs=self.specs,
+            line=self.line,
+            line_numbers=[self.lineno, ] if self.lineno != 0 else None,
+            dependency_type=self.file_type,
+            hashes=self.hashes,
+            extras=self.extras
+        )
+        hashes = []
+        if self.hashes and update_hashes:
+            for item in self.get_hashes(self.latest_version_within_specs):
+                hashes.append({"method": "sha256", "hash": item["hash"]})
+
+        return updater_class.update(content=content, dependency=dep, version=self.latest_version_within_specs,
+                             hashes=hashes)
 
     @classmethod
-    def parse(cls, s, lineno):
+    def parse(cls, s, lineno, file_type=filetypes.requirements_txt):
         # setuptools requires a space before the comment. If this isn't the case, add it.
         if "\t#" in s:
             parsed, = parse_requirements(s.replace("\t#", "\t #"))
@@ -443,8 +365,8 @@ class Requirement(object):
             specs=parsed.specs,
             line=s,
             lineno=lineno,
-            hashCmp=parsed.hashCmp,
-            extras=parsed.extras
+            extras=parsed.extras,
+            file_type=file_type
         )
 
     def get_package_class(self):  # pragma: no cover
