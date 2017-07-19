@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, print_function, unicode_literals
-from pkg_resources import parse_version
+from packaging.version import parse as parse_version
 import requests
 
 

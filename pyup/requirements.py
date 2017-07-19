@@ -1,15 +1,46 @@
 from __future__ import unicode_literals
-from pkg_resources import parse_requirements
-from pkg_resources import parse_version
-from pkg_resources._vendor.packaging.specifiers import SpecifierSet
+from packaging.version import parse as parse_version
+from packaging.specifiers import SpecifierSet
 import hashin
 from .updates import InitialUpdate, SequentialUpdate, ScheduledUpdate
 from .pullrequest import PullRequest
 import logging
 from .package import Package, fetch_package
+import six
 
 from dparse import parse, parser, updater, filetypes
 from dparse.dependencies import Dependency
+
+# This is a setuptools backport
+def parse_requirements(strs):
+    """Yield ``Requirement`` objects for each specification in `strs`
+    `strs` must be a string, or a (possibly-nested) iterable thereof.
+    """
+    from packaging.requirements import Requirement as PackagingRequirement, InvalidRequirement
+    # create a steppable iterator, so we can handle \-continuations
+    def yield_lines(strs):
+        """Yield non-empty/non-comment lines of a string or sequence"""
+        if isinstance(strs, six.string_types):
+            for s in strs.splitlines():
+                s = s.strip()
+                # skip blank lines/comments
+                if s and not s.startswith('#'):
+                    yield s
+        else:
+            for ss in strs:
+                for s in yield_lines(ss):
+                    yield s
+    lines = iter(yield_lines(strs))
+
+    for line in lines:
+        # Drop comments -- a hash without a space may be in a URL.
+        if ' #' in line:
+            line = line[:line.find(' #')]
+        # If there is a line continuation, drop it, and append the next line.
+        if line.endswith('\\'):
+            line = line[:-2].strip()
+            line += next(lines)
+        yield PackagingRequirement(line)
 
 PYTHON_VERSIONS = [
     "2.7", "3.0", "3.1", "3.2", "3.3", "3.4", "3.5", "3.6"
@@ -195,31 +226,34 @@ class Requirement(object):
     def __str__(self):
         return "Requirement.parse({line}, {lineno})".format(line=self.line, lineno=self.lineno)
 
+    def __repr__(self):
+        return self.__str__()
+
     @property
     def is_pinned(self):
-        if len(self.specs) == 1 and self.specs[0][0] == "==":
+        if len(self.specs._specs) == 1 and next(iter(self.specs._specs))._spec[0] == "==":
             return True
         return False
 
     @property
     def is_compatible(self):
-        if len(self.specs) == 1 and self.specs[0][0] == "~=":
+        if len(self.specs._specs) == 1 and next(iter(self.specs._specs))._spec[0] == "~=":
             return True
         return False
 
     @property
     def is_open_ranged(self):
-        if len(self.specs) == 1 and self.specs[0][0] == ">=":
+        if len(self.specs._specs) == 1 and next(iter(self.specs._specs))._spec[0] == ">=":
             return True
         return False
 
     @property
     def is_ranged(self):
-        return len(self.specs) >= 1 and not self.is_pinned
+        return len(self.specs._specs) >= 1 and not self.is_pinned
 
     @property
     def is_loose(self):
-        return len(self.specs) == 0
+        return len(self.specs._specs) == 0
 
     @property
     def filter(self):
@@ -231,8 +265,8 @@ class Requirement(object):
         if rqfilter:
             try:
                 rqfilter, = parse_requirements("filter " + rqfilter)
-                if len(rqfilter.specs) > 0:
-                    return rqfilter.specs
+                if len(rqfilter.specifier._specs) > 0:
+                    return rqfilter.specifier
             except ValueError:
                 pass
         return False
@@ -240,11 +274,16 @@ class Requirement(object):
     @property
     def version(self):
         if self.is_pinned or self.is_compatible:
-            return self.specs[0][1]
+            return next(iter(self.specs._specs))._spec[1]
 
         specs = self.specs
         if self.filter:
-            specs += self.filter
+            print(specs)
+            print(self.filter)
+            specs = SpecifierSet(
+                ",".join(["".join(s._spec) for s in list(specs._specs) + list(self.filter._specs)])
+            )
+            print(specs)
         return self.get_latest_version_within_specs(
             specs,
             versions=self.package.versions,
@@ -267,14 +306,16 @@ class Requirement(object):
 
     @property
     def prereleases(self):
-        return self.is_pinned and parse_version(self.specs[0][1]).is_prerelease
+        return self.is_pinned and parse_version(next(iter(self.specs._specs))._spec[1]).is_prerelease
 
     @staticmethod
     def get_latest_version_within_specs(specs, versions, prereleases=None):
+        print("GET LATEST WITHIN SPECS")
         # build up a spec set and convert compatible specs to pinned ones
         spec_set = SpecifierSet(
-            ",".join(["".join([x.replace("~=", "=="), y]) for x, y in specs])
+            ",".join(["".join(s._spec).replace("~=", "==") for s in specs])
         )
+        print("SPEC SET", spec_set)
         candidates = []
         for version in versions:
             if spec_set.contains(version, prereleases=prereleases):
@@ -363,8 +404,8 @@ class Requirement(object):
         else:
             parsed, = parse_requirements(s)
         return cls(
-            name=parsed.project_name,
-            specs=parsed.specs,
+            name=parsed.name,
+            specs=parsed.specifier,
             line=s,
             lineno=lineno,
             extras=parsed.extras,

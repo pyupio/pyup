@@ -23,7 +23,6 @@ requirements = [
     "hashin-pyup",
     "packaging",
     "six",
-    "setuptools<=26.1.1",
     "python-gitlab",
     "dparse"
 ]
