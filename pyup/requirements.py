@@ -10,40 +10,7 @@ import six
 
 from dparse import parse, parser, updater, filetypes
 from dparse.dependencies import Dependency
-
-
-# This is a setuptools backport
-def parse_requirements(strs):
-    """Yield ``Requirement`` objects for each specification in `strs`
-    `strs` must be a string, or a (possibly-nested) iterable thereof.
-    """
-    from packaging.requirements import Requirement as PackagingRequirement
-    # create a steppable iterator, so we can handle \-continuations
-
-    def yield_lines(strs):
-        """Yield non-empty/non-comment lines of a string or sequence"""
-        if isinstance(strs, six.string_types):
-            for s in strs.splitlines():
-                s = s.strip()
-                # skip blank lines/comments
-                if s and not s.startswith('#'):
-                    yield s
-        else:
-            for ss in strs:
-                for s in yield_lines(ss):
-                    yield s
-    lines = iter(yield_lines(strs))
-
-    for line in lines:
-        # Drop comments -- a hash without a space may be in a URL.
-        if ' #' in line:
-            line = line[:line.find(' #')]
-        # If there is a line continuation, drop it, and append the next line.
-        if line.endswith('\\'):
-            line = line[:-2].strip()
-            line += next(lines)
-        yield PackagingRequirement(line)
-
+from dparse.parser import setuptools_parse_requirements_backport as parse_requirements
 
 PYTHON_VERSIONS = [
     "2.7", "3.0", "3.1", "3.2", "3.3", "3.4", "3.5", "3.6"

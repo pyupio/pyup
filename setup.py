@@ -24,7 +24,7 @@ requirements = [
     "packaging",
     "six",
     "python-gitlab",
-    "dparse"
+    "dparse>=2.1"
 ]
 
 test_requirements = [
