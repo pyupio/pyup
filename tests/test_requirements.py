@@ -477,20 +477,21 @@ class RequirementTestCase(TestCase):
         )
 
     def test_filter(self):
+        from packaging.specifiers import SpecifierSet
         r = Requirement.parse("Django==1.7.6", 0)
         self.assertEqual(r.filter, False)
 
         r = Requirement.parse("Django==1.7.6 # pyup: < 1.7.8", 0)
-        self.assertEqual(r.filter, [("<", "1.7.8")])
+        self.assertEqual(r.filter, SpecifierSet("<1.7.8"))
 
         req = Requirement.parse("some-package==1.9.3 # rq.filter: <1.10 #some comment here", 0)
-        self.assertEqual(req.filter, [("<", "1.10")])
+        self.assertEqual(req.filter, SpecifierSet("<1.10"))
 
         r = Requirement.parse("django==1.7.1  # pyup: <1.7.6", 0)
 
         r = Requirement.parse("Django==1.7.6 # pyup: < 1.7.8, > 1.7.2", 0)
         self.assertEqual(
-            sorted(r.filter, key=lambda r: r[1]),
+            sorted([s._spec for s in r.filter._specs], key=lambda r: r[1]),
             sorted([("<", "1.7.8"), (">", "1.7.2")], key=lambda r: r[1])
         )
 
@@ -575,12 +576,12 @@ class RequirementTestCase(TestCase):
 
         req = Requirement.parse("Django #rq.filter: >=1.4,<1.5", 0)
         self.assertEqual(
-            sorted(req.filter, key=lambda i: i[0]),
+            sorted([s._spec for s in req.filter._specs], key=lambda i: i[0]),
             sorted([('>=', '1.4'), ('<', '1.5')], key=lambda i: i[0])
         )
 
         req = Requirement.parse("Django #rq.filter:!=1.2", 0)
-        self.assertEqual(req.filter, [('!=', '1.2')])
+        self.assertEqual([s._spec for s in req.filter._specs], [('!=', '1.2')])
 
         req = Requirement.parse("Django #rq.filter:foo", 0)
         self.assertEqual(req.filter, False)
@@ -596,13 +597,13 @@ class RequirementTestCase(TestCase):
 
         req = Requirement.parse("Django #pyup: >=1.4,<1.5", 0)
         self.assertEqual(
-            sorted(req.filter, key=lambda i: i[0]),
+            sorted([s._spec for s in req.filter._specs], key=lambda i: i[0]),
             sorted([('>=', '1.4'), ('<', '1.5')], key=lambda i: i[0])
         )
 
 
         req = Requirement.parse("Django #pyup:!=1.2", 0)
-        self.assertEqual(req.filter, [('!=', '1.2')])
+        self.assertEqual([s._spec for s in req.filter._specs], [('!=', '1.2')])
 
         req = Requirement.parse("Django #pyup:foo", 0)
         self.assertEqual(req.filter, False)
@@ -612,15 +613,16 @@ class RequirementTestCase(TestCase):
 
 
     def test_get_latest_version_within_specs(self):
+        from packaging.specifiers import SpecifierSet
         latest = Requirement.get_latest_version_within_specs(
-            (("==", "1.2"), ("!=", "1.2")),
+            SpecifierSet("==1.2,!=1.2"),
             ["1.2", "1.3", "1.4", "1.5"]
         )
 
         self.assertEqual(latest, None)
 
         latest = Requirement.get_latest_version_within_specs(
-            (("==", "1.2.1"),),
+            SpecifierSet("==1.2.1"),
             ["1.2.0", "1.2.1", "1.2.2", "1.3"]
         )
 
@@ -667,6 +669,7 @@ class RequirementTestCase(TestCase):
             r = Requirement.parse("django", 0)
             self.assertEqual(r.version, "1.9.1")
 
+        print("FILTER TEST")
         with patch('pyup.requirements.Requirement.package', new_callable=PropertyMock,
                    return_value=package_factory(
                        name="django",
