@@ -11,13 +11,15 @@ import six
 from dparse import parse, parser, updater, filetypes
 from dparse.dependencies import Dependency
 
+
 # This is a setuptools backport
 def parse_requirements(strs):
     """Yield ``Requirement`` objects for each specification in `strs`
     `strs` must be a string, or a (possibly-nested) iterable thereof.
     """
-    from packaging.requirements import Requirement as PackagingRequirement, InvalidRequirement
+    from packaging.requirements import Requirement as PackagingRequirement
     # create a steppable iterator, so we can handle \-continuations
+
     def yield_lines(strs):
         """Yield non-empty/non-comment lines of a string or sequence"""
         if isinstance(strs, six.string_types):
@@ -41,6 +43,7 @@ def parse_requirements(strs):
             line = line[:-2].strip()
             line += next(lines)
         yield PackagingRequirement(line)
+
 
 PYTHON_VERSIONS = [
     "2.7", "3.0", "3.1", "3.2", "3.3", "3.4", "3.5", "3.6"
@@ -278,12 +281,9 @@ class Requirement(object):
 
         specs = self.specs
         if self.filter:
-            print(specs)
-            print(self.filter)
             specs = SpecifierSet(
                 ",".join(["".join(s._spec) for s in list(specs._specs) + list(self.filter._specs)])
             )
-            print(specs)
         return self.get_latest_version_within_specs(
             specs,
             versions=self.package.versions,
@@ -306,16 +306,15 @@ class Requirement(object):
 
     @property
     def prereleases(self):
-        return self.is_pinned and parse_version(next(iter(self.specs._specs))._spec[1]).is_prerelease
+        return self.is_pinned and parse_version(
+            next(iter(self.specs._specs))._spec[1]).is_prerelease
 
     @staticmethod
     def get_latest_version_within_specs(specs, versions, prereleases=None):
-        print("GET LATEST WITHIN SPECS")
         # build up a spec set and convert compatible specs to pinned ones
         spec_set = SpecifierSet(
             ",".join(["".join(s._spec).replace("~=", "==") for s in specs])
         )
-        print("SPEC SET", spec_set)
         candidates = []
         for version in versions:
             if spec_set.contains(version, prereleases=prereleases):
