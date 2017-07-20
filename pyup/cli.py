@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from pyup import __version__, settings
-from pyup.bot import DryBot, Bot
+from pyup.bot import Bot
 from pyup.requirements import RequirementFile, RequirementsBundle
 from pyup.providers.github import Provider as GithubProvider
 from pyup.providers.gitlab import Provider as GitlabProvider
