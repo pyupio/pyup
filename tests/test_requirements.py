@@ -5,14 +5,14 @@ from pyup.requirements import Requirement
 from mock import patch, PropertyMock, Mock
 from pyup.requirements import RequirementFile, RequirementsBundle
 from .test_package import package_factory
-from .test_pullrequest import pullrequest_factory
 import requests_mock
 import os
 
 
 class RequirementUpdateContent(TestCase):
 
-    def test_tox_ini(self):
+    @patch("pyup.requirements.Requirement.package", return_value="pkg")
+    def test_tox_ini(self, _):
         with patch('pyup.requirements.Requirement.latest_version_within_specs',
                    new_callable=PropertyMock,
                    return_value="2.9.5"):
@@ -43,7 +43,8 @@ class RequirementUpdateContent(TestCase):
                       "\tcheck-manifest --verbose\n"
             self.assertEqual(updated, new_content)
 
-    def test_conda_file(self):
+    @patch("pyup.requirements.Requirement.package", return_value="pkg")
+    def test_conda_file(self, _):
 
         with patch('pyup.requirements.Requirement.latest_version_within_specs',
                    new_callable=PropertyMock,
@@ -67,7 +68,8 @@ class RequirementUpdateContent(TestCase):
                       "    - beautifulsoup4==2.9.5\n"
             self.assertEqual(updated, new_content)
 
-    def test_multispace(self):
+    @patch("pyup.requirements.Requirement.package", return_value="pkg")
+    def test_multispace(self, _):
 
         with patch('pyup.requirements.Requirement.latest_version_within_specs',
                    new_callable=PropertyMock,
@@ -82,7 +84,8 @@ class RequirementUpdateContent(TestCase):
             updated = req.update_content(content)
             self.assertEqual(updated, "pass==2.9.5")
 
-    def test_compatible(self):
+    @patch("pyup.requirements.Requirement.package", return_value="pkg")
+    def test_compatible(self, _):
 
         with patch('pyup.requirements.Requirement.latest_version_within_specs',
                    new_callable=PropertyMock,
@@ -97,7 +100,8 @@ class RequirementUpdateContent(TestCase):
 
             self.assertEqual(req.update_content(content), "Jinja2==2.9.5         # via flask")
 
-    def test_compatible_matching_latest(self):
+    @patch("pyup.requirements.Requirement.package", return_value="pkg")
+    def test_compatible_matching_latest(self, _):
 
         with patch('pyup.requirements.Requirement.latest_version_within_specs',
                    new_callable=PropertyMock,
@@ -112,7 +116,8 @@ class RequirementUpdateContent(TestCase):
 
             self.assertEqual(req.update_content(content), "Jinja2==2.9.5         # via flask")
 
-    def test_update_contains_correct_sep_char(self):
+    @patch("pyup.requirements.Requirement.package", return_value="pkg")
+    def test_update_contains_correct_sep_char(self, _):
 
         with patch('pyup.requirements.Requirement.latest_version_within_specs',
                    new_callable=PropertyMock,
@@ -127,8 +132,9 @@ class RequirementUpdateContent(TestCase):
 
             self.assertEqual(req.update_content(content), "Jinja2==2.9.5         # via flask")
 
+    @patch("pyup.requirements.Requirement.package", return_value="pkg")
     @patch("pyup.requirements.hashin.get_package_hashes")
-    def test_update_with_hashes(self, get_hashes_mock):
+    def test_update_with_hashes(self, get_hashes_mock, _):
         get_hashes_mock.return_value = {
             "hashes": [{"hash": "123"}, {"hash": "456"}]
         }
@@ -148,8 +154,9 @@ class RequirementUpdateContent(TestCase):
                                                           "    --hash=sha256:123 \\\n"
                                                           "    --hash=sha256:456")
 
+    @patch("pyup.requirements.Requirement.package", return_value="pkg")
     @patch("pyup.requirements.hashin.get_package_hashes")
-    def test_update_with_hashes_and_comment(self, get_hashes_mock):
+    def test_update_with_hashes_and_comment(self, get_hashes_mock, _):
         get_hashes_mock.return_value = {
             "hashes": [{"hash": "123"}, {"hash": "456"}]
         }
@@ -170,8 +177,9 @@ class RequirementUpdateContent(TestCase):
                                                           "    --hash=sha256:123 \\\n"
                                                           "    --hash=sha256:456 # yay")
 
+    @patch("pyup.requirements.Requirement.package", return_value="pkg")
     @patch("pyup.requirements.hashin.get_package_hashes")
-    def test_update_with_hashes_and_comment_and_env_markers(self, get_hashes_mock):
+    def test_update_with_hashes_and_comment_and_env_markers(self, get_hashes_mock, _):
 
         get_hashes_mock.return_value = {
             "hashes": [{"hash": "123"}, {"hash": "456"}]
@@ -193,8 +201,9 @@ class RequirementUpdateContent(TestCase):
                                                           "    --hash=sha256:123 \\\n"
                                                           "    --hash=sha256:456 # yay")
 
+    @patch("pyup.requirements.Requirement.package", return_value="pkg")
     @patch("pyup.requirements.hashin.get_package_hashes")
-    def test_update_with_hashes_and_comment_all_in_one_line(self, get_hashes_mock):
+    def test_update_with_hashes_and_comment_all_in_one_line(self, get_hashes_mock, _):
         get_hashes_mock.return_value = {
             "hashes": [{"hash": "123"}, {"hash": "456"}]
         }
@@ -214,8 +223,9 @@ class RequirementUpdateContent(TestCase):
                                           "    --hash=sha256:123 \\\n"
                                           "    --hash=sha256:456 # yay")
 
+    @patch("pyup.requirements.Requirement.package", return_value="pkg")
     @patch("pyup.requirements.hashin.get_package_hashes")
-    def test_taskcluster_215(self, get_hashes_mock):
+    def test_taskcluster_215(self, get_hashes_mock, _):
         get_hashes_mock.return_value = {
             "hashes": [{"hash": "123"}, {"hash": "456"}]
         }
@@ -235,9 +245,9 @@ class RequirementUpdateContent(TestCase):
                                           "    --hash=sha256:123 \\\n"
                                           "    --hash=sha256:456")
 
-
+    @patch("pyup.requirements.Requirement.package", return_value="pkg")
     @patch("pyup.requirements.hashin.get_package_hashes")
-    def test_update_with_hashes_and_comment_and_env_markers_all_in_one_line(self, get_hashes_mock):
+    def test_update_with_hashes_and_comment_and_env_markers_all_in_one_line(self, get_hashes_mock, _):
         get_hashes_mock.return_value = {
             "hashes": [{"hash": "123"}, {"hash": "456"}]
         }
@@ -257,8 +267,9 @@ class RequirementUpdateContent(TestCase):
                                           "    --hash=sha256:123 \\\n"
                                           "    --hash=sha256:456 # yay")
 
+    @patch("pyup.requirements.Requirement.package", return_value="pkg")
     @patch("pyup.requirements.hashin.get_package_hashes")
-    def test_update_with_hashes_in_one_line(self, get_hashes_mock):
+    def test_update_with_hashes_in_one_line(self, get_hashes_mock, _):
         get_hashes_mock.return_value = {
             "hashes": [{"hash": "123"}, {"hash": "456"}]
         }
@@ -288,7 +299,8 @@ class RequirementUpdateContent(TestCase):
 
             self.assertEqual(req.update_content(content), "uvloop==1.4.2; sys_platform != 'win32'")
 
-    def test_update_with_environment_markers_and_comment(self):
+    @patch("pyup.requirements.Requirement.package", return_value="pkg")
+    def test_update_with_environment_markers_and_comment(self, _):
         with patch('pyup.requirements.Requirement.latest_version_within_specs',
                    new_callable=PropertyMock,
                    return_value="1.4.2"):
@@ -458,7 +470,8 @@ class RequirementUpdateContent(TestCase):
 
 class RequirementTestCase(TestCase):
 
-    def test_is_outdated(self):
+    @patch("pyup.requirements.Requirement.package", return_value="pkg")
+    def test_is_outdated(self, _):
         with patch('pyup.requirements.Requirement.latest_version_within_specs',
                    new_callable=PropertyMock, return_value=None):
             r = Requirement.parse("Django", 0)
@@ -769,10 +782,53 @@ class RequirementTestCase(TestCase):
         self.assertEqual(r._fetched_package, True)
         self.assertEqual(r._package, None)
 
-    def test_is_insecure(self):
-        with self.assertRaises(NotImplementedError):
+    @patch("pyup.requirements.safety")
+    @patch("pyup.requirements.settings")
+    def test_is_insecure(self, settings, safety):
+        """with self.assertRaises(NotImplementedError):
             r = Requirement.parse("Django", 0)
-            r.is_insecure
+            r.is_insecure"""
+        # test safety is not called if the api key not set
+        settings.api_key = None
+        r = Requirement.parse("Django", 0)
+        self.assertFalse(r.is_insecure)
+        safety.check.assert_not_called()
+
+        # test safety is called if the api key is set
+        settings.api_key = "foo"
+        r = Requirement.parse("Django", 0)
+        self.assertFalse(r.is_insecure)
+
+        safety.check.return_value = []
+        safety.check.assert_called_with(
+            cached=True,
+            db_mirror='',
+            ignore_ids=(),
+            key=settings.api_key,
+            packages=(r,)
+        )
+
+    @requests_mock.mock()
+    @patch("pyup.requirements.settings")
+    def test_changelogs(self, requests, settings):
+        # test that the api is not called if the api key is not set
+        settings.api_key = None
+        r = Requirement.parse("pyupio", 0)
+        self.assertEquals(r.changelog, {})
+
+        # test the api is called if the api key is set
+        settings.api_key = "foo"
+        r = Requirement.parse("pyupio", 0)
+        from pyup.package import Package
+        r._package = Package("pyupio", versions=['0.2'])
+        r._fetched_package = True
+        with open(os.path.dirname(os.path.realpath(__file__)) + "/data/pyup-changelog.json") as f:
+            requests.get("https://pyup.io/api/v1/changelogs/pyupio/", text=f.read())
+            log = r.changelog
+            self.assertEquals(len(log), 6)
+
+
+
 
     @requests_mock.mock()
     def test_needs_update(self, requests):
@@ -810,7 +866,8 @@ class RequirementsFileTestCase(TestCase):
         r = RequirementFile("foo.txt", "\n\n\n\n\n")
         self.assertEqual(r.requirements, [])
 
-    def test_parse_hashes(self):
+    @patch("pyup.requirements.Requirement.package", return_value="pkg")
+    def test_parse_hashes(self, _):
         with open(os.path.dirname(os.path.realpath(__file__)) + "/data/hashed_reqs.txt") as f:
             content = f.read()
             r = RequirementFile("r.txt", content)

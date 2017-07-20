@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
-from pyup import __version__
+from pyup import __version__, settings
 from pyup.bot import DryBot, Bot
 from pyup.requirements import RequirementFile, RequirementsBundle
 from pyup.providers.github import Provider as GithubProvider
 from pyup.providers.gitlab import Provider as GitlabProvider
+
 import click
 from tqdm import tqdm
 import logging
@@ -14,16 +15,18 @@ import logging
 @click.option('--repo', prompt='repository', help='')
 @click.option('--user-token', prompt='user token', help='')
 @click.option('--bot-token', help='', default=None)
+@click.option("--key", default="",
+              help="API Key for pyup.io's vulnerability database. Can be set as SAFETY_API_KEY "
+                   "environment variable. Default: empty")
 @click.option('--provider', help='API to use; either github or gitlab', default="github")
-@click.option('--dry', help='Run the bot without committing', default=False)
 @click.option('--branch', help='Set the branch the bot should use', default='master')
 @click.option('--initial', help='Set this to bundle all PRs into a large one',
               default=False, is_flag=True)
-@click.option('--pin', help='', default=True)
-@click.option('--close-prs', help='Tell the bot to close stale pull requests', default=True)
 @click.option('--log', help='Set the log level', default="ERROR")
-def main(repo, user_token, bot_token, provider, dry, branch, initial, pin, close_prs, log):
+def main(repo, user_token, bot_token, key, provider, branch, initial, log):
     logging.basicConfig(level=getattr(logging, log.upper(), None))
+
+    settings.configure(key=key)
 
     if provider == 'github':
         ProviderClass = GithubProvider
@@ -32,19 +35,14 @@ def main(repo, user_token, bot_token, provider, dry, branch, initial, pin, close
     else:
         raise NotImplementedError
 
-    if dry:
-        BotClass = DryBot
-    else:
-        BotClass = CLIBot
-
-    bot = BotClass(
+    bot = CLIBot(
         repo=repo,
         user_token=user_token,
         bot_token=bot_token,
-        provider=ProviderClass
+        provider=ProviderClass,
     )
 
-    bot.update(branch=branch, initial=initial, pin=pin, close_prs=close_prs)
+    bot.update(branch=branch, initial=initial)
 
 
 if __name__ == '__main__':

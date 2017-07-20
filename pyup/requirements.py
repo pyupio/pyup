@@ -1,11 +1,19 @@
 from __future__ import unicode_literals
+
 from packaging.version import parse as parse_version
 from packaging.specifiers import SpecifierSet
+import requests
+
+from safety import safety
+from safety.errors import InvalidKeyError
+from collections import OrderedDict
+
 import hashin
 from .updates import InitialUpdate, SequentialUpdate, ScheduledUpdate
 from .pullrequest import PullRequest
 import logging
 from .package import Package, fetch_package
+from pyup import settings
 
 from dparse import parse, parser, updater, filetypes
 from dparse.dependencies import Dependency
@@ -183,6 +191,9 @@ class Requirement(object):
             frozenset(self.extras),
         )
 
+        self._is_insecure = None
+        self._changelog = None
+
     def __eq__(self, other):
         return (
             isinstance(other, Requirement) and
@@ -305,11 +316,54 @@ class Requirement(object):
 
     @property
     def is_insecure(self):
-        # security is not our concern for the moment. However, it'd be nice if we had a central
-        # place where we can query for known security vulnerabilites on python packages.
-        # There's an open issue here:
-        # https://github.com/pypa/warehouse/issues/798
-        raise NotImplementedError
+        if self._is_insecure is None:
+            if not settings.api_key:
+                self._is_insecure = False
+            else:
+                self._is_insecure = len(safety.check(
+                    packages=(self,),
+                    cached=True,
+                    key=settings.api_key,
+                    db_mirror="",
+                    ignore_ids=()
+                )) != 0
+
+        return self._is_insecure
+
+
+
+
+    @property
+    def changelog(self):
+        if self._changelog is None:
+            self._changelog = OrderedDict()
+            if settings.api_key:
+                r = requests.get(
+                    "https://pyup.io/api/v1/changelogs/{}/".format(self.key),
+                    headers={"X-Api-Key": settings.api_key}
+                )
+                if r.status_code == 403:
+                    raise InvalidKeyError
+                if r.status_code == 200:
+                    data = r.json()
+                    if data:
+                        # sort the changelog by release
+                        sorted_log = sorted(
+                            data.items(), key=lambda v: parse_version(v[0]), reverse=True)
+                        # go over each release and add it to the log if it's within the "upgrade
+                        # range" e.g. update from 1.2 to 1.3 includes a changelog for 1.2.1 but
+                        # not for 0.4.
+                        for version, log in sorted_log:
+                            parsed_version = parse_version(version)
+                            if self.is_pinned and parsed_version > parse_version(
+                                self.version) and parsed_version <= parse_version(
+                                    self.latest_version_within_specs):
+                                self._changelog[version] = log
+                            elif not self.is_pinned and parsed_version <= parse_version(
+                                    self.latest_version_within_specs):
+                                self._changelog[version] = log
+        return self._changelog
+
 
     @property
     def is_outdated(self):
