@@ -330,9 +330,6 @@ class Requirement(object):
 
         return self._is_insecure
 
-
-
-
     @property
     def changelog(self):
         if self._changelog is None:
@@ -363,7 +360,6 @@ class Requirement(object):
                                     self.latest_version_within_specs):
                                 self._changelog[version] = log
         return self._changelog
-
 
     @property
     def is_outdated(self):
