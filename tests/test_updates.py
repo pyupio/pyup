@@ -154,12 +154,12 @@ class UpdateGetRequirementUpdateClassTest(UpdateBaseTest):
 
 class InitialUpdateTestBody(UpdateBaseTest):
     def test_body(self):
-        self.assertEqual("", InitialUpdate.get_body([]))
+        self.assertTrue("updated so far." in InitialUpdate.get_body([]))
 
 
 class SequentialUpdateTestBody(UpdateBaseTest):
     def test_body(self):
-        self.assertEqual("", SequentialUpdate.get_body([]))
+        self.assertTrue("is not pinned" in SequentialUpdate.get_body([]))
 
 
 class SequentialUpdateTestTitle(UpdateBaseTest):
@@ -201,6 +201,7 @@ class SequentialUpdateTestGetUpdates(UpdateBaseTest):
         req.key = "django"
         req.is_pinned = False
         req.latest_version_within_specs = "1.10"
+        req.changelog = {"1.10": "foo"}
         update.add(req, req_file)
         self.assertEqual("django-pin" in update, True)
         self.assertEqual(len(update["django-pin"]), 1)
@@ -224,6 +225,7 @@ class InitialUpdateTestGetUpdates(UpdateBaseTest):
         req.key = "django"
         req.is_pinned = False
         req.latest_version_within_specs = "1.10"
+        req.changelog = {"1.10": "foo"}
         update.add(req, req_file)
         self.assertEqual("django-pin" in update, True)
         self.assertEqual(len(update["django-pin"]), 1)
@@ -295,4 +297,4 @@ class ScheduledUpdateTest(ScheduledUpdateBaseTest):
         )
 
     def test_get_body(self):
-        self.assertEquals("", self.update.get_body([]))
+        self.assertTrue("updated so far" in self.update.get_body([]))

@@ -3,6 +3,12 @@
 History
 -------
 
+0.8.0 (2017-7-20)
+-----------------
+# Todo: finish docs and add link.
+* This release adds support for insecure packages and pull requests with attached changelogs.
+
+
 0.7.0 (2017-7-13)
 -----------------
 

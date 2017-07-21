@@ -1,8 +1,17 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, print_function, unicode_literals
+import os
 from collections import namedtuple
 from datetime import datetime
+from jinja2 import Environment, FileSystemLoader
 from .errors import UnsupportedScheduleError
+
+from pyup.settings import api_key
+
+TEMPLATES_DIR = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    "templates"
+)
 
 
 class Update(dict):
@@ -103,7 +112,16 @@ class ScheduledUpdate(BundledUpdate):
 
     @classmethod
     def get_body(cls, updates):
-        return ""
+        env = Environment(loader=FileSystemLoader(TEMPLATES_DIR))
+        changelogs = [u.requirement for u in updates if u.requirement.changelog != {}]
+        return env.get_template(
+            "scheduled_update_body.md").render(
+            {
+                "updates": updates,
+                "changelogs": changelogs,
+                "api_key": api_key
+            }
+        )
 
     def get_title(self):
         now = datetime.now()
@@ -128,7 +146,17 @@ class InitialUpdate(BundledUpdate):
 
     @classmethod
     def get_body(cls, updates):
-        return ""
+        env = Environment(loader=FileSystemLoader(TEMPLATES_DIR))
+        changelogs = [u.requirement for u in updates if u.requirement.changelog != {}]
+        return env.get_template(
+            "initial_update_body.md"
+        ).render(
+            {
+                "updates": updates,
+                "changelogs": changelogs,
+                "api_key": api_key
+            }
+        )
 
     @classmethod
     def get_empty_update_body(cls):
@@ -189,4 +217,8 @@ class SequentialUpdate(Update):
 
     @classmethod
     def get_body(cls, requirement):
-        return ""
+        env = Environment(loader=FileSystemLoader(TEMPLATES_DIR))
+        return env.get_template("sequential_update_body.md").render({
+            "requirement": requirement,
+            "api_key": api_key
+        })
