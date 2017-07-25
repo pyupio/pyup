@@ -19,17 +19,21 @@ import logging
               help="API Key for pyup.io's vulnerability database. Can be set as SAFETY_API_KEY "
                    "environment variable. Default: empty")
 @click.option('--provider', help='API to use; either github or gitlab', default="github")
+@click.option('--github-enterprise-url', help='', default='')
 @click.option('--branch', help='Set the branch the bot should use', default='master')
 @click.option('--initial', help='Set this to bundle all PRs into a large one',
               default=False, is_flag=True)
 @click.option('--log', help='Set the log level', default="ERROR")
-def main(repo, user_token, bot_token, key, provider, branch, initial, log):
+def main(repo, user_token, bot_token, key, provider, github_enterprise_url, branch, initial, log):
     logging.basicConfig(level=getattr(logging, log.upper(), None))
 
     settings.configure(key=key)
 
+    provider_kwargs = {}
     if provider == 'github':
         ProviderClass = GithubProvider
+        if github_enterprise_url:
+            provider_kwargs["url"] = github_enterprise_url
     elif provider == 'gitlab':
         ProviderClass = GitlabProvider
     else:
@@ -40,6 +44,7 @@ def main(repo, user_token, bot_token, key, provider, branch, initial, log):
         user_token=user_token,
         bot_token=bot_token,
         provider=ProviderClass,
+        provider_kwargs=provider_kwargs
     )
 
     bot.update(branch=branch, initial=initial)
@@ -52,9 +57,16 @@ if __name__ == '__main__':
 class CLIBot(Bot):
 
     def __init__(self, repo, user_token, bot_token=None,
-                 provider=GithubProvider, bundle=RequirementsBundle):
+                 provider=GithubProvider, provider_kwargs={}, bundle=RequirementsBundle):
         bundle = CLIBundle
-        super(CLIBot, self).__init__(repo, user_token, bot_token, provider, bundle)
+        super(CLIBot, self).__init__(
+            repo=repo,
+            user_token=user_token,
+            bot_token=bot_token,
+            provider=provider,
+            bundle=bundle,
+            provider_kwargs=provider_kwargs
+        )
 
     def iter_updates(self, initial, scheduled):
 
