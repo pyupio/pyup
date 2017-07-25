@@ -3,9 +3,12 @@
 History
 -------
 
+0.8.1 (2017-7-25)
+-----------------
+* Fixed a packaging error where not all template files were included.
+
 0.8.0 (2017-7-20)
 -----------------
-# Todo: finish docs and add link.
 * This release adds support for insecure packages and pull requests with attached changelogs.
 
 
