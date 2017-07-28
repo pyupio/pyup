@@ -9,3 +9,4 @@ recursive-exclude * __pycache__
 recursive-exclude * *.py[co]
 
 recursive-include templates pyup/templates docs *.rst conf.py Makefile make.bat
+recursive-include pyup *.md

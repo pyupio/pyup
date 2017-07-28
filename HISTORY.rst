@@ -3,6 +3,10 @@
 History
 -------
 
+0.8.1 (2017-7-28)
+-----------------
+* Fixed another packaging error.
+
 0.8.1 (2017-7-25)
 -----------------
 * Fixed a packaging error where not all template files were included.
