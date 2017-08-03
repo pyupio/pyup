@@ -47,12 +47,12 @@ class Update(dict):
 
     def get_commit_message(self, requirement):
         if requirement.is_pinned:
-            return self.config.COMMIT_UPDATE_MSG.format(
+            return self.config.commit_msg_update.format(
                 name=requirement.key,
                 old_version=requirement.version,
                 new_version=requirement.latest_version_within_specs
             )
-        return self.config.COMMIT_PIN_MSG.format(
+        return self.config.commit_msg_pin.format(
             name=requirement.key,
             old_version=requirement.version,
             new_version=requirement.latest_version_within_specs
