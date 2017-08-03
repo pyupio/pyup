@@ -22,6 +22,9 @@ SCHEDULE_REGEX = re.compile(
 
 class Config(object):
 
+    COMMIT_PIN_MSG = "Pin {name} to latest version {new_version}"
+    COMMIT_UPDATE_MSG = "Update {name} from {old_version} to {new_version}"
+
     UPDATE_ALL = "all"
     UPDATE_INSECURE = "insecure"
     # the docs had a typo at some point that incorrectly reffered to 'security'
