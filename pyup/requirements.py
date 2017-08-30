@@ -152,9 +152,9 @@ class RequirementFile(object):
                 extras=dep.extras,
                 file_type=file_type,
             )
+            req.index_server = dep.index_server
             if req.package:
                 req.hashes = dep.hashes
-                req.index_server = dep.index_server
                 self._requirements.append(req)
         self._other_files = result.resolved_files
 
