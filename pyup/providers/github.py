@@ -12,6 +12,7 @@ class Provider(object):
     def __init__(self, bundle, integration=False):
         self.bundle = bundle
         self.integration = integration
+        self.__api = None
 
     @classmethod
     def is_same_user(cls, this, that):
