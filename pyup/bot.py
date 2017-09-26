@@ -14,7 +14,6 @@ class Bot(object):
     def __init__(self, repo, user_token, bot_token=None,
                  provider=GithubProvider, bundle=RequirementsBundle, config=Config,
                  integration=False):
-        self.bot_token = bot_token
         self.req_bundle = bundle()
         self.provider = provider(self.req_bundle, integration)
         self.user_token = user_token
