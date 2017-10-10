@@ -76,7 +76,7 @@ from your profile settings (eg. https://gitlab.com/profile/personal_access_token
 then run pyup from the cli::
 
     # gitlab.com:
-    $ pyup --repo=username/repo --user-token=<YOUR_TOKEN>
+    $ pyup --provider gitlab --repo=username/repo --user-token=<YOUR_TOKEN>
 
     # other:
-    $ pyup --repo=username/repo --user-token=<YOUR_TOKEN>@https://your.gitlab/
+    $ pyup --provider gitlab --repo=username/repo --user-token=<YOUR_TOKEN>@https://your.gitlab/
