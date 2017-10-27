@@ -16,7 +16,7 @@ SCHEDULE_REGEX = re.compile(
     # or week/two weeks
     "|(week|two weeks))"
     # with an optional weekday
-    "( on (monday|tuesday|wednesday|thursday|friday|saturday|sunday))?"
+    "( on (Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday))?"
 )
 
 

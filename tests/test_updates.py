@@ -241,7 +241,7 @@ class ScheduledUpdateBaseTest(UpdateBaseTest):
     def setUp(self):
         super(ScheduledUpdateBaseTest, self).setUp()
         self.config.is_valid_schedule = True
-        self.config.schedule = "every day on monday"
+        self.config.schedule = "every day on Monday"
         self.update = ScheduledUpdate([], self.config)
 
 
@@ -253,13 +253,13 @@ class ScheduledUpdateTest(ScheduledUpdateBaseTest):
         self.config.schedule = "every day"
         self.assertEquals(
             self.update.get_title(),
-            "Scheduled daily dependency update on tuesday"
+            "Scheduled daily dependency update on Tuesday"
         )
 
     @patch("pyup.updates.datetime")
     def test_title_every_week(self, dt):
         dt.now.return_value = datetime(2016, 9, 16, 9, 21, 42, 702067)
-        self.config.schedule = "every week on wednesday"
+        self.config.schedule = "every week on Wednesday"
         self.assertEquals(
             self.update.get_title(),
             "Scheduled weekly dependency update for week 37"
@@ -268,7 +268,7 @@ class ScheduledUpdateTest(ScheduledUpdateBaseTest):
     @patch("pyup.updates.datetime")
     def test_title_every_two_weeks(self, dt):
         dt.now.return_value = datetime(2016, 9, 18, 9, 21, 42, 702067)
-        self.config.schedule = "every two weeks on sunday"
+        self.config.schedule = "every two weeks on Sunday"
         self.assertEquals(
             self.update.get_title(),
             "Scheduled biweekly dependency update for week 38"
