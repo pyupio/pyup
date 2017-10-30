@@ -136,7 +136,6 @@ class ConfigTestCase(TestCase):
                 "every week on sunday",
                 "every two weeks",
                 "every two weeks on monday",
-                "every two weeks on monday",
                 "every two weeks on tuesday",
                 "every two weeks on wednesday",
                 "every two weeks on thursday",
