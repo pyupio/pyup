@@ -146,7 +146,11 @@ class RequirementConfig(object):
 
         # set pin default
         if self.pin is None:
-            self.pin = True
+            # don't pin pipfiles by default
+            if self.path.endswith("Pipfile"):
+                self.pin = False
+            else:
+                self.pin = True
 
     def __repr__(self):
         return str(self.__dict__)

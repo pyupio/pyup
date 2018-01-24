@@ -31,6 +31,14 @@ class RequirementsBundle(list):
         super(RequirementsBundle, self).__init__(*args, **kwargs)
         self.pull_requests = []
 
+    def resolve_pipfiles(self):
+        for req_file in self:
+            if req_file.is_pipfile:
+                corresponding_path = req_file.get_pipfile_lock_path()
+                for _req_file in self:
+                    if _req_file.path == corresponding_path:
+                        req_file.corresponding_pipfile = _req_file
+
     def has_file_in_path(self, path):
         return path in [req_file.path for req_file in self]
 
@@ -81,6 +89,15 @@ class RequirementFile(object):
         self._requirements = None
         self._other_files = None
         self._is_valid = None
+        self.is_pipfile = False
+        self.is_pipfile_lock = False
+        self.corresponding_pipfile = None
+
+    def get_pipfile_lock_path(self):
+        return "{}.lock".format(self.path)
+
+    def get_pipfile_path(self):
+        return self.path.replace(".lock", "")
 
     def __str__(self):
         return "RequirementFile(path='{path}', sha='{sha}', content='{content}')".format(
@@ -123,12 +140,24 @@ class RequirementFile(object):
     def _parse_tox_ini(self):
         self.parse_dependencies(filetypes.tox_ini)
 
+    def _parse_pipfile(self):
+        self.parse_dependencies(filetypes.pipfile)
+        self.is_pipfile = True
+
+    def _parse_pipfile_lock(self):
+        self.parse_dependencies(filetypes.pipfile_lock)
+        self.is_pipfile_lock = True
+
     def _parse(self):
         self._requirements, self._other_files = [], []
         if self.path.endswith('.yml') or self.path.endswith(".yaml"):
             self._parse_conda_yml()
         elif self.path.endswith('.ini'):
             self._parse_tox_ini()
+        elif self.path.endswith("Pipfile"):
+            self._parse_pipfile()
+        elif self.path.endswith("Pipfile.lock"):
+            self._parse_pipfile_lock()
         else:
             self._parse_requirements_txt()
         self._is_valid = len(self._requirements) > 0 or len(self._other_files) > 0
@@ -153,6 +182,8 @@ class RequirementFile(object):
                 file_type=file_type,
             )
             req.index_server = dep.index_server
+            if self.is_pipfile:
+                req.pipfile = self.path
             if req.package:
                 req.hashes = dep.hashes
                 self._requirements.append(req)
@@ -184,6 +215,7 @@ class Requirement(object):
         self._fetched_package = False
         self._package = None
         self.file_type = file_type
+        self.pipfile = None
 
         self.hashCmp = (
             self.key,
@@ -388,8 +420,15 @@ class Requirement(object):
             updater_class = updater.ToxINIUpdater
         elif self.file_type == filetypes.conda_yml:
             updater_class = updater.CondaYMLUpdater
-        else:
+        elif self.file_type == filetypes.requirements_txt:
             updater_class = updater.RequirementsTXTUpdater
+        elif self.file_type == filetypes.pipfile:
+            updater_class = updater.PipfileUpdater
+        elif self.file_type == filetypes.pipfile_lock:
+            updater_class = updater.PipfileLockUpdater
+        else:
+            raise NotImplementedError
+
         dep = Dependency(
             name=self.name,
             specs=self.specs,

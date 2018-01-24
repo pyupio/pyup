@@ -487,6 +487,7 @@ class Bot(object):
                             self.add_requirement_file(path, sha)
         for req_file in self.config.requirements:
             self.add_requirement_file(req_file.path, sha=sha)
+        self.req_bundle.resolve_pipfiles()
 
     # if this function gets updated, the gist at https://gist.github.com/jayfk/c6509bbaf4429052ca3f
     # needs to be updated too
