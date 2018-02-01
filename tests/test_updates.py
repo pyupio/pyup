@@ -293,7 +293,7 @@ class ScheduledUpdateTest(ScheduledUpdateBaseTest):
         dt.now.return_value = datetime(2016, 12, 13, 9, 21, 42, 702067)
         self.assertEquals(
             self.update.get_branch(),
-            "scheduled-update-12-13-2016"
+            "scheduled-update-2016-12-13"
         )
 
     def test_get_body(self):
