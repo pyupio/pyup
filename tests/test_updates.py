@@ -91,12 +91,16 @@ class UpdateCreateUpdateKeyTest(UpdateBaseTest):
 
 
 class UpdateGetCommitMessageTest(UpdateBaseTest):
+    def setUp(self):
+        self.config = Config()
+        self.update = Update([], self.config)
+
     def test_unpinned_requirement(self):
         req = Mock()
         req.key = "django"
         req.is_pinned = False
         req.latest_version_within_specs = "1.10"
-        self.assertEqual(Update.get_commit_message(req), "Pin django to latest version 1.10")
+        self.assertEqual(self.update.get_commit_message(req), "Pin django to latest version 1.10")
 
     def test_pinned_requirement(self):
         req = Mock()
@@ -104,7 +108,30 @@ class UpdateGetCommitMessageTest(UpdateBaseTest):
         req.is_pinned = True
         req.latest_version_within_specs = "1.10"
         req.version = "1.0"
-        self.assertEqual(Update.get_commit_message(req), "Update django from 1.0 to 1.10")
+        self.assertEqual(self.update.get_commit_message(req), "Update django from 1.0 to 1.10")
+
+
+class UpdateGetCommitMessageTest(UpdateBaseTest):
+    def setUp(self):
+        self.config = Config()
+        self.config.commit_msg_pin = "{name} has been pinned to version {new_version}"
+        self.config.commit_msg_update = "{name} was version {old_version} and is now {new_version}"
+        self.update = Update([], self.config)
+
+    def test_unpinned_requirement(self):
+        req = Mock()
+        req.key = "django"
+        req.is_pinned = False
+        req.latest_version_within_specs = "1.10"
+        self.assertEqual(self.update.get_commit_message(req), "django has been pinned to version 1.10")
+
+    def test_pinned_requirement(self):
+        req = Mock()
+        req.key = "django"
+        req.is_pinned = True
+        req.latest_version_within_specs = "1.10"
+        req.version = "1.0"
+        self.assertEqual(self.update.get_commit_message(req), "django was version 1.0 and is now 1.10")
 
 
 class UpdateInitTestCase(UpdateBaseTest):

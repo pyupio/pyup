@@ -33,6 +33,8 @@ class Config(object):
         self.close_prs = True
         self.branch = "master"
         self.branch_prefix = "pyup-"
+        self.commit_msg_pin = "Pin {name} to latest version {new_version}"
+        self.commit_msg_update = "Update {name} from {old_version} to {new_version}"
         self.pr_prefix = ""
         self.pin = True
         self.search = True

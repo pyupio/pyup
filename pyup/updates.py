@@ -45,16 +45,17 @@ class Update(dict):
         else:
             self[key] = [update]
 
-    @classmethod
-    def get_commit_message(cls, requirement):
+    def get_commit_message(self, requirement):
         if requirement.is_pinned:
-            return "Update {} from {} to {}".format(
-                requirement.key, requirement.version,
-                requirement.latest_version_within_specs
+            return self.config.commit_msg_update.format(
+                name=requirement.key,
+                old_version=requirement.version,
+                new_version=requirement.latest_version_within_specs
             )
-        return "Pin {} to latest version {}".format(
-            requirement.key,
-            requirement.latest_version_within_specs
+        return self.config.commit_msg_pin.format(
+            name=requirement.key,
+            old_version=requirement.version,
+            new_version=requirement.latest_version_within_specs
         )
 
     def should_update(self, requirement, requirement_file):
