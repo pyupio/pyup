@@ -138,7 +138,7 @@ class ScheduledUpdate(BundledUpdate):
 
     def get_branch(self):
         return "scheduled-update-{dt}".format(
-            dt=datetime.now().strftime("%m-%d-%Y")
+            dt=datetime.now().strftime("%Y-%m-%d")
         )
 
 
