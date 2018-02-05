@@ -170,7 +170,10 @@ class RequirementFile(object):
             path=self.path,
             sha=self.sha,
             file_type=file_type,
-            marker=(("pyup: ignore file",), ("pyup: ignore",))
+            marker=(
+                ("pyup: ignore file", "pyup:ignore file"),  # file marker
+                ("pyup: ignore", "pyup:ignore"),  # line marker
+            )
         )
         for dep in result.dependencies:
             req = klass(

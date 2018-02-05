@@ -508,6 +508,9 @@ class RequirementTestCase(TestCase):
             sorted([("<", "1.7.8"), (">", "1.7.2")], key=lambda r: r[1])
         )
 
+        r = Requirement.parse("Django==1.7.6 # pyup:< 1.7.8", 0)
+        self.assertEqual(r.filter, SpecifierSet("<1.7.8"))
+
     def test_tabbed(self):
         req = Requirement.parse("Django==1.5\t\t#some-comment", 0)
         self.assertEqual(req.is_pinned, True)
@@ -1050,6 +1053,18 @@ baz"""
         content = """foo
 bar # pyup: ignore
 baz"""
+        r = RequirementFile("r.txt", content=content)
+        self.assertEqual(len(r.requirements), 2)
+        self.assertEqual(
+            r.requirements, [
+                Requirement.parse("foo", 0),
+                Requirement.parse("baz", 2)
+            ]
+        )
+
+        content = """foo
+        bar # pyup:ignore
+        baz"""
         r = RequirementFile("r.txt", content=content)
         self.assertEqual(len(r.requirements), 2)
         self.assertEqual(
