@@ -270,13 +270,44 @@ class Requirement(object):
     def is_loose(self):
         return len(self.specs._specs) == 0
 
+    @staticmethod
+    def convert_semver(version):
+        semver = {'major': 0, "minor": 0, "patch": 0}
+        version = version.split(".")
+        # don't be overly clever here. repitition makes it more readable and works exactly how
+        # it is supposed to
+        try:
+            semver['major'] = int(version[0])
+            semver['minor'] = int(version[1])
+            semver['patch'] = int(version[2])
+        except (IndexError, ValueError):
+            pass
+        return semver
+
+    @property
+    def can_update_semver(self):
+        # return early if there's no update filter set
+        if "pyup: update" not in self.line:
+            return True
+        update = self.line.split("pyup: update")[1].strip().split("#")[0]
+        current_version = Requirement.convert_semver(next(iter(self.specs._specs))._spec[1])
+        next_version = Requirement.convert_semver(self.latest_version)
+        if update == "major":
+            if current_version['major'] < next_version['major']:
+                return True
+        elif update == 'minor':
+            if current_version['major'] < next_version['major'] or current_version['minor'] < next_version['minor']:
+                return True
+        return False
+
     @property
     def filter(self):
         rqfilter = False
         if "rq.filter:" in self.line:
             rqfilter = self.line.split("rq.filter:")[1].strip().split("#")[0]
         elif "pyup:" in self.line:
-            rqfilter = self.line.split("pyup:")[1].strip().split("#")[0]
+            if "pyup: update" not in self.line:
+               rqfilter = self.line.split("pyup:")[1].strip().split("#")[0]
         if rqfilter:
             try:
                 rqfilter, = parse_requirements("filter " + rqfilter)
@@ -346,8 +377,8 @@ class Requirement(object):
     @property
     def needs_update(self):
         if self.is_pinned or self.is_ranged or self.is_compatible:
-            return self.is_outdated
-        return True
+            return self.can_update_semver and self.is_outdated
+        return self.can_update_semver
 
     @property
     def is_insecure(self):

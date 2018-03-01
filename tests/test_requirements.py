@@ -511,6 +511,62 @@ class RequirementTestCase(TestCase):
         r = Requirement.parse("Django==1.7.6 # pyup:< 1.7.8", 0)
         self.assertEqual(r.filter, SpecifierSet("<1.7.8"))
 
+    @patch("pyup.requirements.Requirement.package", return_value="pkg")
+    def test_update_filter(self, _):
+        latest_fn = 'pyup.requirements.Requirement.latest_version'
+
+        with patch(latest_fn, new_callable=PropertyMock, return_value='1.8.7'):
+            r = Requirement.parse("Django==1.7.6", 0)
+            self.assertTrue(r.needs_update)
+            self.assertTrue(r.can_update_semver)
+
+            r = Requirement.parse("Django==1.7.6 # pyup: update major", 0)
+            self.assertFalse(r.can_update_semver)
+            self.assertFalse(r.needs_update)
+
+            r = Requirement.parse("Django==0.2.6 # pyup: update major", 0)
+            self.assertTrue(r.can_update_semver)
+            self.assertTrue(r.needs_update)
+
+        with patch(latest_fn, new_callable=PropertyMock, return_value='1.8.7'):
+            r = Requirement.parse("Django==1.7.6", 0)
+            self.assertTrue(r.needs_update)
+            self.assertTrue(r.can_update_semver)
+
+            r = Requirement.parse("Django==1.7.6 # pyup: update minor", 0)
+            self.assertTrue(r.can_update_semver)
+            self.assertTrue(r.needs_update)
+
+            r = Requirement.parse("Django==1.8.6 # pyup: update minor", 0)
+            self.assertFalse(r.can_update_semver)
+            self.assertFalse(r.needs_update)
+
+            r = Requirement.parse("Django==1.9.6 # pyup: update minor", 0)
+            self.assertFalse(r.can_update_semver)
+            self.assertFalse(r.needs_update)
+
+        with patch(latest_fn, new_callable=PropertyMock, return_value='1.2.4'):
+            r = Requirement.parse("Django==1.2.3", 0)
+            self.assertTrue(r.needs_update)
+            self.assertTrue(r.can_update_semver)
+
+            r = Requirement.parse("Django==1.2.3 # pyup: update minor", 0)
+            self.assertFalse(r.can_update_semver)
+            self.assertFalse(r.needs_update)
+
+            r = Requirement.parse("Django==1.2.2 # pyup: update minor", 0)
+            self.assertFalse(r.can_update_semver)
+            self.assertFalse(r.needs_update)
+
+            r = Requirement.parse("Django==1.2 # pyup: update minor", 0)
+            self.assertFalse(r.can_update_semver)
+            self.assertFalse(r.needs_update)
+
+    def test_convert_semver(self):
+        self.assertEquals({"major": 1, "minor": 2, "patch": 3}, Requirement.convert_semver("1.2.3"))
+        self.assertEquals({"major": 1, "minor": 2, "patch": 0}, Requirement.convert_semver("1.2"))
+        self.assertEquals({"major": 1, "minor": 0, "patch": 0}, Requirement.convert_semver("1"))
+
     def test_tabbed(self):
         req = Requirement.parse("Django==1.5\t\t#some-comment", 0)
         self.assertEqual(req.is_pinned, True)
