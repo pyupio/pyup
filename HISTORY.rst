@@ -3,6 +3,16 @@
 History
 -------
 
+0.9.0 (2018-3-01)
+-----------------
+* Added a new update filter that allows to restrict patch/minor updates
+* Added a new filter extension that allows to specify a date on which the filter expires
+* Dropped support for Python 2.6 (if this ever worked)
+* Added experimental support for Pipfiles and Pipfiles.lock
+* The bot now correctly sets the date in monthly pull requests
+* Whitespaces in filter comments should no longer be significant
+* Fixed a minor bug that occured with private packages
+
 0.8.1 (2017-7-28)
 -----------------
 * Fixed another packaging error.

@@ -37,7 +37,7 @@ test_requirements = [
 
 setup(
     name='pyupio',
-    version='0.8.2',
+    version='0.9.0',
     description="A tool to update all your projects requirements",
     long_description=readme + '\n\n' + history,
     author="Jannis Gebauer",
