@@ -14,7 +14,7 @@ from .pullrequest import PullRequest
 import logging
 from .package import Package, fetch_package
 from pyup import settings
-
+from datetime import datetime
 from dparse import parse, parser, updater, filetypes
 from dparse.dependencies import Dependency
 from dparse.parser import setuptools_parse_requirements_backport as parse_requirements
@@ -307,7 +307,17 @@ class Requirement(object):
             rqfilter = self.line.split("rq.filter:")[1].strip().split("#")[0]
         elif "pyup:" in self.line:
             if "pyup: update" not in self.line:
-               rqfilter = self.line.split("pyup:")[1].strip().split("#")[0]
+                rqfilter = self.line.split("pyup:")[1].strip().split("#")[0]
+                # unset the filter once the date set in 'until' is reached
+                if "until" in rqfilter:
+                    rqfilter, until = [l.strip() for l in rqfilter.split("until")]
+                    try:
+                        until = datetime.strptime(until, "%Y-%m-%d")
+                        if until < datetime.now():
+                            rqfilter = False
+                    except ValueError:
+                        # wrong date formatting
+                        pass
         if rqfilter:
             try:
                 rqfilter, = parse_requirements("filter " + rqfilter)

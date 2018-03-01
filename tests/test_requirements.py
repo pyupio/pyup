@@ -511,6 +511,22 @@ class RequirementTestCase(TestCase):
         r = Requirement.parse("Django==1.7.6 # pyup:< 1.7.8", 0)
         self.assertEqual(r.filter, SpecifierSet("<1.7.8"))
 
+    def test_until_filter(self):
+        from packaging.specifiers import SpecifierSet
+        from datetime import datetime, timedelta
+        tommorow = (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d")
+        yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+
+        r = Requirement.parse("Django==1.7.6 # pyup: < 1.7.8 until {}".format(yesterday), 0)
+        self.assertEqual(r.filter, False)
+
+        r = Requirement.parse("Django==1.7.6 # pyup: < 1.7.8 until {}".format(tommorow), 0)
+        self.assertEqual(r.filter, SpecifierSet("<1.7.8"))
+
+        r = Requirement.parse("Django==1.7.6 # pyup: < 1.7.8 until 348-34-1234", 0)
+        self.assertEqual(r.filter, SpecifierSet("<1.7.8"))
+
+
     @patch("pyup.requirements.Requirement.package", return_value="pkg")
     def test_update_filter(self, _):
         latest_fn = 'pyup.requirements.Requirement.latest_version'
