@@ -159,7 +159,7 @@ class InitialUpdateTestBody(UpdateBaseTest):
 
 class SequentialUpdateTestBody(UpdateBaseTest):
     def test_body(self):
-        self.assertTrue("is not pinned" in SequentialUpdate.get_body([]))
+        self.assertTrue("This PR pins" in SequentialUpdate.get_body([]))
 
 
 class SequentialUpdateTestTitle(UpdateBaseTest):
