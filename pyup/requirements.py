@@ -296,7 +296,8 @@ class Requirement(object):
             if current_version['major'] < next_version['major']:
                 return True
         elif update == 'minor':
-            if current_version['major'] < next_version['major'] or current_version['minor'] < next_version['minor']:
+            if current_version['major'] < next_version['major'] \
+                    or current_version['minor'] < next_version['minor']:
                 return True
         return False
 
