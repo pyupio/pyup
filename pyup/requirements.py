@@ -91,6 +91,7 @@ class RequirementFile(object):
         self._is_valid = None
         self.is_pipfile = False
         self.is_pipfile_lock = False
+        self.is_setup_cfg = False
         self.corresponding_pipfile = None
 
     def get_pipfile_lock_path(self):
@@ -148,6 +149,10 @@ class RequirementFile(object):
         self.parse_dependencies(filetypes.pipfile_lock)
         self.is_pipfile_lock = True
 
+    def _parse_setup_cfg(self):
+        self.parse_dependencies(filetypes.setup_cfg)
+        self.is_setup_cfg = True
+
     def _parse(self):
         self._requirements, self._other_files = [], []
         if self.path.endswith('.yml') or self.path.endswith(".yaml"):
@@ -158,6 +163,8 @@ class RequirementFile(object):
             self._parse_pipfile()
         elif self.path.endswith("Pipfile.lock"):
             self._parse_pipfile_lock()
+        elif self.path.endswith('setup.cfg'):
+            self._parse_setup_cfg()
         else:
             self._parse_requirements_txt()
         self._is_valid = len(self._requirements) > 0 or len(self._other_files) > 0
@@ -471,6 +478,8 @@ class Requirement(object):
             updater_class = updater.PipfileUpdater
         elif self.file_type == filetypes.pipfile_lock:
             updater_class = updater.PipfileLockUpdater
+        elif self.file_type == filetypes.setup_cfg:
+            updater_class = updater.SetupCFGUpdater
         else:
             raise NotImplementedError
 
