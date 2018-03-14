@@ -485,6 +485,8 @@ class Bot(object):
                     if "requirements" in path:
                         if path.endswith("txt") or path.endswith("pip"):
                             self.add_requirement_file(path, sha)
+                    if "setup.cfg" in path:
+                        self.add_requirement_file(path, sha)
         for req_file in self.config.requirements:
             self.add_requirement_file(req_file.path, sha=sha)
         self.req_bundle.resolve_pipfiles()
