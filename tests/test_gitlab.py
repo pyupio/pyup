@@ -97,7 +97,7 @@ class ProviderTest(TestCase):
     def test_create_branch(self):
         self.provider.create_branch(self.repo, "base branch", "new branch")
         self.repo.branches.create.assert_called_with(
-            {"branch_name": "new branch", "ref": "base branch"})
+            {"branch": "new branch", "ref": "base branch"})
 
     def test_is_empty_branch(self):
         with self.assertRaises(AssertionError):
@@ -138,7 +138,7 @@ class ProviderTest(TestCase):
         self.assertEquals(self.repo.files.get.call_count, 1)
         self.assertEquals(file.content, b64encode(b"content").decode())
         self.assertEquals(file.encoding, "base64")
-        file.save.assert_called_with(branch_name="branch", commit_message="commit")
+        file.save.assert_called_with(branch="branch", commit_message="commit")
 
     def test_create_and_commit_file(self):
         repo = Mock()
@@ -159,7 +159,7 @@ class ProviderTest(TestCase):
         )
         repo.files.create.assert_called_once_with({
             'file_path': path,
-            'branch_name': branch,
+            'branch': branch,
             'content': content,
             'commit_message': commit_message
         })

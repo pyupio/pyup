@@ -412,7 +412,7 @@ class Bot(object):
                                                                    "content": content}
                 else:
                     logger.error("Empty commit at {repo}, unable to update {title}.".format(
-                        repo=self.user_repo.full_name, title=title)
+                        repo=self.user_repo.path_with_namespace, title=title)
                     )
 
             if updated_files:

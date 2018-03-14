@@ -80,7 +80,7 @@ class Provider(object):
         # TODO: committer
         return repo.files.create({
             'file_path': path,
-            'branch_name': branch,
+            'branch': branch,
             'content': content,
             'commit_message': commit_message
         })
@@ -96,7 +96,7 @@ class Provider(object):
 
     def create_branch(self, repo, base_branch, new_branch):
         try:
-            repo.branches.create({"branch_name": new_branch,
+            repo.branches.create({"branch": new_branch,
                                   "ref": base_branch})
         except GitlabCreateError as e:
             if e.error_message == 'Branch already exists':
@@ -142,7 +142,7 @@ class Provider(object):
         f.content = b64encode(content.encode()).decode()
         f.encoding = 'base64'
         # TODO: committer
-        f.save(branch_name=branch, commit_message=commit_message)
+        f.save(branch=branch, commit_message=commit_message)
 
     def close_pull_request(self, bot_repo, user_repo, mr, comment, prefix):
         mr.state_event = 'close'
