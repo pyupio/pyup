@@ -75,6 +75,7 @@ class ProviderTest(TestCase):
         self.repo.repository_tree.return_value = mocked_items
         items = list(self.provider.iter_git_tree(self.repo, "some branch"))
         self.repo.repository_tree.assert_called_with(ref="some branch",
+                                                     all=True,
                                                      recursive=True)
         self.assertEqual(items, [("type", "path")])
 

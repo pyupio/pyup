@@ -59,7 +59,7 @@ class Provider(object):
         return True
 
     def iter_git_tree(self, repo, branch):
-        for item in repo.repository_tree(ref=branch, recursive=True):
+        for item in repo.repository_tree(ref=branch, recursive=True, all=True):
             yield item['type'], item['path']
 
     def get_file(self, repo, path, branch):
