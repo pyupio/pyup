@@ -1,4 +1,3 @@
-from yaml import YAMLError
 class BranchExistsError(Exception):  # pragma: no cover
     pass
 

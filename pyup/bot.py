@@ -86,7 +86,8 @@ class Bot(object):
                              "```{error}\n```\n\n"
                              "You can validate it with this "
                              "[online YAML parser](http://yaml-online-parser.appspot.com/) or "
-                             "by taking a look at the [Documentation](https://pyup.io/docs/bot/config/).".format(
+                             "by taking a look at the "
+                             "[Documentation](https://pyup.io/docs/bot/config/).".format(
                                 error=err.error)
                     )
                 raise err
