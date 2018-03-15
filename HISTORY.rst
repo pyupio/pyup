@@ -5,13 +5,10 @@ History
 
 0.10.0 (2018-3-15)
 -----------------
-* Added a new update filter that allows to restrict patch/minor updates
-* Added a new filter extension that allows to specify a date on which the filter expires
-* Dropped support for Python 2.6 (if this ever worked)
-* Added experimental support for Pipfiles and Pipfiles.lock
-* The bot now correctly sets the date in monthly pull requests
-* Whitespaces in filter comments should no longer be significant
-* Fixed a minor bug that occured with private packages
+* The bot now creates issues if there are any problems with the config file
+* Added support for setup.cfg files (thanks @kxepal)
+* Switched to the GitLab v4 API (thanks @kxepal)
+* Fixed a template error (thanks @kxepal)
 
 0.9.0 (2018-3-01)
 -----------------
