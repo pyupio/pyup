@@ -5,7 +5,7 @@ from pyup.bot import Bot
 from .test_pullrequest import pullrequest_factory
 from pyup.updates import RequirementUpdate, InitialUpdate
 from pyup.requirements import RequirementFile
-from pyup.errors import NoPermissionError
+from pyup.errors import NoPermissionError, ConfigError
 from pyup.config import RequirementConfig
 from mock import Mock, patch
 
@@ -83,7 +83,8 @@ class BotRepoConfigTest(TestCase):
     def test_yaml_error(self):
         bot = bot_factory()
         bot.provider.get_file.return_value = "foo: bar: baz: fii:", None
-        self.assertEqual(bot.get_repo_config(bot.user_repo), None)
+        with self.assertRaises(ConfigError):
+            self.assertEqual(bot.get_repo_config(bot.user_repo), None)
 
     def test_fetches_file_error(self):
         bot = bot_factory()

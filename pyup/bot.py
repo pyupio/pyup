@@ -4,7 +4,7 @@ import logging
 import yaml
 from .requirements import RequirementsBundle
 from .providers.github import Provider as GithubProvider
-from .errors import NoPermissionError, BranchExistsError
+from .errors import NoPermissionError, BranchExistsError, ConfigError
 from .config import Config
 
 logger = logging.getLogger(__name__)
@@ -71,12 +71,25 @@ class Bot(object):
 
     def get_repo_config(self, repo, branch=None):
         branch = self.config.branch if branch is None else branch
-        try:
-            content, _ = self.provider.get_file(repo, "/.pyup.yml", branch)
-            if content is not None:
+        content, _ = self.provider.get_file(repo, "/.pyup.yml", branch)
+        if content is not None:
+            try:
                 return yaml.safe_load(content)
-        except yaml.YAMLError:
-            logger.warning("Unable to parse config file /.pyup.yml", exc_info=True)
+            except yaml.YAMLError as e:
+                err = ConfigError(content=content, error=e.__str__())
+                issue_title = "Invalid .pyup.yml detected"
+                # check that there's not an open issue already
+                if issue_title not in [pr.title for pr in self.pull_requests if pr.is_open]:
+                    self.create_issue(
+                        title=issue_title,
+                        body="The bot encountered an error in your `.pyup.yml` config file:\n\n"
+                             "```{error}\n```\n\n"
+                             "You can validate it with this "
+                             "[online YAML parser](http://yaml-online-parser.appspot.com/) or "
+                             "by taking a look at the [Documentation](https://pyup.io/docs/bot/config/).".format(
+                                error=err.error)
+                    )
+                raise err
         return None
 
     def configure(self, **kwargs):
