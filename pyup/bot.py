@@ -69,7 +69,7 @@ class Bot(object):
             self._fetched_prs = True
         return self.req_bundle.pull_requests
 
-    def get_repo_config(self, repo, branch=None):
+    def get_repo_config(self, repo, branch=None, create_error_issue=True):
         branch = self.config.branch if branch is None else branch
         content, _ = self.provider.get_file(repo, "/.pyup.yml", branch)
         if content is not None:
@@ -77,23 +77,24 @@ class Bot(object):
                 return yaml.safe_load(content)
             except yaml.YAMLError as e:
                 err = ConfigError(content=content, error=e.__str__())
-                issue_title = "Invalid .pyup.yml detected"
-                # check that there's not an open issue already
-                if issue_title not in [pr.title for pr in self.pull_requests if pr.is_open]:
-                    self.create_issue(
-                        title=issue_title,
-                        body="The bot encountered an error in your `.pyup.yml` config file:\n\n"
-                             "```{error}\n```\n\n"
-                             "You can validate it with this "
-                             "[online YAML parser](http://yaml-online-parser.appspot.com/) or "
-                             "by taking a look at the "
-                             "[Documentation](https://pyup.io/docs/bot/config/).".format(
-                                error=err.error)
-                    )
+                if create_error_issue:
+                    issue_title = "Invalid .pyup.yml detected"
+                    # check that there's not an open issue already
+                    if issue_title not in [pr.title for pr in self.pull_requests if pr.is_open]:
+                        self.create_issue(
+                            title=issue_title,
+                            body="The bot encountered an error in your `.pyup.yml` config file:\n\n"
+                                 "```{error}\n```\n\n"
+                                 "You can validate it with this "
+                                 "[online YAML parser](http://yaml-online-parser.appspot.com/) or "
+                                 "by taking a look at the "
+                                 "[Documentation](https://pyup.io/docs/bot/config/).".format(
+                                    error=err.error)
+                        )
                 raise err
         return None
 
-    def configure(self, **kwargs):
+    def configure(self, create_error_issue=True, **kwargs):
         if kwargs.get("write_config", False):
             self.write_config = kwargs.get("write_config")
         # if the branch is not set, get the default branch
@@ -101,7 +102,10 @@ class Bot(object):
             self.config.branch = self.provider.get_default_branch(repo=self.user_repo)
         # set the config for this update run
         self.config.update_config(kwargs)
-        repo_config = self.get_repo_config(repo=self.user_repo)
+        repo_config = self.get_repo_config(
+            repo=self.user_repo,
+            create_error_issue=create_error_issue
+        )
         if repo_config:
             self.config.update_config(repo_config)
         if self.write_config:
