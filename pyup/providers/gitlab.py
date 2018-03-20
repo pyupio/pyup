@@ -158,16 +158,6 @@ class Provider(object):
                 logger.warning("PR body exceeds maximum length of 65536 chars, reducing")
                 body = body[:65536 - 1]
 
-            request = {
-                'source_branch': new_branch,
-                'target_branch': base_branch,
-                'title': title,
-                'description': body,
-            }
-            if pr_label is not None:
-                request['pr_label'] = pr_label
-            if assignees is not None:
-                request['assignee_id'] = assignees
             mr = repo.mergerequests.create({
                 'source_branch': new_branch,
                 'target_branch': base_branch,
