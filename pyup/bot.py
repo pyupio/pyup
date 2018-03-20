@@ -456,7 +456,7 @@ class Bot(object):
         # repos because the bot has to be a collaborator. We try to submit the PR before checking
         # the permissions because that saves us API calls in most cases
         config = dict(title=title,body=body, new_branch=new_branch,
-                      base_branch=self.config.branch, pr_label=self.config.label_prs, assignees=self.config.assignees)
+                      config=self.config)
         if self.bot_token:
             try:
                 return self.provider.create_pull_request(repo=self.bot_repo, **config)

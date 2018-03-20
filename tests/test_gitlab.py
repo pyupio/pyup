@@ -4,6 +4,7 @@ from unittest import TestCase
 from unittest import skip
 from pyup.providers.gitlab import Provider
 from pyup.requirements import RequirementsBundle
+from pyup.config import Config
 from pyup import errors
 from mock import Mock, patch, PropertyMock
 from base64 import b64encode
@@ -175,20 +176,51 @@ class ProviderTest(TestCase):
         self.provider.close_pull_request(self.repo, self.repo, mr, "comment", prefix="pyup-")
         self.assertEquals(self.repo.branches.get().delete.call_count, 1)
 
+    def test_merge_pull_request(self):
+        mr = Mock()
+        mr.merge.return_value = True
+        config = Config()
+        self.provider._merge_merge_request(mr, config)
+        mr.merge.assert_called_once_with(merge_when_pipeline_succeeds=True,
+                                         should_remove_source_branch=False)
+
+    def test_merge_pull_request_with_remove(self):
+        mr = Mock()
+        mr.merge.return_value = True
+        config = Config()
+        config.update_config({'gitlab': {'should_remove_source_branch': True}})
+        self.provider._merge_merge_request(mr, config)
+        mr.merge.assert_called_once_with(merge_when_pipeline_succeeds=True,
+                                         should_remove_source_branch=True)
 
     def test_create_pull_request_with_exceeding_body(self):
         body = ''.join(["a" for i in range(0, 65536 + 1)])
-        self.provider.create_pull_request(self.repo, "title", body, "master", "new", False, [])
+        self.provider.create_pull_request(self.repo, "title", body, "new", Config())
         self.assertEquals(self.provider.bundle.get_pull_request_class.call_count, 1)
         self.assertEquals(self.provider.bundle.get_pull_request_class().call_count, 1)
 
+    @patch("pyup.providers.gitlab.Provider._merge_merge_request")
+    def test_create_pull_request_merge_when_pipeline_succeeds(self, merge_mock):
+        config = Config()
+        self.provider.create_pull_request(self.repo, "title", "body", "new", config)
+        self.assertEqual(merge_mock.call_count, 0)
+
+        config.update_config({'gitlab': {'merge_when_pipeline_succeeds': True}})
+        self.provider.create_pull_request(self.repo, "title", "body", "new", config)
+        self.assertEqual(merge_mock.call_count, 1)
+
     def test_create_pull_request(self):
-        self.provider.create_pull_request(self.repo, "title", "body", "master", "new", False, [])
+        self.provider.create_pull_request(self.repo, "title", "body", "new", Config())
         self.assertEquals(self.provider.bundle.get_pull_request_class.call_count, 1)
         self.assertEquals(self.provider.bundle.get_pull_request_class().call_count, 1)
 
     def test_create_pull_request_with_label(self):
-        self.provider.create_pull_request(self.repo, "title", "body", "master", "new", "some-label", [])
+        update = {
+            "label_prs": "some-label"
+        }
+        config = Config()
+        config.update_config(update)
+        self.provider.create_pull_request(self.repo, "title", "body", "new", config)
         self.assertEquals(self.provider.bundle.get_pull_request_class.call_count, 1)
         self.assertEquals(self.provider.bundle.get_pull_request_class().call_count, 1)
 
