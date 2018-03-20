@@ -40,6 +40,7 @@ class Config(object):
         self.label_prs = False
         self.schedule = ""
         self.assignees = []
+        self.gitlab = GitlabConfig()
         self.update = Config.UPDATE_ALL
         self.update_hashes = True
 
@@ -73,6 +74,8 @@ class Config(object):
                     # to make things consistent
                     if isinstance(value, basestring):
                         value = [value, ]
+                elif key == 'gitlab':
+                    value = GitlabConfig(**value)
                 elif key == 'pr_prefix':
                     # make sure that pr prefixes don't contain a PIPE
                     if "|" in value:
@@ -151,6 +154,16 @@ class RequirementConfig(object):
                 self.pin = False
             else:
                 self.pin = True
+
+    def __repr__(self):
+        return str(self.__dict__)
+
+
+class GitlabConfig(object):
+
+    def __init__(self, should_remove_source_branch=False, merge_when_pipeline_succeeds=False):
+        self.should_remove_source_branch = should_remove_source_branch
+        self.merge_when_pipeline_succeeds = merge_when_pipeline_succeeds
 
     def __repr__(self):
         return str(self.__dict__)
