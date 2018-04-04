@@ -27,6 +27,8 @@ About
 
 This repo contains the bot that is running at pyup.io. You can install it locally and run the bot through the command line interface.
 
+Documentation: https://pyup.io/docs/
+
 Installation
 ------------
 
