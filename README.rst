@@ -7,9 +7,6 @@
      :target: https://pyup.io/repos/github/pyupio/pyup/
      :alt: Updates
 
-.. image:: https://img.shields.io/pypi/v/pyupio.svg
-        :target: https://pypi.python.org/pypi/pyupio
-
 .. image:: https://travis-ci.org/pyupio/pyup.svg?branch=master
         :target: https://travis-ci.org/pyupio/pyup
 
