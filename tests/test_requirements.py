@@ -835,7 +835,7 @@ class RequirementTestCase(TestCase):
     @requests_mock.mock()
     def test_package_found(self, requests):
         with open(os.path.dirname(os.path.realpath(__file__)) + "/data/django.json") as f:
-            requests.get("https://pypi.python.org/pypi/Django/json", text=f.read())
+            requests.get("https://pypi.org/pypi/Django/json", text=f.read())
         r = Requirement.parse("Django==1.9rc1", 0)
         self.assertEqual(r._fetched_package, False)
         self.assertEqual(r._package, None)
@@ -847,7 +847,7 @@ class RequirementTestCase(TestCase):
 
     @requests_mock.mock()
     def test_package_not_found(self, requests):
-        requests.get("https://pypi.python.org/pypi/Fango/json", text="404", status_code=404)
+        requests.get("https://pypi.org/pypi/Fango/json", text="404", status_code=404)
         r = Requirement.parse("Fango", 0)
         self.assertEqual(r._fetched_package, False)
         self.assertEqual(r._package, None)
@@ -908,7 +908,7 @@ class RequirementTestCase(TestCase):
     @requests_mock.mock()
     def test_needs_update(self, requests):
         with open(os.path.dirname(os.path.realpath(__file__)) + "/data/django.json") as f:
-            requests.get("https://pypi.python.org/pypi/Django/json", text=f.read())
+            requests.get("https://pypi.org/pypi/Django/json", text=f.read())
 
             # is pinned and on latest
             r = Requirement.parse("Django==1.9rc1", 0)

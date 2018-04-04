@@ -1,7 +1,7 @@
 {% if updates %}
 {% for u in updates %}
 {% with requirement=u.requirement %}
-### Update [{{ requirement.full_name }}](https://pypi.python.org/pypi/{{ requirement.name }}) from **{{ requirement.version }}** to **{{ requirement.latest_version_within_specs }}**.
+### Update [{{ requirement.full_name }}](https://pypi.org/project/{{ requirement.name }}) from **{{ requirement.version }}** to **{{ requirement.latest_version_within_specs }}**.
 {% if requirement.changelog %}
 {% with changelog=requirement.changelog %}{% include "_changelog.md" %} {% endwith %}
 {% endif %}
