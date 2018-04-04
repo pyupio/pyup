@@ -18,9 +18,6 @@ from dparse import parse, parser, updater, filetypes
 from dparse.dependencies import Dependency
 from dparse.parser import setuptools_parse_requirements_backport as parse_requirements
 
-PYTHON_VERSIONS = [
-    "2.7", "3.0", "3.1", "3.2", "3.3", "3.4", "3.5", "3.6"
-]
 logger = logging.getLogger(__name__)
 
 
