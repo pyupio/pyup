@@ -18,16 +18,14 @@
 .. image:: https://codecov.io/github/pyupio/pyup/coverage.svg?branch=master
         :target: https://codecov.io/github/pyupio/pyup?branch=master
 
-A tool to update all your project's requirement files with on GitHub.
+A tool that updates all your project's Python dependency files through Pull Requests on GitHub/GitLab.
 
 .. image:: https://github.com/pyupio/pyup/blob/master/demo.gif
 
 About
 -----
 
-This repo contains the bot that is running at pyup.io. The online
-service comes with a user interface to manage all your project dependencies at a single place and a
-lot of additional features.
+This repo contains the bot that is running at pyup.io. You can install it locally and run the bot through the command line interface.
 
 Installation
 ------------
