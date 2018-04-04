@@ -172,7 +172,7 @@ class Provider(object):
             })
 
             if config.gitlab.merge_when_pipeline_succeeds:
-                self._merge_merge_request(mr)
+                self._merge_merge_request(mr, config)
 
             return self.bundle.get_pull_request_class()(
                 state=mr.state,

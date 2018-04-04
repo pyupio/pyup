@@ -6,7 +6,7 @@ from pyup.providers.gitlab import Provider
 from pyup.requirements import RequirementsBundle
 from pyup.config import Config
 from pyup import errors
-from mock import Mock, patch, PropertyMock
+from mock import Mock, patch, PropertyMock, ANY
 from base64 import b64encode
 
 from gitlab.exceptions import GitlabGetError
@@ -208,6 +208,7 @@ class ProviderTest(TestCase):
         config.update_config({'gitlab': {'merge_when_pipeline_succeeds': True}})
         self.provider.create_pull_request(self.repo, "title", "body", "master", "new", False, [], config)
         self.assertEqual(merge_mock.call_count, 1)
+        merge_mock.assert_called_once_with(ANY, config)
 
     def test_create_pull_request(self):
         self.provider.create_pull_request(self.repo, "title", "body", "master", "new", False, [], Config())
