@@ -195,32 +195,27 @@ class ProviderTest(TestCase):
 
     def test_create_pull_request_with_exceeding_body(self):
         body = ''.join(["a" for i in range(0, 65536 + 1)])
-        self.provider.create_pull_request(self.repo, "title", body, "new", Config())
+        self.provider.create_pull_request(self.repo, "title", body, "master", "new", False, [], Config())
         self.assertEquals(self.provider.bundle.get_pull_request_class.call_count, 1)
         self.assertEquals(self.provider.bundle.get_pull_request_class().call_count, 1)
 
     @patch("pyup.providers.gitlab.Provider._merge_merge_request")
     def test_create_pull_request_merge_when_pipeline_succeeds(self, merge_mock):
         config = Config()
-        self.provider.create_pull_request(self.repo, "title", "body", "new", config)
+        self.provider.create_pull_request(self.repo, "title", "body", "master", "new", False, [], config)
         self.assertEqual(merge_mock.call_count, 0)
 
         config.update_config({'gitlab': {'merge_when_pipeline_succeeds': True}})
-        self.provider.create_pull_request(self.repo, "title", "body", "new", config)
+        self.provider.create_pull_request(self.repo, "title", "body", "master", "new", False, [], config)
         self.assertEqual(merge_mock.call_count, 1)
 
     def test_create_pull_request(self):
-        self.provider.create_pull_request(self.repo, "title", "body", "new", Config())
+        self.provider.create_pull_request(self.repo, "title", "body", "master", "new", False, [], Config())
         self.assertEquals(self.provider.bundle.get_pull_request_class.call_count, 1)
         self.assertEquals(self.provider.bundle.get_pull_request_class().call_count, 1)
 
     def test_create_pull_request_with_label(self):
-        update = {
-            "label_prs": "some-label"
-        }
-        config = Config()
-        config.update_config(update)
-        self.provider.create_pull_request(self.repo, "title", "body", "new", config)
+        self.provider.create_pull_request(self.repo, "title", "body", "master", "new", "some-label", [], Config())
         self.assertEquals(self.provider.bundle.get_pull_request_class.call_count, 1)
         self.assertEquals(self.provider.bundle.get_pull_request_class().call_count, 1)
 

@@ -3,7 +3,6 @@ from __future__ import absolute_import, print_function, unicode_literals
 from unittest import TestCase
 from pyup.providers.github import Provider
 from pyup.requirements import RequirementsBundle
-from pyup.config import Config
 from pyup import errors
 from github import GithubException, UnknownObjectException
 from mock import Mock, patch, PropertyMock
@@ -230,36 +229,27 @@ class ProviderTest(TestCase):
 
     def test_create_pull_request_with_exceeding_body(self):
         body = ''.join(["a" for i in range(0, 65536 + 1)])
-        self.provider.create_pull_request(self.repo, "title", body, "new",  Config())
+        self.provider.create_pull_request(self.repo, "title", body, "master", "new", False, [])
         self.assertEquals(self.provider.bundle.get_pull_request_class.call_count, 1)
         self.assertEquals(self.provider.bundle.get_pull_request_class().call_count, 1)
 
     def test_create_pull_request(self):
-        self.provider.create_pull_request(self.repo, "title", "body", "new",  Config())
+        self.provider.create_pull_request(self.repo, "title", "body", "master", "new", False, [])
         self.assertEquals(self.provider.bundle.get_pull_request_class.call_count, 1)
         self.assertEquals(self.provider.bundle.get_pull_request_class().call_count, 1)
 
         self.repo.create_pull.side_effect = GithubException(data="", status=1)
         with self.assertRaises(errors.NoPermissionError):
-            self.provider.create_pull_request(self.repo, "title", "body", "new", Config())
+            self.provider.create_pull_request(self.repo, "title", "body", "master", "new", False, [])
 
     def test_create_pull_request_with_label(self):
-        update = {
-            "label_prs": "some-label"
-        }
-        config = Config()
-        config.update_config(update)
-        self.provider.create_pull_request(self.repo, "title", "body", "new", config)
+        self.provider.create_pull_request(self.repo, "title", "body", "master", "new", "some-label", [])
         self.assertEquals(self.provider.bundle.get_pull_request_class.call_count, 1)
         self.assertEquals(self.provider.bundle.get_pull_request_class().call_count, 1)
 
     def test_create_pull_request_with_assignees(self):
-        update = {
-            "assignees": ["some-assignees"]
-        }
-        config = Config()
-        config.update_config(update)
-        self.provider.create_pull_request(self.repo, "title", "body", "new", config)
+        self.provider.create_pull_request(self.repo, "title", "body", "master", "new",
+                                          None, ["some-assignee"])
         self.assertEquals(self.provider.bundle.get_pull_request_class.call_count, 1)
         self.assertEquals(self.provider.bundle.get_pull_request_class().call_count, 1)
         self.assertEquals(self.repo.get_issue.call_count, 1)

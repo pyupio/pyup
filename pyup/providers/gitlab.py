@@ -155,12 +155,8 @@ class Provider(object):
         mr.merge(should_remove_source_branch=config.gitlab.should_remove_source_branch,
                  merge_when_pipeline_succeeds=True)
 
-    def create_pull_request(self, repo, title, body, new_branch, config):
+    def create_pull_request(self, repo, title, body, base_branch, new_branch, pr_label, assignees, config):
         # TODO: Check permissions
-        base_branch = config.branch
-        pr_label = config.label_prs
-        assignees = config.assignees
-
         try:
             if len(body) >= 65536:
                 logger.warning("PR body exceeds maximum length of 65536 chars, reducing")

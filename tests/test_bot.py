@@ -574,10 +574,13 @@ class BotCreatePullRequestTest(TestCase):
         bot.create_pull_request("title", "body", "new_branch")
         self.assertEqual(bot.provider.create_pull_request.called, True)
         self.assertEqual(bot.provider.create_pull_request.call_args_list[0][1], {
+            "base_branch": "base_branch",
             "new_branch": "new_branch",
             "repo": "USER REPO",
             "body": "body",
             "title": "title",
+            "pr_label": False,
+            "assignees": [],
             "config": bot.config
         })
 
@@ -588,10 +591,13 @@ class BotCreatePullRequestTest(TestCase):
         bot.create_pull_request("title", "body", "new_branch")
         self.assertEqual(bot.provider.create_pull_request.called, True)
         self.assertEqual(bot.provider.create_pull_request.call_args_list[0][1], {
+            "base_branch": "base_branch",
             "new_branch": "new_branch",
             "repo": "BOT REPO",
             "body": "body",
             "title": "title",
+            "pr_label": False,
+            "assignees": [],
             "config": bot.config
         })
         self.assertEqual(bot.provider.get_pull_request_permissions.called, False)
@@ -604,18 +610,25 @@ class BotCreatePullRequestTest(TestCase):
         bot.create_pull_request("title", "body", "new_branch")
         self.assertEqual(bot.provider.create_pull_request.called, True)
         self.assertEqual(bot.provider.create_pull_request.call_args_list[0][1], {
+            "base_branch": "base_branch",
             "new_branch": "new_branch",
             "repo": "BOT REPO",
             "body": "body",
             "title": "title",
+            "pr_label": False,
+            "assignees": [],
             "config": bot.config
         })
         self.assertEqual(bot.provider.create_pull_request.call_args_list[1][1], {
+            "base_branch": "base_branch",
             "new_branch": "new_branch",
             "repo": "BOT REPO",
             "body": "body",
             "title": "title",
+            "pr_label": False,
+            "assignees": [],
             "config": bot.config
+
         })
 
     def test_bot_permission_error_not_resolved(self):
@@ -627,17 +640,23 @@ class BotCreatePullRequestTest(TestCase):
             bot.create_pull_request("title", "body", "new_branch")
         self.assertEqual(bot.provider.create_pull_request.called, True)
         self.assertEqual(bot.provider.create_pull_request.call_args_list[0][1], {
+            "base_branch": "base_branch",
             "new_branch": "new_branch",
             "repo": "BOT REPO",
             "body": "body",
             "title": "title",
+            "pr_label": False,
+            "assignees": [],
             "config": bot.config
         })
         self.assertEqual(bot.provider.create_pull_request.call_args_list[1][1], {
+            "base_branch": "base_branch",
             "new_branch": "new_branch",
             "repo": "BOT REPO",
             "body": "body",
             "title": "title",
+            "pr_label": False,
+            "assignees": [],
             "config": bot.config
         })
 
