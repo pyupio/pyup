@@ -133,11 +133,9 @@ class RequirementUpdateContent(TestCase):
             self.assertEqual(req.update_content(content), "Jinja2==2.9.5         # via flask")
 
     @patch("pyup.requirements.Requirement.package", return_value="pkg")
-    @patch("pyup.requirements.hashin.get_package_hashes")
+    @patch("pyup.requirements.Requirement.get_hashes")
     def test_update_with_hashes(self, get_hashes_mock, _):
-        get_hashes_mock.return_value = {
-            "hashes": [{"hash": "123"}, {"hash": "456"}]
-        }
+        get_hashes_mock.return_value = [{"hash": "123"}, {"hash": "456"}]
         with patch('pyup.requirements.Requirement.latest_version_within_specs',
                    new_callable=PropertyMock,
                    return_value="1.4.2"):
@@ -155,11 +153,9 @@ class RequirementUpdateContent(TestCase):
                                                           "    --hash=sha256:456")
 
     @patch("pyup.requirements.Requirement.package", return_value="pkg")
-    @patch("pyup.requirements.hashin.get_package_hashes")
+    @patch("pyup.requirements.Requirement.get_hashes")
     def test_update_with_hashes_and_comment(self, get_hashes_mock, _):
-        get_hashes_mock.return_value = {
-            "hashes": [{"hash": "123"}, {"hash": "456"}]
-        }
+        get_hashes_mock.return_value = [{"hash": "123"}, {"hash": "456"}]
         with patch('pyup.requirements.Requirement.latest_version_within_specs',
                    new_callable=PropertyMock,
                    return_value="1.4.2"):
@@ -178,12 +174,9 @@ class RequirementUpdateContent(TestCase):
                                                           "    --hash=sha256:456 # yay")
 
     @patch("pyup.requirements.Requirement.package", return_value="pkg")
-    @patch("pyup.requirements.hashin.get_package_hashes")
+    @patch("pyup.requirements.Requirement.get_hashes")
     def test_update_with_hashes_and_comment_and_env_markers(self, get_hashes_mock, _):
-
-        get_hashes_mock.return_value = {
-            "hashes": [{"hash": "123"}, {"hash": "456"}]
-        }
+        get_hashes_mock.return_value = [{"hash": "123"}, {"hash": "456"}]
         with patch('pyup.requirements.Requirement.latest_version_within_specs',
                    new_callable=PropertyMock,
                    return_value="1.4.2"):
@@ -202,11 +195,9 @@ class RequirementUpdateContent(TestCase):
                                                           "    --hash=sha256:456 # yay")
 
     @patch("pyup.requirements.Requirement.package", return_value="pkg")
-    @patch("pyup.requirements.hashin.get_package_hashes")
+    @patch("pyup.requirements.Requirement.get_hashes")
     def test_update_with_hashes_and_comment_all_in_one_line(self, get_hashes_mock, _):
-        get_hashes_mock.return_value = {
-            "hashes": [{"hash": "123"}, {"hash": "456"}]
-        }
+        get_hashes_mock.return_value = [{"hash": "123"}, {"hash": "456"}]
         with patch('pyup.requirements.Requirement.latest_version_within_specs',
                    new_callable=PropertyMock,
                    return_value="1.4.2"):
@@ -224,11 +215,9 @@ class RequirementUpdateContent(TestCase):
                                           "    --hash=sha256:456 # yay")
 
     @patch("pyup.requirements.Requirement.package", return_value="pkg")
-    @patch("pyup.requirements.hashin.get_package_hashes")
+    @patch("pyup.requirements.Requirement.get_hashes")
     def test_taskcluster_215(self, get_hashes_mock, _):
-        get_hashes_mock.return_value = {
-            "hashes": [{"hash": "123"}, {"hash": "456"}]
-        }
+        get_hashes_mock.return_value = [{"hash": "123"}, {"hash": "456"}]
         with patch('pyup.requirements.Requirement.latest_version_within_specs',
                    new_callable=PropertyMock,
                    return_value="1.4.2"):
@@ -246,11 +235,9 @@ class RequirementUpdateContent(TestCase):
                                           "    --hash=sha256:456")
 
     @patch("pyup.requirements.Requirement.package", return_value="pkg")
-    @patch("pyup.requirements.hashin.get_package_hashes")
+    @patch("pyup.requirements.Requirement.get_hashes")
     def test_update_with_hashes_and_comment_and_env_markers_all_in_one_line(self, get_hashes_mock, _):
-        get_hashes_mock.return_value = {
-            "hashes": [{"hash": "123"}, {"hash": "456"}]
-        }
+        get_hashes_mock.return_value = [{"hash": "123"}, {"hash": "456"}]
         with patch('pyup.requirements.Requirement.latest_version_within_specs',
                    new_callable=PropertyMock,
                    return_value="1.4.2"):
@@ -268,11 +255,9 @@ class RequirementUpdateContent(TestCase):
                                           "    --hash=sha256:456 # yay")
 
     @patch("pyup.requirements.Requirement.package", return_value="pkg")
-    @patch("pyup.requirements.hashin.get_package_hashes")
+    @patch("pyup.requirements.Requirement.get_hashes")
     def test_update_with_hashes_in_one_line(self, get_hashes_mock, _):
-        get_hashes_mock.return_value = {
-            "hashes": [{"hash": "123"}, {"hash": "456"}]
-        }
+        get_hashes_mock.return_value = [{"hash": "123"}, {"hash": "456"}]
         with patch('pyup.requirements.Requirement.latest_version_within_specs',
                    new_callable=PropertyMock,
                    return_value="1.4.2"):

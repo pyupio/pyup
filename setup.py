@@ -20,7 +20,6 @@ requirements = [
     "click",
     "tqdm",
     "pyyaml",
-    "hashin-pyup",
     "packaging",
     "six",
     "python-gitlab",

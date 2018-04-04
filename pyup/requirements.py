@@ -8,7 +8,6 @@ from safety import safety
 from safety.errors import InvalidKeyError
 from collections import OrderedDict
 
-import hashin
 from .updates import InitialUpdate, SequentialUpdate, ScheduledUpdate
 from .pullrequest import PullRequest
 import logging
@@ -458,13 +457,16 @@ class Requirement(object):
         return self.name
 
     def get_hashes(self, version):
-        data = hashin.get_package_hashes(
-            self.name,
-            version=version,
-            algorithm="sha256",
-            python_versions=PYTHON_VERSIONS,
-            verbose=True
-        )
+        r = requests.get('https://pypi.org/pypi/{name}/{version}/json'.format(
+            name=self.key,
+            version=version
+        ))
+        hashes = []
+        data = r.json()
+        for item in data.get("releases", {}).get(version, []):
+            sha256 = item.get("digests", {}).get("sha256", False)
+            if sha256:
+                hashes.append({"hash": sha256})
         return data["hashes"]
 
     def update_content(self, content, update_hashes=True):
