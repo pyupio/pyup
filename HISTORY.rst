@@ -3,6 +3,13 @@
 History
 -------
 
+0.11.0 (2018-4-6)
+-----------------
+* Pipenv is now an optional transitive dependency. If you want to update Pipfiles, install it with dparse[pipenv]
+* Hashin is now no longer a dependency
+* The bot uses the new pypi.org now
+* Creating issues on invalid config files is now configurable
+
 0.10.0 (2018-3-15)
 -----------------
 * The bot now creates issues if there are any problems with the config file

@@ -36,6 +36,10 @@ To install pyup, run::
 
     $ pip install pyupio
 
+If you want to update Pipfiles, install the optional pipenv extra:
+
+    $ pip install dparse[pipenv]
+
 Obtain Token
 ------------
 
