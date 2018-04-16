@@ -133,11 +133,9 @@ class RequirementUpdateContent(TestCase):
             self.assertEqual(req.update_content(content), "Jinja2==2.9.5         # via flask")
 
     @patch("pyup.requirements.Requirement.package", return_value="pkg")
-    @patch("pyup.requirements.hashin.get_package_hashes")
+    @patch("pyup.requirements.Requirement.get_hashes")
     def test_update_with_hashes(self, get_hashes_mock, _):
-        get_hashes_mock.return_value = {
-            "hashes": [{"hash": "123"}, {"hash": "456"}]
-        }
+        get_hashes_mock.return_value = [{"hash": "123"}, {"hash": "456"}]
         with patch('pyup.requirements.Requirement.latest_version_within_specs',
                    new_callable=PropertyMock,
                    return_value="1.4.2"):
@@ -155,11 +153,9 @@ class RequirementUpdateContent(TestCase):
                                                           "    --hash=sha256:456")
 
     @patch("pyup.requirements.Requirement.package", return_value="pkg")
-    @patch("pyup.requirements.hashin.get_package_hashes")
+    @patch("pyup.requirements.Requirement.get_hashes")
     def test_update_with_hashes_and_comment(self, get_hashes_mock, _):
-        get_hashes_mock.return_value = {
-            "hashes": [{"hash": "123"}, {"hash": "456"}]
-        }
+        get_hashes_mock.return_value = [{"hash": "123"}, {"hash": "456"}]
         with patch('pyup.requirements.Requirement.latest_version_within_specs',
                    new_callable=PropertyMock,
                    return_value="1.4.2"):
@@ -178,12 +174,9 @@ class RequirementUpdateContent(TestCase):
                                                           "    --hash=sha256:456 # yay")
 
     @patch("pyup.requirements.Requirement.package", return_value="pkg")
-    @patch("pyup.requirements.hashin.get_package_hashes")
+    @patch("pyup.requirements.Requirement.get_hashes")
     def test_update_with_hashes_and_comment_and_env_markers(self, get_hashes_mock, _):
-
-        get_hashes_mock.return_value = {
-            "hashes": [{"hash": "123"}, {"hash": "456"}]
-        }
+        get_hashes_mock.return_value = [{"hash": "123"}, {"hash": "456"}]
         with patch('pyup.requirements.Requirement.latest_version_within_specs',
                    new_callable=PropertyMock,
                    return_value="1.4.2"):
@@ -202,11 +195,9 @@ class RequirementUpdateContent(TestCase):
                                                           "    --hash=sha256:456 # yay")
 
     @patch("pyup.requirements.Requirement.package", return_value="pkg")
-    @patch("pyup.requirements.hashin.get_package_hashes")
+    @patch("pyup.requirements.Requirement.get_hashes")
     def test_update_with_hashes_and_comment_all_in_one_line(self, get_hashes_mock, _):
-        get_hashes_mock.return_value = {
-            "hashes": [{"hash": "123"}, {"hash": "456"}]
-        }
+        get_hashes_mock.return_value = [{"hash": "123"}, {"hash": "456"}]
         with patch('pyup.requirements.Requirement.latest_version_within_specs',
                    new_callable=PropertyMock,
                    return_value="1.4.2"):
@@ -224,11 +215,9 @@ class RequirementUpdateContent(TestCase):
                                           "    --hash=sha256:456 # yay")
 
     @patch("pyup.requirements.Requirement.package", return_value="pkg")
-    @patch("pyup.requirements.hashin.get_package_hashes")
+    @patch("pyup.requirements.Requirement.get_hashes")
     def test_taskcluster_215(self, get_hashes_mock, _):
-        get_hashes_mock.return_value = {
-            "hashes": [{"hash": "123"}, {"hash": "456"}]
-        }
+        get_hashes_mock.return_value = [{"hash": "123"}, {"hash": "456"}]
         with patch('pyup.requirements.Requirement.latest_version_within_specs',
                    new_callable=PropertyMock,
                    return_value="1.4.2"):
@@ -246,11 +235,9 @@ class RequirementUpdateContent(TestCase):
                                           "    --hash=sha256:456")
 
     @patch("pyup.requirements.Requirement.package", return_value="pkg")
-    @patch("pyup.requirements.hashin.get_package_hashes")
+    @patch("pyup.requirements.Requirement.get_hashes")
     def test_update_with_hashes_and_comment_and_env_markers_all_in_one_line(self, get_hashes_mock, _):
-        get_hashes_mock.return_value = {
-            "hashes": [{"hash": "123"}, {"hash": "456"}]
-        }
+        get_hashes_mock.return_value = [{"hash": "123"}, {"hash": "456"}]
         with patch('pyup.requirements.Requirement.latest_version_within_specs',
                    new_callable=PropertyMock,
                    return_value="1.4.2"):
@@ -268,11 +255,9 @@ class RequirementUpdateContent(TestCase):
                                           "    --hash=sha256:456 # yay")
 
     @patch("pyup.requirements.Requirement.package", return_value="pkg")
-    @patch("pyup.requirements.hashin.get_package_hashes")
+    @patch("pyup.requirements.Requirement.get_hashes")
     def test_update_with_hashes_in_one_line(self, get_hashes_mock, _):
-        get_hashes_mock.return_value = {
-            "hashes": [{"hash": "123"}, {"hash": "456"}]
-        }
+        get_hashes_mock.return_value = [{"hash": "123"}, {"hash": "456"}]
         with patch('pyup.requirements.Requirement.latest_version_within_specs',
                    new_callable=PropertyMock,
                    return_value="1.4.2"):
@@ -835,7 +820,7 @@ class RequirementTestCase(TestCase):
     @requests_mock.mock()
     def test_package_found(self, requests):
         with open(os.path.dirname(os.path.realpath(__file__)) + "/data/django.json") as f:
-            requests.get("https://pypi.python.org/pypi/Django/json", text=f.read())
+            requests.get("https://pypi.org/pypi/Django/json", text=f.read())
         r = Requirement.parse("Django==1.9rc1", 0)
         self.assertEqual(r._fetched_package, False)
         self.assertEqual(r._package, None)
@@ -847,7 +832,7 @@ class RequirementTestCase(TestCase):
 
     @requests_mock.mock()
     def test_package_not_found(self, requests):
-        requests.get("https://pypi.python.org/pypi/Fango/json", text="404", status_code=404)
+        requests.get("https://pypi.org/pypi/Fango/json", text="404", status_code=404)
         r = Requirement.parse("Fango", 0)
         self.assertEqual(r._fetched_package, False)
         self.assertEqual(r._package, None)
@@ -908,7 +893,7 @@ class RequirementTestCase(TestCase):
     @requests_mock.mock()
     def test_needs_update(self, requests):
         with open(os.path.dirname(os.path.realpath(__file__)) + "/data/django.json") as f:
-            requests.get("https://pypi.python.org/pypi/Django/json", text=f.read())
+            requests.get("https://pypi.org/pypi/Django/json", text=f.read())
 
             # is pinned and on latest
             r = Requirement.parse("Django==1.9rc1", 0)

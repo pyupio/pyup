@@ -8,7 +8,6 @@ from safety import safety
 from safety.errors import InvalidKeyError
 from collections import OrderedDict
 
-import hashin
 from .updates import InitialUpdate, SequentialUpdate, ScheduledUpdate
 from .pullrequest import PullRequest
 import logging
@@ -19,9 +18,6 @@ from dparse import parse, parser, updater, filetypes
 from dparse.dependencies import Dependency
 from dparse.parser import setuptools_parse_requirements_backport as parse_requirements
 
-PYTHON_VERSIONS = [
-    "2.7", "3.0", "3.1", "3.2", "3.3", "3.4", "3.5", "3.6"
-]
 logger = logging.getLogger(__name__)
 
 
@@ -458,13 +454,16 @@ class Requirement(object):
         return self.name
 
     def get_hashes(self, version):
-        data = hashin.get_package_hashes(
-            self.name,
-            version=version,
-            algorithm="sha256",
-            python_versions=PYTHON_VERSIONS,
-            verbose=True
-        )
+        r = requests.get('https://pypi.org/pypi/{name}/{version}/json'.format(
+            name=self.key,
+            version=version
+        ))
+        hashes = []
+        data = r.json()
+        for item in data.get("releases", {}).get(version, []):
+            sha256 = item.get("digests", {}).get("sha256", False)
+            if sha256:
+                hashes.append({"hash": sha256})
         return data["hashes"]
 
     def update_content(self, content, update_hashes=True):

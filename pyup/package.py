@@ -6,7 +6,7 @@ import requests
 
 def fetch_package(name, index_server=None):
     url = index_server + name if index_server else \
-        "https://pypi.python.org/pypi/{name}/json".format(name=name)
+        "https://pypi.org/pypi/{name}/json".format(name=name)
     r = requests.get(url, timeout=3)
     if r.status_code != 200:
         return None
