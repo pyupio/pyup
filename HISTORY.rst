@@ -3,6 +3,10 @@
 History
 -------
 
+1.0.0 (2018-4-17)
+-----------------
+* Added new config options for GitLab (thanks @kairichard)
+
 0.11.0 (2018-4-6)
 -----------------
 * Pipenv is now an optional transitive dependency. If you want to update Pipfiles, install it with dparse[pipenv]

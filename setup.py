@@ -22,7 +22,7 @@ requirements = [
     "pyyaml",
     "packaging",
     "six",
-    "python-gitlab",
+    "python-gitlab>=1.3.0",
     "dparse>=0.4",
     "safety",
     "jinja2>=2.3"
@@ -36,7 +36,7 @@ test_requirements = [
 
 setup(
     name='pyupio',
-    version='0.11.0',
+    version='1.0.0',
     description="A tool to update all your projects requirements",
     long_description=readme + '\n\n' + history,
     author="Jannis Gebauer",
