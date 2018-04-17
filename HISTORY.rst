@@ -3,6 +3,10 @@
 History
 -------
 
+1.0.1 (2018-4-17)
+-----------------
+* The previous release contained a bug that caused the build system to deploy the wrong commit to PyPi.
+
 1.0.0 (2018-4-17)
 -----------------
 * Added new config options for GitLab (thanks @kairichard)
