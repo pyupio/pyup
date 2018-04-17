@@ -151,30 +151,28 @@ class Provider(object):
 
         self.delete_branch(user_repo, mr.source_branch, prefix)
 
-    def create_pull_request(self, repo, title, body, base_branch, new_branch, pr_label, assignees):
+    def _merge_merge_request(self, mr, config):
+        mr.merge(should_remove_source_branch=config.gitlab.should_remove_source_branch,
+                 merge_when_pipeline_succeeds=True)
+
+    def create_pull_request(self, repo, title, body, base_branch, new_branch, pr_label, assignees, config):
         # TODO: Check permissions
         try:
             if len(body) >= 65536:
                 logger.warning("PR body exceeds maximum length of 65536 chars, reducing")
                 body = body[:65536 - 1]
 
-            request = {
-                'source_branch': new_branch,
-                'target_branch': base_branch,
-                'title': title,
-                'description': body,
-            }
-            if pr_label is not None:
-                request['pr_label'] = pr_label
-            if assignees is not None:
-                request['assignee_id'] = assignees
             mr = repo.mergerequests.create({
                 'source_branch': new_branch,
                 'target_branch': base_branch,
                 'title': title,
                 'description': body,
                 'pr_label': pr_label,
+                'should_remove_source_branch': config.gitlab.should_remove_source_branch
             })
+
+            if config.gitlab.merge_when_pipeline_succeeds:
+                self._merge_merge_request(mr, config)
 
             return self.bundle.get_pull_request_class()(
                 state=mr.state,

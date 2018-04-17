@@ -580,7 +580,8 @@ class BotCreatePullRequestTest(TestCase):
             "body": "body",
             "title": "title",
             "pr_label": False,
-            "assignees": []
+            "assignees": [],
+            "config": bot.config
         })
 
     def test_bot_no_errors(self):
@@ -596,7 +597,8 @@ class BotCreatePullRequestTest(TestCase):
             "body": "body",
             "title": "title",
             "pr_label": False,
-            "assignees": []
+            "assignees": [],
+            "config": bot.config
         })
         self.assertEqual(bot.provider.get_pull_request_permissions.called, False)
 
@@ -614,7 +616,8 @@ class BotCreatePullRequestTest(TestCase):
             "body": "body",
             "title": "title",
             "pr_label": False,
-            "assignees": []
+            "assignees": [],
+            "config": bot.config
         })
         self.assertEqual(bot.provider.create_pull_request.call_args_list[1][1], {
             "base_branch": "base_branch",
@@ -623,7 +626,8 @@ class BotCreatePullRequestTest(TestCase):
             "body": "body",
             "title": "title",
             "pr_label": False,
-            "assignees": []
+            "assignees": [],
+            "config": bot.config
 
         })
 
@@ -642,7 +646,8 @@ class BotCreatePullRequestTest(TestCase):
             "body": "body",
             "title": "title",
             "pr_label": False,
-            "assignees": []
+            "assignees": [],
+            "config": bot.config
         })
         self.assertEqual(bot.provider.create_pull_request.call_args_list[1][1], {
             "base_branch": "base_branch",
@@ -651,7 +656,8 @@ class BotCreatePullRequestTest(TestCase):
             "body": "body",
             "title": "title",
             "pr_label": False,
-            "assignees": []
+            "assignees": [],
+            "config": bot.config
         })
 
 

@@ -455,28 +455,18 @@ class Bot(object):
         # if we have a bot user that creates the PR, we might run into problems on private
         # repos because the bot has to be a collaborator. We try to submit the PR before checking
         # the permissions because that saves us API calls in most cases
+        kwargs = dict(title=title,body=body, new_branch=new_branch,
+                      base_branch=self.config.branch, pr_label=self.config.label_prs, assignees=self.config.assignees,
+                      config=self.config)
         if self.bot_token:
             try:
-                return self.provider.create_pull_request(
-                    repo=self.bot_repo,
-                    title=title,
-                    body=body,
-                    base_branch=self.config.branch,
-                    new_branch=new_branch,
-                    pr_label=self.config.label_prs,
-                    assignees=self.config.assignees
-                )
+                return self.provider.create_pull_request(repo=self.bot_repo, **kwargs)
             except NoPermissionError:
                 self.provider.get_pull_request_permissions(self.bot, self.user_repo)
 
         return self.provider.create_pull_request(
             repo=self.bot_repo if self.bot_token else self.user_repo,
-            title=title,
-            body=body,
-            base_branch=self.config.branch,
-            new_branch=new_branch,
-            pr_label=self.config.label_prs,
-            assignees=self.config.assignees
+            **kwargs
         )
 
     def iter_git_tree(self, sha=None):

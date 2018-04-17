@@ -220,7 +220,7 @@ class Provider(object):
         except UnknownObjectException:
             return False
 
-    def create_pull_request(self, repo, title, body, base_branch, new_branch, pr_label, assignees):
+    def create_pull_request(self, repo, title, body, base_branch, new_branch, pr_label, assignees, **kwargs):
         try:
             if len(body) >= 65536:
                 logger.warning("PR body exceeds maximum length of 65536 chars, reducing")
