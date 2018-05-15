@@ -13,9 +13,10 @@ logger = logging.getLogger(__name__)
 
 
 class Provider(object):
-    def __init__(self, bundle, integration=False):
+    def __init__(self, bundle, integration=False, ssl_verify=True):
         self.bundle = bundle
         self.integration = integration
+        self.ssl_verify = ssl_verify
 
     @classmethod
     def is_same_user(cls, this, that):
