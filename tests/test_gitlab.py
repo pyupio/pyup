@@ -36,13 +36,14 @@ class ProviderTest(TestCase):
     def test_api(self, github_mock):
         prov = Provider(bundle=RequirementsBundle())
         prov._api("foo")
-        github_mock.assert_called_once_with("https://gitlab.com", "foo")
+        github_mock.assert_called_once_with("https://gitlab.com", "foo",
+                                            ssl_verify=True)
 
     @patch("pyup.providers.gitlab.Gitlab")
     def test_api_different_host(self, github_mock):
         prov = Provider(bundle=RequirementsBundle())
         prov._api("foo@localhost")
-        github_mock.assert_called_once_with("localhost", "foo")
+        github_mock.assert_called_once_with("localhost", "foo", ssl_verify=True)
 
     def test_get_user(self):
         self.provider.get_user("foo")
