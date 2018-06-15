@@ -39,7 +39,16 @@ class ProviderTest(TestCase):
         github_mock.assert_called_once_with("https://gitlab.com", "foo")
 
     @patch("pyup.providers.gitlab.Gitlab")
-    def test_api_different_host(self, github_mock):
+    def test_api_different_host_in_provider_url(self, github_mock):
+        url = 'localhost'
+        token = 'foo'
+
+        prov = Provider(bundle=RequirementsBundle(), url=url)
+        prov._api(token)
+        github_mock.assert_called_once_with(url, token)
+
+    @patch("pyup.providers.gitlab.Gitlab")
+    def test_api_different_host_in_token(self, github_mock):
         prov = Provider(bundle=RequirementsBundle())
         prov._api("foo@localhost")
         github_mock.assert_called_once_with("localhost", "foo")
