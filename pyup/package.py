@@ -10,7 +10,11 @@ def fetch_package(name, index_server=None):
     r = requests.get(url, timeout=3)
     if r.status_code != 200:
         return None
-    json = r.json()
+    try:
+        json = r.json()
+    except ValueError:
+        # JSON decoding error: ignore package
+        return None
     if index_server:
         releases = sorted(json["result"].keys(), key=lambda v: parse_version(v), reverse=True)
     else:

@@ -1,0 +1,25 @@
+<html>
+  <head>
+  <title>Links for Django</title>
+  </head>
+  <body>
+    <h1>Links for Django</h1>
+
+    <a href="/dev/packages/Django-1.9.0-py3-none-any.whl">Django-1.9.0-py3-none-any.whl</a></br>
+
+    <a href="/dev/packages/Django-1.9.0.tar.gz">Django-1.9.0.tar.gz</a></br>
+
+    <a href="/dev/packages/Django-1.10.0-py3-none-any.whl">Django-1.10.0-py3-none-any.whl</a></br>
+
+    <a href="/dev/packages/Django-1.10.0.tar.gz">Django-1.10.0.tar.gz</a></br>
+
+    <a href="/dev/packages/Django-1.11.0-py3-none-any.whl">Django-1.11.0-py3-none-any.whl</a></br>
+
+    <a href="/dev/packages/Django-1.11.0.tar.gz">Django-1.11.0.tar.gz</a></br>
+
+    <a href="/dev/packages/Django-2.0.0-py3-none-any.whl">Django-2.0.0-py3-none-any.whl</a></br>
+
+    <a href="/dev/packages/Django-2.0.0.tar.gz">Django-2.0.0.tar.gz</a></br>
+
+  </body>
+</html>
