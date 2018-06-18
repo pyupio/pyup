@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+from json import JSONDecodeError
+
 from packaging.version import parse as parse_version
 from packaging.specifiers import SpecifierSet
 import requests
@@ -384,8 +386,11 @@ class Requirement(object):
     @property
     def package(self):
         if not self._fetched_package:
-            self._package = fetch_package(self.name, self.index_server)
-            self._fetched_package = True
+            try:
+                self._package = fetch_package(self.name, self.index_server)
+                self._fetched_package = True
+            except JSONDecodeError:
+                pass
         return self._package
 
     @property
