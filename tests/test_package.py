@@ -41,8 +41,7 @@ class FetchPackageTestCase(TestCase):
             # ElasticPyPI has no JSON yet:
             # https://github.com/khornberg/elasticpypi/issues/48
             requests.get("https://some.foo/root/pypi/Django", text=f.read())
-        with self.assertRaises(ValueError):
-            fetch_package("Django", "https://some.foo/root/pypi/")
+        self.assertIsNone(fetch_package("Django", "https://some.foo/root/pypi/"))
 
     @requests_mock.mock()
     def test_fetch_packages(self, requests):

@@ -384,12 +384,8 @@ class Requirement(object):
     @property
     def package(self):
         if not self._fetched_package:
-            try:
-                self._package = fetch_package(self.name, self.index_server)
-                self._fetched_package = True
-            except ValueError:
-                # Most likely failed to decode the response from the queried index
-                pass
+            self._package = fetch_package(self.name, self.index_server)
+            self._fetched_package = True
         return self._package
 
     @property
