@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, print_function, unicode_literals
-
-from json import JSONDecodeError
 from unittest import TestCase
 import requests_mock
 import os
@@ -43,7 +41,7 @@ class FetchPackageTestCase(TestCase):
             # ElasticPyPI has no JSON yet:
             # https://github.com/khornberg/elasticpypi/issues/48
             requests.get("https://some.foo/root/pypi/Django", text=f.read())
-        with self.assertRaises(JSONDecodeError):
+        with self.assertRaises(ValueError):
             fetch_package("Django", "https://some.foo/root/pypi/")
 
     @requests_mock.mock()

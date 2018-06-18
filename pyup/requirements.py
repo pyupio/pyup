@@ -1,7 +1,5 @@
 from __future__ import unicode_literals
 
-from json import JSONDecodeError
-
 from packaging.version import parse as parse_version
 from packaging.specifiers import SpecifierSet
 import requests
@@ -389,7 +387,8 @@ class Requirement(object):
             try:
                 self._package = fetch_package(self.name, self.index_server)
                 self._fetched_package = True
-            except JSONDecodeError:
+            except ValueError:
+                # Most likely failed to decode the response from the queried index
                 pass
         return self._package
 
