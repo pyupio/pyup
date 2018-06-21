@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, print_function, unicode_literals
 
-from json import JSONDecodeError
-
 from packaging.version import parse as parse_version
 from pyup import legacy_index
 import requests
@@ -15,7 +13,7 @@ def _extract_releases(response, index_server):
             return sorted(json["result"].keys(), key=lambda v: parse_version(v), reverse=True)
         else:
             return sorted(json["releases"].keys(), key=lambda v: parse_version(v), reverse=True)
-    except JSONDecodeError:
+    except ValueError:
         if index_server:
             return sorted(legacy_index.get_all_versions(response.text), key=lambda v: parse_version(v), reverse=True)
 
