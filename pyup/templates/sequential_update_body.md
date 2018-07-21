@@ -6,8 +6,7 @@ This PR pins [{{ requirement.full_name }}](https://pypi.org/project/{{ requireme
 
 {% if requirement.changelog %}
 {% with changelog=requirement.changelog %}
-### Changelog
-> {% include "_changelog.md" %}
+{% include "_changelog.md" %}
 {% endwith %}
 {% elif api_key %}
 *The bot wasn't able to find a changelog for this release. [Got an idea?](https://github.com/pyupio/changelogs/issues/new)*
