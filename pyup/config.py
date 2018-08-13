@@ -10,7 +10,7 @@ import re
 
 SCHEDULE_REGEX = re.compile(
     # has to begin with every
-    "^every "
+    r"^every "
     # followed by day/month
     "((day|month)$"
     # or week/two weeks
