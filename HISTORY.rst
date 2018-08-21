@@ -3,6 +3,10 @@
 History
 -------
 
+1.0.2 (2018-8-21)
+-----------------
+* Order the hashes being updated on requirements files.
+
 1.0.1 (2018-4-17)
 -----------------
 * The previous release contained a bug that caused the build system to deploy the wrong commit to PyPi.
