@@ -154,6 +154,29 @@ class RequirementUpdateContent(TestCase):
 
     @patch("pyup.requirements.Requirement.package", return_value="pkg")
     @patch("pyup.requirements.Requirement.get_hashes")
+    def test_update_with_hashes_sorted(self, get_hashes_mock, _):
+        get_hashes_mock.return_value = [{"hash": "abc"}, {"hash": "456"},
+                                        {"hash": "789"}, {"hash": "123"}]
+        with patch('pyup.requirements.Requirement.latest_version_within_specs',
+                   new_callable=PropertyMock,
+                   return_value="1.4.2"):
+            content = "alembic==0.8.9 \\\n" \
+                      "        --hash=sha256:abcde"
+            req_file = RequirementFile("req.txt", content)
+            req = list(req_file.requirements)[0]
+            self.assertEqual(
+                Requirement.parse("alembic==0.8.9", 1),
+                req
+            )
+
+            self.assertEqual(req.update_content(content), "alembic==1.4.2 \\\n"
+                                                          "    --hash=sha256:123 \\\n"
+                                                          "    --hash=sha256:456 \\\n"
+                                                          "    --hash=sha256:789 \\\n"
+                                                          "    --hash=sha256:abc")
+
+    @patch("pyup.requirements.Requirement.package", return_value="pkg")
+    @patch("pyup.requirements.Requirement.get_hashes")
     def test_update_with_hashes_and_comment(self, get_hashes_mock, _):
         get_hashes_mock.return_value = [{"hash": "123"}, {"hash": "456"}]
         with patch('pyup.requirements.Requirement.latest_version_within_specs',
