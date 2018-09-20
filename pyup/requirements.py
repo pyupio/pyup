@@ -464,7 +464,7 @@ class Requirement(object):
             sha256 = item.get("digests", {}).get("sha256", False)
             if sha256:
                 hashes.append({"hash": sha256})
-        return data["hashes"]
+        return hashes
 
     def update_content(self, content, update_hashes=True):
         if self.file_type == filetypes.tox_ini:
