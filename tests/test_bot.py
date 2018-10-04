@@ -70,7 +70,7 @@ class BotPullRequestsTest(TestCase):
         bot._fetched_prs = False
         bot.provider.iter_issues = Mock(return_value=[])
         bot.pull_requests
-        self.assertEquals(bot.provider.iter_issues.call_count, 1)
+        self.assertEqual(bot.provider.iter_issues.call_count, 1)
 
 
 class BotRepoConfigTest(TestCase):
@@ -403,8 +403,8 @@ class CreateBranchTest(TestCase):
         bot.provider.is_empty_branch.return_value = True
         bot.create_branch("new-branch", delete_empty=True)
 
-        self.assertEquals(bot.provider.is_empty_branch.call_count, 1)
-        self.assertEquals(bot.provider.delete_branch.call_count, 1)
+        self.assertEqual(bot.provider.is_empty_branch.call_count, 1)
+        self.assertEqual(bot.provider.delete_branch.call_count, 1)
         self.assertEqual(len(bot.provider.create_branch.mock_calls), 2)
 
     def test_branch_not_empty(self):
@@ -414,7 +414,7 @@ class CreateBranchTest(TestCase):
         bot.provider.is_empty_branch.return_value = False
         bot.create_branch("new-branch", delete_empty=True)
 
-        self.assertEquals(bot.provider.is_empty_branch.call_count, 1)
+        self.assertEqual(bot.provider.is_empty_branch.call_count, 1)
         bot.provider.delete_branch.assert_not_called()
         self.assertEqual(len(bot.provider.create_branch.mock_calls), 1)
 
@@ -713,7 +713,7 @@ class CloseStalePRsTestCase(TestCase):
         self.pr.type = Mock()
         bot.close_stale_prs(self.update, self.pr, False)
 
-        self.assertEquals(self.pr.type.call_count, 0)
+        self.assertEqual(self.pr.type.call_count, 0)
 
     def test_no_pull_requests(self):
         bot = bot_factory(bot_token="foo")

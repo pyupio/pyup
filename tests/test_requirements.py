@@ -587,9 +587,9 @@ class RequirementTestCase(TestCase):
             self.assertFalse(r.needs_update)
 
     def test_convert_semver(self):
-        self.assertEquals({"major": 1, "minor": 2, "patch": 3}, Requirement.convert_semver("1.2.3"))
-        self.assertEquals({"major": 1, "minor": 2, "patch": 0}, Requirement.convert_semver("1.2"))
-        self.assertEquals({"major": 1, "minor": 0, "patch": 0}, Requirement.convert_semver("1"))
+        self.assertEqual({"major": 1, "minor": 2, "patch": 3}, Requirement.convert_semver("1.2.3"))
+        self.assertEqual({"major": 1, "minor": 2, "patch": 0}, Requirement.convert_semver("1.2"))
+        self.assertEqual({"major": 1, "minor": 0, "patch": 0}, Requirement.convert_semver("1"))
 
     def test_tabbed(self):
         req = Requirement.parse("Django==1.5\t\t#some-comment", 0)
@@ -897,7 +897,7 @@ class RequirementTestCase(TestCase):
         # test that the api is not called if the api key is not set
         settings.api_key = None
         r = Requirement.parse("pyupio", 0)
-        self.assertEquals(r.changelog, {})
+        self.assertEqual(r.changelog, {})
 
         # test the api is called if the api key is set
         settings.api_key = "foo"
@@ -908,7 +908,7 @@ class RequirementTestCase(TestCase):
         with open(os.path.dirname(os.path.realpath(__file__)) + "/data/pyup-changelog.json") as f:
             requests.get("https://pyup.io/api/v1/changelogs/pyupio/", text=f.read())
             log = r.changelog
-            self.assertEquals(len(log), 6)
+            self.assertEqual(len(log), 6)
 
 
 
@@ -1238,7 +1238,7 @@ class RequirementsBundleTestCase(TestCase):
             scheduled=False,
             config=None
         )
-        self.assertEquals(klass, req.get_initial_update_class())
+        self.assertEqual(klass, req.get_initial_update_class())
 
     def test_get_scheduled_update_class(self):
         req = RequirementsBundle()
@@ -1249,7 +1249,7 @@ class RequirementsBundleTestCase(TestCase):
             scheduled=True,
             config=config
         )
-        self.assertEquals(klass, req.get_scheduled_update_class())
+        self.assertEqual(klass, req.get_scheduled_update_class())
 
     def test_get_sequential_update_class(self):
         req = RequirementsBundle()
@@ -1258,7 +1258,7 @@ class RequirementsBundleTestCase(TestCase):
             scheduled=False,
             config=None
         )
-        self.assertEquals(klass, req.get_sequential_update_class())
+        self.assertEqual(klass, req.get_sequential_update_class())
 
     def test_get_updates(self):
         with patch('pyup.requirements.Requirement.package', return_value=Mock()):
