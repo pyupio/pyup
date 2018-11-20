@@ -80,7 +80,7 @@ class ProviderTest(TestCase):
         content, obj = self.provider.get_file(self.repo, "path", "branch")
         self.assertIsNotNone(content)
         self.assertIsNotNone(obj)
-        self.repo.get_contents.assert_called_with("/path", ref="branch")
+        self.repo.get_contents.assert_called_with("path", ref="branch")
 
         self.repo.get_contents.side_effect = GithubException(data="", status=1)
         content, obj = self.provider.get_file(self.repo, "path", "branch")
