@@ -63,3 +63,6 @@ target/
 
 # utility functions
 util/
+
+# Local development
+.env

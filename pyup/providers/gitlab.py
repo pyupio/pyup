@@ -14,6 +14,12 @@ class BadTokenError(Exception):
 
 
 class Provider(object):
+    name = 'gitlab'
+
+    class Committer(object):
+        def __init__(self, login):
+            self.login = login
+
     def __init__(self, bundle, intergration=False, url=None):
         self.bundle = bundle
         self.url = url
@@ -145,12 +151,21 @@ class Provider(object):
         # TODO: committer
         f.save(branch=branch, commit_message=commit_message)
 
-    def close_pull_request(self, bot_repo, user_repo, mr, comment, prefix):
+    def get_pull_request_committer(self, repo, pull_request):
+        return [
+            self.Committer(participant['username'])
+            for participant in repo.mergerequests.get(pull_request.number).participants()
+        ]
+
+    def close_pull_request(self, bot_repo, user_repo, pull_request, comment, prefix):
+        mr = user_repo.mergerequests.get(pull_request.number)
         mr.state_event = 'close'
         mr.save()
         mr.notes.create({'body': comment})
 
-        self.delete_branch(user_repo, mr.source_branch, prefix)
+        source_branch = mr.changes()['source_branch']
+        logger.info("Deleting source branch {}".format(source_branch))
+        self.delete_branch(user_repo, source_branch, prefix)
 
     def _merge_merge_request(self, mr, config):
         mr.merge(should_remove_source_branch=config.gitlab.should_remove_source_branch,
@@ -215,7 +230,7 @@ class Provider(object):
 
     def iter_issues(self, repo, creator):
         # TODO: handle creator
-        for issue in repo.issues.list():
+        for issue in repo.mergerequests.list(state='opened', all=True):
             yield self.bundle.get_pull_request_class()(
                 state=issue.state,
                 title=issue.title,

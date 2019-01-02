@@ -6,7 +6,7 @@ from pyup.providers.gitlab import Provider
 from pyup.requirements import RequirementsBundle
 from pyup.config import Config
 from pyup import errors
-from mock import Mock, patch, PropertyMock, ANY
+from mock import Mock, MagicMock, patch, PropertyMock, ANY
 from base64 import b64encode
 
 from gitlab.exceptions import GitlabGetError
@@ -175,13 +175,33 @@ class ProviderTest(TestCase):
             'commit_message': commit_message
         })
 
-    def test_close_pull_request(self):
-        mr = Mock()
-        mr.source_branch = 'blah'
-        with self.assertRaises(AssertionError):
-            self.provider.close_pull_request(self.repo, self.repo, mr, "comment", prefix="pyup-")
-
+    def test_get_pull_request_committer(self):
+        mr = MagicMock()
+        mr.changes = MagicMock()
         mr.source_branch = "pyup-bla"
+        d = {'source_branch': mr.source_branch}
+        p = [{'username': 'alpha'}, {'username': 'beta'}]
+        mr.changes.return_value = d
+        self.repo.mergerequests.get.return_value = mr
+        self.repo.mergerequests.list.return_value = [Mock()]
+        mr.participants = Mock()
+        mr.participants.return_value = p
+        committers = self.provider.get_pull_request_committer(self.repo, mr)
+        actual = [a.login for a in committers]
+        expected = [a['username'] for a in p]
+        self.assertEquals(actual, expected)
+
+    def test_close_pull_request(self):
+        mr = MagicMock()
+        mr.changes = MagicMock()
+        mr.source_branch = "pyup-bla"
+        d = {'source_branch': mr.source_branch}
+        mr.changes.return_value = d
+        self.repo.mergerequests.get.return_value = mr
+        self.repo.mergerequests.list.return_value = [Mock()]
+        mr.changes.__getitem__.side_effect = d.__getitem__
+        mr.changes.__iter__.side_effect = d.__iter__
+        mr.changes.__contains__.side_effect = d.__contains__
         self.provider.close_pull_request(self.repo, self.repo, mr, "comment", prefix="pyup-")
         self.assertEqual(self.repo.branches.get().delete.call_count, 1)
 
@@ -233,6 +253,6 @@ class ProviderTest(TestCase):
         self.assertIsNot(self.provider.create_issue(self.repo, "title", "body"), False)
 
     def test_iter_issues(self):
-        self.repo.issues.list.return_value = [Mock(), Mock()]
+        self.repo.mergerequests.list.return_value = [Mock(), Mock()]
         issues = list(self.provider.iter_issues(self.repo, Mock()))
         self.assertEqual(len(issues), 2)

@@ -286,7 +286,7 @@ class Bot(object):
 
         # it's impossible to get the bots login if this is an integration, just check that
         # there's only one commit in the commit history.
-        if self.integration:
+        if self.integration or getattr(self.provider, 'name', '') == 'gitlab':
             return len(committer_set) == 1
 
         # check that there's exactly one committer in this PRs commit history and

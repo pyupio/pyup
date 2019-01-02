@@ -6,7 +6,7 @@ from datetime import datetime
 from jinja2 import Environment, FileSystemLoader
 from .errors import UnsupportedScheduleError
 
-from pyup.settings import api_key
+from pyup import settings
 
 TEMPLATES_DIR = os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
@@ -119,7 +119,7 @@ class ScheduledUpdate(BundledUpdate):
             {
                 "updates": updates,
                 "changelogs": changelogs,
-                "api_key": api_key
+                "api_key": settings.api_key
             }
         )
 
@@ -154,7 +154,7 @@ class InitialUpdate(BundledUpdate):
             {
                 "updates": updates,
                 "changelogs": changelogs,
-                "api_key": api_key
+                "api_key": settings.api_key
             }
         )
 
@@ -220,5 +220,5 @@ class SequentialUpdate(Update):
         env = Environment(loader=FileSystemLoader(TEMPLATES_DIR))
         return env.get_template("sequential_update_body.md").render({
             "requirement": requirement,
-            "api_key": api_key
+            "api_key": settings.api_key
         })
