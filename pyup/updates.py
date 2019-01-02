@@ -127,7 +127,7 @@ class ScheduledUpdate(BundledUpdate):
         now = datetime.now()
 
         if "every day" in self.config.schedule:
-            return "Scheduled daily dependency update on {}".format(now.strftime("%A").lower())
+            return "Scheduled daily dependency update on {}".format(now.strftime("%A"))
         elif "every week" in self.config.schedule:
             return "Scheduled weekly dependency update for week {}".format(now.strftime("%U"))
         elif "every two weeks" in self.config.schedule:

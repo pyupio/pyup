@@ -253,7 +253,7 @@ class ScheduledUpdateTest(ScheduledUpdateBaseTest):
         self.config.schedule = "every day"
         self.assertEqual(
             self.update.get_title(),
-            "Scheduled daily dependency update on tuesday"
+            "Scheduled daily dependency update on Tuesday"
         )
 
     @patch("pyup.updates.datetime")
