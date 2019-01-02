@@ -13,15 +13,18 @@ logger = logging.getLogger(__name__)
 
 
 class Provider(object):
-    def __init__(self, bundle, integration=False):
+    def __init__(self, bundle, integration=False, url=None):
         self.bundle = bundle
         self.integration = integration
+        self.url = url
 
     @classmethod
     def is_same_user(cls, this, that):
         return this.login == that.login
 
     def _api(self, token):
+        if self.url:
+            return Github(token, base_url=self.url, timeout=50)
         return Github(token, timeout=50)
 
     def get_user(self, token):

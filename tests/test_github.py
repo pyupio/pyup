@@ -34,6 +34,17 @@ class ProviderTest(TestCase):
         prov._api("foo")
         github_mock.assert_called_once_with("foo", timeout=50)
 
+
+    @patch("pyup.providers.github.Github")
+    def test_api_different_host_in_provider_url(self, github_mock):
+        url = 'localhost'
+        token = 'foo'
+
+        prov = Provider(bundle=RequirementsBundle(), url=url)
+        prov._api(token)
+        github_mock.assert_called_once_with(token, base_url=url, timeout=50)
+
+
     def test_get_user(self):
         self.provider.get_user("foo")
         self.provider._api().get_user.assert_called_once_with()

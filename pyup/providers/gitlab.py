@@ -14,8 +14,9 @@ class BadTokenError(Exception):
 
 
 class Provider(object):
-    def __init__(self, bundle, intergration=False):
+    def __init__(self, bundle, intergration=False, url=None):
         self.bundle = bundle
+        self.url = url
         if intergration:
             raise NotImplementedError(
                 'Gitlab provider does not support integration mode')
@@ -27,7 +28,7 @@ class Provider(object):
     def _api(self, token):
         parts = token.split('@')
         if len(parts) == 1:
-            host = 'https://gitlab.com'
+            host = self.url or 'https://gitlab.com'
             auth = parts[0]
         elif len(parts) == 2:
             auth, host = parts
