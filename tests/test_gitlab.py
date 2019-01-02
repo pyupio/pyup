@@ -90,7 +90,7 @@ class ProviderTest(TestCase):
         req = self.provider.get_requirement_file(self.repo, "path", "branch")
         self.assertIsNotNone(req)
         self.provider.bundle.get_requirement_file_class.assert_called_once_with()
-        self.assertEquals(self.provider.bundle.get_requirement_file_class().call_count, 1)
+        self.assertEqual(self.provider.bundle.get_requirement_file_class().call_count, 1)
 
         self.provider.get_file = Mock(return_value = (None, None))
         req = self.provider.get_requirement_file(self.repo, "path", "branch")
@@ -137,9 +137,9 @@ class ProviderTest(TestCase):
         file = Mock()
         self.repo.files.get.return_value = file
         self.provider.create_commit("path", "branch", "commit", "content", "sha", self.repo, "com")
-        self.assertEquals(self.repo.files.get.call_count, 1)
-        self.assertEquals(file.content, b64encode(b"content").decode())
-        self.assertEquals(file.encoding, "base64")
+        self.assertEqual(self.repo.files.get.call_count, 1)
+        self.assertEqual(file.content, b64encode(b"content").decode())
+        self.assertEqual(file.encoding, "base64")
         file.save.assert_called_with(branch="branch", commit_message="commit")
 
     def test_create_and_commit_file(self):
@@ -174,7 +174,7 @@ class ProviderTest(TestCase):
 
         mr.source_branch = "pyup-bla"
         self.provider.close_pull_request(self.repo, self.repo, mr, "comment", prefix="pyup-")
-        self.assertEquals(self.repo.branches.get().delete.call_count, 1)
+        self.assertEqual(self.repo.branches.get().delete.call_count, 1)
 
     def test_merge_pull_request(self):
         mr = Mock()
@@ -196,8 +196,8 @@ class ProviderTest(TestCase):
     def test_create_pull_request_with_exceeding_body(self):
         body = ''.join(["a" for i in range(0, 65536 + 1)])
         self.provider.create_pull_request(self.repo, "title", body, "master", "new", False, [], Config())
-        self.assertEquals(self.provider.bundle.get_pull_request_class.call_count, 1)
-        self.assertEquals(self.provider.bundle.get_pull_request_class().call_count, 1)
+        self.assertEqual(self.provider.bundle.get_pull_request_class.call_count, 1)
+        self.assertEqual(self.provider.bundle.get_pull_request_class().call_count, 1)
 
     @patch("pyup.providers.gitlab.Provider._merge_merge_request")
     def test_create_pull_request_merge_when_pipeline_succeeds(self, merge_mock):
@@ -212,13 +212,13 @@ class ProviderTest(TestCase):
 
     def test_create_pull_request(self):
         self.provider.create_pull_request(self.repo, "title", "body", "master", "new", False, [], Config())
-        self.assertEquals(self.provider.bundle.get_pull_request_class.call_count, 1)
-        self.assertEquals(self.provider.bundle.get_pull_request_class().call_count, 1)
+        self.assertEqual(self.provider.bundle.get_pull_request_class.call_count, 1)
+        self.assertEqual(self.provider.bundle.get_pull_request_class().call_count, 1)
 
     def test_create_pull_request_with_label(self):
         self.provider.create_pull_request(self.repo, "title", "body", "master", "new", "some-label", [], Config())
-        self.assertEquals(self.provider.bundle.get_pull_request_class.call_count, 1)
-        self.assertEquals(self.provider.bundle.get_pull_request_class().call_count, 1)
+        self.assertEqual(self.provider.bundle.get_pull_request_class.call_count, 1)
+        self.assertEqual(self.provider.bundle.get_pull_request_class().call_count, 1)
 
     def test_create_issue(self):
         self.assertIsNot(self.provider.create_issue(self.repo, "title", "body"), False)
