@@ -79,5 +79,13 @@ then run pyup from the cli::
     # gitlab.com:
     $ pyup --provider gitlab --repo=username/repo --user-token=<YOUR_TOKEN>
 
-    # other:
+Custom Gitlab instance and GitHub Enterprise support
+----------------------------------------------------
+
+Pyup offer support for custom Gitlab instances and GitHub Enterprise via the provider_url option :
+
+    $ pyup --provider github --provider_url https://github.enterprise/api/v3 --repo=username/repo --user-token=<YOUR_TOKEN>
+    $ pyup --provider gitlab --provider_url https://your.gitlab/ --repo=username/repo --user-token=<YOUR_TOKEN>
+
+    # The alternative method to add a custom gitlab instance is still valid :
     $ pyup --provider gitlab --repo=username/repo --user-token=<YOUR_TOKEN>@https://your.gitlab/

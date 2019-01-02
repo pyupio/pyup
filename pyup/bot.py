@@ -13,9 +13,9 @@ logger = logging.getLogger(__name__)
 class Bot(object):
     def __init__(self, repo, user_token, bot_token=None,
                  provider=GithubProvider, bundle=RequirementsBundle, config=Config,
-                 integration=False):
+                 integration=False, provider_url=None):
         self.req_bundle = bundle()
-        self.provider = provider(self.req_bundle, integration)
+        self.provider = provider(self.req_bundle, integration, provider_url)
         self.user_token = user_token
         self.bot_token = bot_token
         self.fetched_files = []
@@ -429,8 +429,14 @@ class Bot(object):
                     updated_files[update.requirement_file.path] = {"sha": new_sha,
                                                                    "content": content}
                 else:
+                    if hasattr(self.user_repo, 'path_with_namespace'):
+                        repo_name = self.user_repo.path_with_namespace
+                    elif hasattr(self.user_repo, 'full_name'):
+                        repo_name = self.user_repo.full_name
+                    else:
+                        repo_name = str(self.user_repo)
                     logger.error("Empty commit at {repo}, unable to update {title}.".format(
-                        repo=self.user_repo.path_with_namespace, title=title)
+                        repo=repo_name, title=title)
                     )
 
             if updated_files:

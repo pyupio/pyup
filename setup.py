@@ -16,7 +16,7 @@ with open('HISTORY.rst') as history_file:
 
 requirements = [
     "requests",
-    "pygithub>=1.35",
+    "pygithub>=1.43.3",
     "click",
     "tqdm",
     "pyyaml",
@@ -25,7 +25,8 @@ requirements = [
     "python-gitlab>=1.3.0",
     "dparse>=0.4",
     "safety",
-    "jinja2>=2.3"
+    "jinja2>=2.3",
+    "beautifulsoup4"
 ]
 
 test_requirements = [

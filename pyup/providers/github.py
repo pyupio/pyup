@@ -13,15 +13,18 @@ logger = logging.getLogger(__name__)
 
 
 class Provider(object):
-    def __init__(self, bundle, integration=False):
+    def __init__(self, bundle, integration=False, url=None):
         self.bundle = bundle
         self.integration = integration
+        self.url = url
 
     @classmethod
     def is_same_user(cls, this, that):
         return this.login == that.login
 
     def _api(self, token):
+        if self.url:
+            return Github(token, base_url=self.url, timeout=50)
         return Github(token, timeout=50)
 
     def get_user(self, token):
@@ -72,9 +75,6 @@ class Provider(object):
 
     def get_file(self, repo, path, branch):
         logger.info("Getting file at {} for branch {}".format(path, branch))
-        # if the path has no root, add it
-        if not path.startswith("/"):
-            path = "/" + path
         try:
             contentfile = repo.get_contents(quote(path), ref=branch)
             return contentfile.decoded_content.decode("utf-8"), contentfile
@@ -153,8 +153,6 @@ class Provider(object):
         # hardware with Gigabit NICs (probably because they do some async stuff).
         # If we encounter an error, the loop waits for 1/2/3 seconds before trying again.
         # If the loop reaches the 4th iteration, we give up and raise the error.
-        if not path.startswith("/"):
-            path = "/" + path
 
         # integrations don't support committer data being set. Add this as extra kwarg
         # if we're not dealing with an integration token
