@@ -493,7 +493,7 @@ class Requirement(object):
         )
         hashes = []
         if self.hashes and update_hashes:
-            for item in self.get_hashes(self.latest_version_within_specs):
+            for item in sorted(self.get_hashes(self.latest_version_within_specs), key=lambda x: x["hash"]):
                 hashes.append({"method": "sha256", "hash": item["hash"]})
 
         return updater_class.update(

@@ -72,9 +72,6 @@ class Provider(object):
 
     def get_file(self, repo, path, branch):
         logger.info("Getting file at {} for branch {}".format(path, branch))
-        # if the path has no root, add it
-        if not path.startswith("/"):
-            path = "/" + path
         try:
             contentfile = repo.get_contents(quote(path), ref=branch)
             return contentfile.decoded_content.decode("utf-8"), contentfile
@@ -153,8 +150,6 @@ class Provider(object):
         # hardware with Gigabit NICs (probably because they do some async stuff).
         # If we encounter an error, the loop waits for 1/2/3 seconds before trying again.
         # If the loop reaches the 4th iteration, we give up and raise the error.
-        if not path.startswith("/"):
-            path = "/" + path
 
         # integrations don't support committer data being set. Add this as extra kwarg
         # if we're not dealing with an integration token

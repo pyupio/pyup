@@ -429,8 +429,14 @@ class Bot(object):
                     updated_files[update.requirement_file.path] = {"sha": new_sha,
                                                                    "content": content}
                 else:
+                    if hasattr(self.user_repo, 'path_with_namespace'):
+                        repo_name = self.user_repo.path_with_namespace
+                    elif hasattr(self.user_repo, 'full_name'):
+                        repo_name = self.user_repo.full_name
+                    else:
+                        repo_name = str(self.user_repo)
                     logger.error("Empty commit at {repo}, unable to update {title}.".format(
-                        repo=self.user_repo.path_with_namespace, title=title)
+                        repo=repo_name, title=title)
                     )
 
             if updated_files:
