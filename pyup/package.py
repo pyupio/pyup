@@ -1,7 +1,21 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, print_function, unicode_literals
+
 from packaging.version import parse as parse_version
+from pyup import legacy_index
 import requests
+
+
+def _extract_releases(response, index_server):
+    try:
+        json = response.json()
+        if index_server:
+            return sorted(json["result"].keys(), key=lambda v: parse_version(v), reverse=True)
+        else:
+            return sorted(json["releases"].keys(), key=lambda v: parse_version(v), reverse=True)
+    except ValueError:
+        if index_server:
+            return sorted(legacy_index.get_all_versions(response.text), key=lambda v: parse_version(v), reverse=True)
 
 
 def fetch_package(name, index_server=None):
@@ -10,12 +24,7 @@ def fetch_package(name, index_server=None):
     r = requests.get(url, timeout=3)
     if r.status_code != 200:
         return None
-    json = r.json()
-    if index_server:
-        releases = sorted(json["result"].keys(), key=lambda v: parse_version(v), reverse=True)
-    else:
-        releases = sorted(json["releases"].keys(), key=lambda v: parse_version(v), reverse=True)
-    return Package(name, releases)
+    return Package(name, _extract_releases(r, index_server))
 
 
 class Package(object):

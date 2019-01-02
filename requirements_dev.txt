@@ -9,3 +9,4 @@ PyYAML==3.13
 cryptography==2.3
 requests-mock==1.2.0
 setuptools==26.1.1
+beautifulsoup4==4.6.0
