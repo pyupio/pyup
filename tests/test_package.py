@@ -5,21 +5,12 @@ import requests_mock
 import os
 from pyup.package import fetch_package, Package
 
-
 def package_factory(name, versions):
     p = Package(name=name, versions=versions)
     return p
 
 
 class FetchPackageTestCase(TestCase):
-
-    @requests_mock.mock()
-    def test_fetch_package_legacy_index(self, requests):
-        with open(os.path.dirname(os.path.realpath(__file__)) + "/data/legacy_index.html") as f:
-            requests.get("https://some.foo/root/pypi/simple/AccessControl", text=f.read())
-        package = fetch_package("AccessControl", "https://some.foo/root/pypi/simple/")
-        self.assertNotEqual(package, None)
-        self.assertEqual(package.versions, ['4.0b4', '2.13.0'])
 
     @requests_mock.mock()
     def test_fetch_package_devpi(self, requests):

@@ -25,8 +25,7 @@ requirements = [
     "python-gitlab>=1.3.0",
     "dparse>=0.4",
     "safety",
-    "jinja2>=2.3",
-    "beautifulsoup4"
+    "jinja2>=2.3"
 ]
 
 test_requirements = [
