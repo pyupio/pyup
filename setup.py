@@ -19,7 +19,7 @@ requirements = [
     "pygithub>=1.43.3",
     "click",
     "tqdm",
-    "pyyaml",
+    "pyyaml>=4.2b4",
     "packaging",
     "six",
     "python-gitlab>=1.3.0",

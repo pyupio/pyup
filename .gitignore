@@ -66,3 +66,6 @@ util/
 
 # Local development
 .env
+
+# Virtual env directory
+/venv/*
