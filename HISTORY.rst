@@ -3,6 +3,15 @@
 History
 -------
 
+1.0.3 (2019-1-7)
+-----------------
+* Update PyGithub, Cryptography, PyYAML versions with fixes
+* Fix for GitHub empty commit error message #329
+* Fix use of deprecated assertEquals() in tests #324
+* Make schedules case-insensitive #320
+* Improve Gitlab integration #314
+* Add provider_url option and support for GitHub Enterprise #301
+
 1.0.2 (2018-8-21)
 -----------------
 * Order the hashes being updated on requirements files.
