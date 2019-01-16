@@ -231,6 +231,7 @@ class Requirement(object):
 
         self._is_insecure = None
         self._changelog = None
+        self._package_metadata = None
 
     def __eq__(self, other):
         return (
@@ -440,6 +441,25 @@ class Requirement(object):
                                     self.latest_version_within_specs):
                                 self._changelog[version] = log
         return self._changelog
+
+    @property
+    def package_metadata(self):
+        if self._package_metadata is None:
+            self._package_metadata = OrderedDict()
+            if settings.api_key:
+                r = requests.get(
+                    "https://pyup.io/api/v1/package_metadata/{}/".format(self.key),
+                    headers={"X-Api-Key": settings.api_key}
+                )
+                if r.status_code == 403:
+                    raise InvalidKeyError
+                if r.status_code == 200:
+                    data = r.json()
+                    if data and 'links' in data:
+                        self._package_metadata = OrderedDict(
+                            (source, link) for source, link in data['links']
+                        )
+        return self._package_metadata
 
     @property
     def is_outdated(self):

@@ -12,4 +12,12 @@ This PR pins [{{ requirement.full_name }}](https://pypi.org/project/{{ requireme
 *The bot wasn't able to find a changelog for this release. [Got an idea?](https://github.com/pyupio/changelogs/issues/new)*
 {% endif %}
 
+{% if requirement.package_metadata %}
+{% with package_metadata=requirement.package_metadata %}
+{% include "_links.md" %}
+{% endwith %}
+{% elif api_key %}
+*The bot wasn't able to find the links for this package. [Got an idea?](https://github.com/pyupio/changelogs/issues/new)*
+{% endif %}
+
 {% include "_api_key.md" %}

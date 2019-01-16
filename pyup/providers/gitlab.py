@@ -20,9 +20,10 @@ class Provider(object):
         def __init__(self, login):
             self.login = login
 
-    def __init__(self, bundle, intergration=False, url=None):
+    def __init__(self, bundle, intergration=False, url=None, dryrun=False):
         self.bundle = bundle
         self.url = url
+        self.dryrun = dryrun
         if intergration:
             raise NotImplementedError(
                 'Gitlab provider does not support integration mode')
@@ -83,8 +84,10 @@ class Provider(object):
             return contentfile.decode().decode("utf-8"), contentfile
 
     def create_and_commit_file(self, repo, path, branch, content, commit_message, committer):
-
         # TODO: committer
+        if self.dryrun:
+            return
+
         return repo.files.create({
             'file_path': path,
             'branch': branch,
@@ -102,6 +105,9 @@ class Provider(object):
         return None
 
     def create_branch(self, repo, base_branch, new_branch):
+        if self.dryrun:
+            return
+
         try:
             repo.branches.create({"branch": new_branch,
                                   "ref": base_branch})
@@ -134,6 +140,9 @@ class Provider(object):
         :param repo: github.Repository
         :param branch: string name of the branch to delete
         """
+        if self.dryrun:
+            return
+
         # make sure that the name of the branch begins with pyup.
         assert branch.startswith(prefix)
         obj = repo.branches.get(branch)
@@ -141,6 +150,8 @@ class Provider(object):
 
     def create_commit(self, path, branch, commit_message, content, sha, repo, committer):
         # TODO: committer
+        if self.dryrun:
+            return
 
         f = repo.files.get(file_path=path, ref=branch)
         # Gitlab supports a plaintext encoding, which is when the encoding
@@ -158,6 +169,9 @@ class Provider(object):
         ]
 
     def close_pull_request(self, bot_repo, user_repo, pull_request, comment, prefix):
+        if self.dryrun:
+            return True
+
         mr = user_repo.mergerequests.get(pull_request.number)
         mr.state_event = 'close'
         mr.save()
@@ -168,11 +182,24 @@ class Provider(object):
         self.delete_branch(user_repo, source_branch, prefix)
 
     def _merge_merge_request(self, mr, config):
+        if self.dryrun:
+            return
+
         mr.merge(should_remove_source_branch=config.gitlab.should_remove_source_branch,
                  merge_when_pipeline_succeeds=True)
 
     def create_pull_request(self, repo, title, body, base_branch, new_branch, pr_label, assignees, config):
         # TODO: Check permissions
+        if self.dryrun:
+            return self.bundle.get_pull_request_class()(
+                state='',
+                title=title,
+                url='',
+                created_at=0,
+                number=0,
+                issue=False
+            )
+
         try:
             if len(body) >= 65536:
                 logger.warning("PR body exceeds maximum length of 65536 chars, reducing")
@@ -223,6 +250,9 @@ class Provider(object):
                         )
 
     def create_issue(self, repo, title, body):
+        if self.dryrun:
+            return
+
         return repo.issues.create({
             'title': title,
             'description': body

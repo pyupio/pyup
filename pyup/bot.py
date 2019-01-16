@@ -13,9 +13,9 @@ logger = logging.getLogger(__name__)
 class Bot(object):
     def __init__(self, repo, user_token, bot_token=None,
                  provider=GithubProvider, bundle=RequirementsBundle, config=Config,
-                 integration=False, provider_url=None):
+                 integration=False, provider_url=None, dryrun=False):
         self.req_bundle = bundle()
-        self.provider = provider(self.req_bundle, integration, provider_url)
+        self.provider = provider(self.req_bundle, integration, provider_url, dryrun)
         self.user_token = user_token
         self.bot_token = bot_token
         self.fetched_files = []
@@ -31,6 +31,7 @@ class Bot(object):
         self._fetched_prs = False
 
         self.integration = integration
+        self.dryrun = dryrun
 
     @property
     def user_repo(self):
@@ -228,6 +229,8 @@ class Bot(object):
         :param update:
         :param pull_request:
         """
+        if self.dryrun:
+            return
         closed = []
         if self.bot_token and not pull_request.is_initial:
             for pr in self.pull_requests:
@@ -328,6 +331,8 @@ class Bot(object):
         :return: bool -- True if successfull
         """
         logger.info("Preparing to create branch {} from {}".format(new_branch, self.config.branch))
+        if self.dryrun:
+            return True
         try:
             # create new branch
             self.provider.create_branch(
@@ -405,6 +410,7 @@ class Bot(object):
 
     def commit_and_pull(self, initial, new_branch, title, body, updates):
         logger.info("Preparing commit {}".format(title))
+
         if self.create_branch(new_branch, delete_empty=False):
             updated_files = {}
             for update in self.iter_changes(initial, updates):
@@ -450,6 +456,8 @@ class Bot(object):
         return None
 
     def create_issue(self, title, body):
+        if self.dryrun:
+            return
         return self.provider.create_issue(
             repo=self.bot_repo if self.bot_token else self.user_repo,
             title=title,
