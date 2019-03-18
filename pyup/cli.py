@@ -23,8 +23,10 @@ import logging
 @click.option('--branch', help='Set the branch the bot should use', default='master')
 @click.option('--initial', help='Set this to bundle all PRs into a large one',
               default=False, is_flag=True)
+@click.option('--dryrun', help='Dry run, creates no new artifacts',
+              default=False, is_flag=True)
 @click.option('--log', help='Set the log level', default="ERROR")
-def main(repo, user_token, bot_token, key, provider, provider_url, branch, initial, log):
+def main(repo, user_token, bot_token, key, provider, provider_url, dryrun, branch, initial, log):
     logging.basicConfig(level=getattr(logging, log.upper(), None))
 
     settings.configure(key=key)
@@ -42,6 +44,7 @@ def main(repo, user_token, bot_token, key, provider, provider_url, branch, initi
         bot_token=bot_token,
         provider=ProviderClass,
         provider_url=provider_url,
+        dryrun=dryrun,
     )
 
     bot.update(branch=branch, initial=initial)
@@ -54,9 +57,9 @@ if __name__ == '__main__':
 class CLIBot(Bot):
 
     def __init__(self, repo, user_token, bot_token=None,
-                 provider=GithubProvider, bundle=RequirementsBundle, provider_url=None):
+                 provider=GithubProvider, bundle=RequirementsBundle, provider_url=None, dryrun=False):
         bundle = CLIBundle
-        super(CLIBot, self).__init__(repo, user_token, bot_token, provider, bundle, provider_url=provider_url)
+        super(CLIBot, self).__init__(repo, user_token, bot_token, provider, bundle, provider_url=provider_url, dryrun=dryrun)
 
     def iter_updates(self, initial, scheduled):
 

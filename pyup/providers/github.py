@@ -13,9 +13,12 @@ logger = logging.getLogger(__name__)
 
 
 class Provider(object):
-    def __init__(self, bundle, integration=False, url=None):
+    name = 'github'
+
+    def __init__(self, bundle, integration=False, url=None, dryrun=False):
         self.bundle = bundle
         self.integration = integration
+        self.dryrun = dryrun
         self.url = url
 
     @classmethod
@@ -88,6 +91,9 @@ class Provider(object):
     def create_and_commit_file(self, repo, path, branch, content, commit_message, committer):
         # integrations don't support committer data being set. Add this as extra kwarg
         # if we're not dealing with an integration token
+        if self.dryrun:
+            return
+
         extra_kwargs = {}
         if not self.integration:
             extra_kwargs["committer"] = self.get_committer_data(committer)
@@ -111,6 +117,9 @@ class Provider(object):
         return None
 
     def create_branch(self, repo, base_branch, new_branch):
+        if self.dryrun:
+            return
+
         try:
             ref = repo.get_git_ref("/".join(["heads", base_branch]))
             repo.create_git_ref(ref="refs/heads/" + new_branch, sha=ref.object.sha)
@@ -143,6 +152,9 @@ class Provider(object):
         :param repo: github.Repository
         :param branch: string name of the branch to delete
         """
+        if self.dryrun:
+            return
+
         # extra safeguard to make sure we are handling a bot branch here
         assert branch.startswith(prefix)
         ref = repo.get_git_ref("/".join(["heads", branch]))
@@ -156,6 +168,9 @@ class Provider(object):
 
         # integrations don't support committer data being set. Add this as extra kwarg
         # if we're not dealing with an integration token
+        if self.dryrun:
+            return
+
         extra_kwargs = {}
         if not self.integration:
             extra_kwargs["committer"] = self.get_committer_data(committer)
@@ -207,6 +222,9 @@ class Provider(object):
             return []
 
     def close_pull_request(self, bot_repo, user_repo, pull_request, comment, prefix):
+        if self.dryrun:
+            return True
+
         try:
             pull_request = bot_repo.get_pull(pull_request.number)
             pull_request.create_issue_comment(comment)
@@ -219,6 +237,16 @@ class Provider(object):
             return False
 
     def create_pull_request(self, repo, title, body, base_branch, new_branch, pr_label, assignees, **kwargs):
+        if self.dryrun:
+            return self.bundle.get_pull_request_class()(
+                state='',
+                title=title,
+                url='',
+                created_at=0,
+                number=0,
+                issue=False
+            )
+
         try:
             if len(body) >= 65536:
                 logger.warning("PR body exceeds maximum length of 65536 chars, reducing")
@@ -254,6 +282,9 @@ class Provider(object):
                 "Unable to create pull request on {repo}".format(repo=repo))
 
     def get_or_create_label(self, repo, name):
+        if self.dryrun:
+            return ''
+
         try:
             label = repo.get_label(name=name)
         except UnknownObjectException:
@@ -267,6 +298,9 @@ class Provider(object):
         return label
 
     def create_issue(self, repo, title, body):
+        if self.dryrun:
+            return
+
         try:
             return repo.create_issue(
                 title=title,
