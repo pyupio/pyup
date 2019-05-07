@@ -162,8 +162,8 @@ class RequirementConfig(object):
 
 class GitlabConfig(object):
 
-    def __init__(self, should_remove_source_branch=False, merge_when_pipeline_succeeds=False):
-        self.should_remove_source_branch = should_remove_source_branch
+    def __init__(self, remove_source_branch=False, merge_when_pipeline_succeeds=False):
+        self.remove_source_branch = remove_source_branch
         self.merge_when_pipeline_succeeds = merge_when_pipeline_succeeds
 
     def __repr__(self):

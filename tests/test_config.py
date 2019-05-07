@@ -168,22 +168,22 @@ class ConfigTestCase(TestCase):
     def test_gitlab(self):
         update = {
             "gitlab": {
-                "should_remove_source_branch": True,
+                "remove_source_branch": True,
                 "merge_when_pipeline_succeeds": True
             }
         }
         config = Config()
-        self.assertEqual(config.gitlab.should_remove_source_branch, False)
+        self.assertEqual(config.gitlab.remove_source_branch, False)
         self.assertEqual(config.gitlab.merge_when_pipeline_succeeds, False)
         config.update_config(update)
-        self.assertEqual(config.gitlab.should_remove_source_branch, True)
+        self.assertEqual(config.gitlab.remove_source_branch, True)
         self.assertEqual(config.gitlab.merge_when_pipeline_succeeds, True)
 
 
 class GitlabConfigTestCase(TestCase):
 
     def test_repr(self):
-        config = GitlabConfig(should_remove_source_branch=False)
+        config = GitlabConfig(remove_source_branch=False)
         self.assertEqual(config.__repr__(), str(config.__dict__))
 
 
