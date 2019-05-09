@@ -25,7 +25,10 @@ requirements = [
     "python-gitlab>=1.3.0",
     "dparse>=0.4",
     "safety",
-    "jinja2>=2.3"
+    "jinja2>=2.3",
+    "GitPython>=2.1.11",
+    "stashy",
+    "requests-toolbelt"
 ]
 
 test_requirements = [
