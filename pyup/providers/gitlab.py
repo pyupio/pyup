@@ -20,9 +20,10 @@ class Provider(object):
         def __init__(self, login):
             self.login = login
 
-    def __init__(self, bundle, intergration=False, url=None):
+    def __init__(self, bundle, intergration=False, url=None, ignore_ssl=False):
         self.bundle = bundle
         self.url = url
+        self.ignore_ssl = ignore_ssl
         if intergration:
             raise NotImplementedError(
                 'Gitlab provider does not support integration mode')
@@ -43,7 +44,7 @@ class Provider(object):
                 'Got token "{}": format should be wither "apikey" for '
                 'gitlab.com, or "apikey@https://yourgitlab.local"'.format(
                     token))
-        return Gitlab(host, auth)
+        return Gitlab(host, auth, ssl_verify=(not self.ignore_ssl))
 
     def get_user(self, token):
         gl = self._api(token)

@@ -10,11 +10,13 @@ from pyup.config import RequirementConfig
 from mock import Mock, patch
 
 
-def bot_factory(repo="foo/foo", user_token="foo", bot_token=None, bot_class=Bot, prs=list()):
+def bot_factory(repo="foo/foo", user_token="foo", bot_token=None,
+                bot_class=Bot, ignore_ssl=False, prs=list()):
     bot = bot_class(
         repo=repo,
         user_token=user_token,
         bot_token=bot_token,
+        ignore_ssl=ignore_ssl,
     )
     bot._fetched_prs = True
     bot.req_bundle.pull_requests = prs
@@ -902,3 +904,13 @@ class ConflictingUpdateTest(TestCase):
         self.assertTrue(
             bot.has_conflicting_update(update1)
         )
+
+
+class IgnoreSslTest(TestCase):
+    def test_ignore_ssl_default_false(self):
+        bot = Bot(repo='foo/foo', user_token='foo')
+        self.assertFalse(bot.provider.ignore_ssl)
+
+    def test_ignore_ssl_true(self):
+        bot = Bot(repo='foo/foo', user_token='foo', ignore_ssl=True)
+        self.assertTrue(bot.provider.ignore_ssl)

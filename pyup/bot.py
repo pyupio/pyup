@@ -13,9 +13,9 @@ logger = logging.getLogger(__name__)
 class Bot(object):
     def __init__(self, repo, user_token, bot_token=None,
                  provider=GithubProvider, bundle=RequirementsBundle, config=Config,
-                 integration=False, provider_url=None):
+                 integration=False, provider_url=None, ignore_ssl=False):
         self.req_bundle = bundle()
-        self.provider = provider(self.req_bundle, integration, provider_url)
+        self.provider = provider(self.req_bundle, integration, provider_url, ignore_ssl)
         self.user_token = user_token
         self.bot_token = bot_token
         self.fetched_files = []
