@@ -628,22 +628,6 @@ class RequirementTestCase(TestCase):
         req = Requirement.parse("Django==1.4", 0)
         self.assertEqual(req.is_loose, False)
 
-    def test_is_compatible(self):
-        req = Requirement.parse("Django~=1.5", 0)
-        self.assertEqual(req.is_compatible, True)
-
-        req = Requirement.parse("Django<=1.4,>1.5", 0)
-        self.assertEqual(req.is_compatible, False)
-
-        req = Requirement.parse("Django===1.4", 0)
-        self.assertEqual(req.is_compatible, False)
-
-        req = Requirement.parse("Django<=1.4,>=1.33", 0)
-        self.assertEqual(req.is_compatible, False)
-
-        req = Requirement.parse("Django==1.4", 0)
-        self.assertEqual(req.is_compatible, False)
-
     def test_is_open_ranged(self):
         req = Requirement.parse("Django>=1.5", 0)
         self.assertEqual(req.is_open_ranged, True)
@@ -814,6 +798,19 @@ class RequirementTestCase(TestCase):
             r = Requirement.parse("Django==1.9.2.rc14 # rq.filter != 1.44", 0)
             self.assertEqual(r.version, "1.9.2.rc14")
 
+    def test_version_compatible(self):
+        req = Requirement.parse("Django~=1.5", 0)
+        self.assertEqual(
+            sorted([s._spec for s in req.specs._specs], key=lambda i: i[0]),
+            sorted([('>=', '1.5'), ('<', '2.0')], key=lambda i: i[0])
+        )
+
+        req = Requirement.parse("Django~=1.5.2", 0)
+        self.assertEqual(
+            sorted([s._spec for s in req.specs._specs], key=lambda i: i[0]),
+            sorted([('>=', '1.5.2'), ('<', '1.6.0')], key=lambda i: i[0])
+        )
+
     def test_prereleases(self):
         r = Requirement.parse("Django==1.9rc1", 0)
         self.assertEqual(r.prereleases, True)
@@ -910,9 +907,6 @@ class RequirementTestCase(TestCase):
             log = r.changelog
             self.assertEqual(len(log), 6)
 
-
-
-
     @requests_mock.mock()
     def test_needs_update(self, requests):
         with open(os.path.dirname(os.path.realpath(__file__)) + "/data/django.json") as f:
@@ -926,6 +920,10 @@ class RequirementTestCase(TestCase):
             r = Requirement.parse("Django>=1.8", 0)
             self.assertEqual(r.needs_update, False)
 
+            # is range and not open
+            r = Requirement.parse("Django>=1.8.2,<1.9.0", 0)
+            self.assertEqual(r.needs_update, False)
+
             # is pinned but old
             r = Requirement.parse("Django==1.7", 0)
             self.assertEqual(r.needs_update, True)
@@ -934,8 +932,12 @@ class RequirementTestCase(TestCase):
             r = Requirement.parse("Django", 0)
             self.assertEqual(r.needs_update, True)
 
-            # is compatible
-            r = Requirement.parse("Django~=1.7", 0)
+            # is compatible and on latest
+            r = Requirement.parse("Django~=1.8.2", 0)
+            self.assertEqual(r.needs_update, False)
+
+            # is compatible but old
+            r = Requirement.parse("Django~=1.7.0", 0)
             self.assertEqual(r.needs_update, True)
 
     def test_str(self):

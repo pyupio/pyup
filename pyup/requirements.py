@@ -232,6 +232,18 @@ class Requirement(object):
         self._is_insecure = None
         self._changelog = None
 
+        if len(self.specs._specs) == 1 and next(iter(self.specs._specs))._spec[0] == "~=":
+            # convert compatible releases to something more easily consumed,
+            # e.g. '~=1.2.3' is equivalent to '>=1.2.3,<1.3.0', while '~=1.2'
+            # is equivalent to '>=1.2,<2.0'
+            min_version = next(iter(self.specs._specs))._spec[1]
+            max_version = list(parse_version(min_version).release)
+            max_version[-1] = 0
+            max_version[-2] = max_version[-2] + 1
+            max_version = '.'.join(str(x) for x in max_version)
+
+            self.specs = SpecifierSet('>=%s,<%s' % (min_version, max_version))
+
     def __eq__(self, other):
         return (
             isinstance(other, Requirement) and
@@ -250,12 +262,6 @@ class Requirement(object):
     @property
     def is_pinned(self):
         if len(self.specs._specs) == 1 and next(iter(self.specs._specs))._spec[0] == "==":
-            return True
-        return False
-
-    @property
-    def is_compatible(self):
-        if len(self.specs._specs) == 1 and next(iter(self.specs._specs))._spec[0] == "~=":
             return True
         return False
 
@@ -333,7 +339,7 @@ class Requirement(object):
 
     @property
     def version(self):
-        if self.is_pinned or self.is_compatible:
+        if self.is_pinned:
             return next(iter(self.specs._specs))._spec[1]
 
         specs = self.specs
@@ -390,7 +396,7 @@ class Requirement(object):
 
     @property
     def needs_update(self):
-        if self.is_pinned or self.is_ranged or self.is_compatible:
+        if self.is_pinned or self.is_ranged:
             return self.can_update_semver and self.is_outdated
         return self.can_update_semver
 
@@ -510,6 +516,7 @@ class Requirement(object):
             parsed, = parse_requirements(s.replace("\t#", "\t #"))
         else:
             parsed, = parse_requirements(s)
+
         return cls(
             name=parsed.name,
             specs=parsed.specifier,
