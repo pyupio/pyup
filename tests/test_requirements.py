@@ -749,7 +749,6 @@ class RequirementTestCase(TestCase):
             r = Requirement.parse("django", 0)
             self.assertEqual(r.version, "1.9.1")
 
-        print("FILTER TEST")
         with patch('pyup.requirements.Requirement.package', new_callable=PropertyMock,
                    return_value=package_factory(
                        name="django",
