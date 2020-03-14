@@ -6,6 +6,9 @@ History
 1.1.0 (2020-3-16)
 -----------------
 * Dropped Python 2.7 and other EOL versions
+* Dropped PyPy support
+* Removed unused and dev requirements
+* Removed deprecated setup.py tests support
 
 1.0.3 (2019-1-7)
 -----------------
