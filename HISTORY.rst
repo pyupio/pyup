@@ -3,7 +3,7 @@
 History
 -------
 
-1.1.0 (2020-3-16)
+1.1.0 (2020-3-14)
 -----------------
 * Dropped Python 2.7 and other EOL versions
 * Dropped PyPy support
