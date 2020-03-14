@@ -21,9 +21,8 @@ requirements = [
     "tqdm",
     "pyyaml>=4.2b4",
     "packaging",
-    "six",
     "python-gitlab>=1.3.0",
-    "dparse>=0.4",
+    "dparse>=0.5.0",
     "safety",
     "jinja2>=2.3"
 ]
@@ -36,7 +35,7 @@ test_requirements = [
 
 setup(
     name='pyupio',
-    version='1.0.3',
+    version='1.1.0a',
     description="A tool to update all your projects requirements",
     long_description=readme + '\n\n' + history,
     long_description_content_type="text/markdown",
@@ -60,12 +59,11 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
         "Programming Language :: Python",
-        "Programming Language :: Python :: 2",
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.3',
-        'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: Implementation :: CPython',
     ],
     entry_points={

@@ -3,6 +3,10 @@
 History
 -------
 
+1.1.0 (2020-3-16)
+-----------------
+* Dropped Python 2.7 and other EOL versions
+
 1.0.3 (2019-1-7)
 -----------------
 * Update PyGithub, Cryptography, PyYAML versions with fixes
