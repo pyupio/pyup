@@ -27,12 +27,6 @@ requirements = [
     "jinja2>=2.3"
 ]
 
-test_requirements = [
-    "requests-mock",
-    "mock",
-    "flake8"
-]
-
 setup(
     name='pyupio',
     version='1.1.0a',
@@ -70,7 +64,5 @@ setup(
         'console_scripts': [
             'pyup = pyup.cli:main',
         ]
-    },
-    test_suite='tests',
-    tests_require=test_requirements,
+    }
 )
