@@ -71,7 +71,7 @@ class Bot(object):
 
     def get_repo_config(self, repo, branch=None, create_error_issue=True):
         branch = self.config.branch if branch is None else branch
-        content, _ = self.provider.get_file(repo, "/.pyup.yml", branch)
+        content, _ = self.provider.get_file(repo, ".pyup.yml", branch)
         if content is not None:
             try:
                 return yaml.safe_load(content)
