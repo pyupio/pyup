@@ -4,6 +4,7 @@ from pyup.bot import Bot
 from pyup.requirements import RequirementFile, RequirementsBundle
 from pyup.providers.github import Provider as GithubProvider
 from pyup.providers.gitlab import Provider as GitlabProvider
+from pyup.providers.bitbucket_server import Provider as BitbucketServerProvider
 
 import click
 from tqdm import tqdm
@@ -13,12 +14,12 @@ import logging
 @click.command()
 @click.version_option(__version__, '-v', '--version')
 @click.option('--repo', prompt='repository', help='')
-@click.option('--user-token', prompt='user token', help='')
+@click.option('--user-token', prompt='user token', help='When using bitbucket_server, use this format: user@token@base_url')
 @click.option('--bot-token', help='', default=None)
 @click.option("--key", default="",
               help="API Key for pyup.io's vulnerability database. Can be set as SAFETY_API_KEY "
                    "environment variable. Default: empty")
-@click.option('--provider', help='API to use; either github or gitlab', default="github")
+@click.option('--provider', help='API to use; either github, gitlab or bitbucket_server', default="github")
 @click.option('--provider_url', help='Optional custom URL to your provider', default=None)
 @click.option('--branch', help='Set the branch the bot should use', default='master')
 @click.option('--initial', help='Set this to bundle all PRs into a large one',
@@ -35,6 +36,8 @@ def main(repo, user_token, bot_token, key, provider, provider_url, branch, initi
         ProviderClass = GithubProvider
     elif provider == 'gitlab':
         ProviderClass = GitlabProvider
+    elif provider == 'bitbucket_server':
+        ProviderClass = BitbucketServerProvider
     else:
         raise NotImplementedError
 
