@@ -71,6 +71,8 @@ class Provider(object):
 
     def get_file(self, repo, path, branch):
         logger.info("Getting file at {} for branch {}".format(path, branch))
+        # remove unnecessary leading slash to avoid gitlab errors. See #375
+        path = path.lstrip('/')
         try:
             contentfile = repo.files.get(file_path=path, ref=branch)
         except GitlabGetError as e:
