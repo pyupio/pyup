@@ -33,25 +33,25 @@ class ProviderTest(TestCase):
         self.assertTrue(Provider.is_same_user(this, that))
 
     @patch("pyup.providers.gitlab.Gitlab")
-    def test_api(self, github_mock):
+    def test_api(self, gitlab_mock):
         prov = Provider(bundle=RequirementsBundle())
         prov._api("foo")
-        github_mock.assert_called_once_with("https://gitlab.com", "foo")
+        gitlab_mock.assert_called_once_with("https://gitlab.com", "foo", ssl_verify=True)
 
     @patch("pyup.providers.gitlab.Gitlab")
-    def test_api_different_host_in_provider_url(self, github_mock):
+    def test_api_different_host_in_provider_url(self, gitlab_mock):
         url = 'localhost'
         token = 'foo'
 
         prov = Provider(bundle=RequirementsBundle(), url=url)
         prov._api(token)
-        github_mock.assert_called_once_with(url, token)
+        gitlab_mock.assert_called_once_with(url, token, ssl_verify=True)
 
     @patch("pyup.providers.gitlab.Gitlab")
-    def test_api_different_host_in_token(self, github_mock):
+    def test_api_different_host_in_token(self, gitlab_mock):
         prov = Provider(bundle=RequirementsBundle())
         prov._api("foo@localhost")
-        github_mock.assert_called_once_with("localhost", "foo")
+        gitlab_mock.assert_called_once_with("localhost", "foo", ssl_verify=True)
 
     def test_get_user(self):
         self.provider.get_user("foo")
@@ -256,3 +256,22 @@ class ProviderTest(TestCase):
         self.repo.mergerequests.list.return_value = [Mock(), Mock()]
         issues = list(self.provider.iter_issues(self.repo, Mock()))
         self.assertEqual(len(issues), 2)
+
+    @patch("pyup.providers.gitlab.Gitlab")
+    def test_ignore_ssl_should_be_default_false(self, gitlab_mock):
+        provider = Provider(bundle=Mock())
+        provider._api("foo")
+
+        self.assertFalse(provider.ignore_ssl)
+        gitlab_mock.assert_called_once_with(
+            "https://gitlab.com", "foo", ssl_verify=True)
+
+    @patch("pyup.providers.gitlab.Gitlab")
+    def test_ignore_ssl(self, gitlab_mock):
+        ignore_ssl = True
+        provider = Provider(bundle=RequirementsBundle(), ignore_ssl=ignore_ssl)
+        provider._api("foo")
+
+        self.assertTrue(provider.ignore_ssl)
+        gitlab_mock.assert_called_once_with(
+            "https://gitlab.com", "foo", ssl_verify=(not ignore_ssl))

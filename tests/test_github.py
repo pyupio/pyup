@@ -32,8 +32,7 @@ class ProviderTest(TestCase):
     def test_api(self, github_mock):
         prov = Provider(bundle=RequirementsBundle())
         prov._api("foo")
-        github_mock.assert_called_once_with("foo", timeout=50)
-
+        github_mock.assert_called_once_with("foo", timeout=50, verify=True)
 
     @patch("pyup.providers.github.Github")
     def test_api_different_host_in_provider_url(self, github_mock):
@@ -42,7 +41,7 @@ class ProviderTest(TestCase):
 
         prov = Provider(bundle=RequirementsBundle(), url=url)
         prov._api(token)
-        github_mock.assert_called_once_with(token, base_url=url, timeout=50)
+        github_mock.assert_called_once_with(token, base_url=url, timeout=50, verify=True)
 
 
     def test_get_user(self):
@@ -302,3 +301,15 @@ class ProviderTest(TestCase):
         self.repo.get_label.assert_called_once_with(name="another-label")
         self.repo.create_label.assert_called_once_with(name="another-label", color="1BB0CE")
 
+    def test_ignore_ssl_should_be_default_false(self):
+        provider = Provider(bundle=Mock())
+        self.assertFalse(provider.ignore_ssl)
+
+    @patch("pyup.providers.github.Github")
+    def test_ignore_ssl(self, github_mock):
+        ignore_ssl = True
+        provider = Provider(bundle=RequirementsBundle(), ignore_ssl=ignore_ssl)
+        provider._api("foo")
+
+        self.assertTrue(provider.ignore_ssl)
+        github_mock.assert_called_once_with("foo", timeout=50, verify=(not ignore_ssl))
