@@ -71,7 +71,7 @@ class Bot(object):
 
     def get_repo_config(self, repo, branch=None, create_error_issue=True):
         branch = self.config.branch if branch is None else branch
-        content, _ = self.provider.get_file(repo, "/.pyup.yml", branch)
+        content, _ = self.provider.get_file(repo, ".pyup.yml", branch)
         if content is not None:
             try:
                 return yaml.safe_load(content)
@@ -361,14 +361,14 @@ class Bot(object):
         branch = 'pyup-config'
         if self.create_branch(branch, delete_empty=True):
             content = self.config.generate_config_file(new_config)
-            _, content_file = self.provider.get_file(self.user_repo, '/.pyup.yml', branch)
+            _, content_file = self.provider.get_file(self.user_repo, '.pyup.yml', branch)
             if content_file:
                 # a config file exists, update and commit it
                 logger.info(
                     "Config file exists, updating config for sha {}".format(content_file.sha))
                 self.provider.create_commit(
                     repo=self.user_repo,
-                    path="/.pyup.yml",
+                    path=".pyup.yml",
                     branch=branch,
                     content=content,
                     commit_message="update pyup.io config file",
@@ -379,7 +379,7 @@ class Bot(object):
             # there's no config file present, write a new config file and commit it
             self.provider.create_and_commit_file(
                 repo=self.user_repo,
-                path="/.pyup.yml",
+                path=".pyup.yml",
                 branch=branch,
                 content=content,
                 commit_message="create pyup.io config file",
