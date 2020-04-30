@@ -29,7 +29,7 @@ requirements = [
 
 setup(
     name='pyupio',
-    version='1.1.0',
+    version='1.1.1a',
     description="A tool to update all your projects requirements",
     long_description=readme + '\n\n' + history,
     long_description_content_type="text/markdown",
