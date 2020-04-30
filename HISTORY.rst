@@ -3,8 +3,21 @@
 History
 -------
 
+1.1.1a (current)
+-----------------
+* Fixed package Python requirement metadata to Python 3.5+
+* Added an option to ignore SSL certificate
+* GitLab integration minor fixes
+
 1.1.0 (2020-3-14)
 -----------------
+
+This version does not contain, as it was supposed to, the metadata setting
+minimum Python requirement to 3.5. That means you might still get this while
+setting up this package from a Python 2.7. If that is the case, make sure you
+are using version 1.0.3 instead. If you are running from a Python 3 environment
+this should not be an issue.
+
 * Dropped Python 2.7 and other EOL versions
 * Dropped PyPy support
 * Removed unused and dev requirements

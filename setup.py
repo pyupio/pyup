@@ -34,7 +34,7 @@ setup(
     long_description=readme + '\n\n' + history,
     long_description_content_type="text/markdown",
     author="Jannis Gebauer",
-    author_email='jay@pyup.io',
+    author_email='support@pyup.io',
     url='https://github.com/pyupio/pyup',
     packages=[
         'pyup',
@@ -60,6 +60,7 @@ setup(
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: Implementation :: CPython',
     ],
+    python_requires=">=3.5",
     entry_points={
         'console_scripts': [
             'pyup = pyup.cli:main',
