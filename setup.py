@@ -32,7 +32,7 @@ setup(
     version='1.1.1a',
     description="A tool to update all your projects requirements",
     long_description=readme + '\n\n' + history,
-    long_description_content_type="text/markdown",
+    long_description_content_type="text/x-rst",
     author="Jannis Gebauer",
     author_email='support@pyup.io',
     url='https://github.com/pyupio/pyup',

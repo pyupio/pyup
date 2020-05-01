@@ -9,6 +9,9 @@ History
 * Added an option to ignore SSL certificate
 * GitLab integration minor fixes
 * Upgraded Dparse and Safety requirement
+* Fixed `#343`_ affecting Cookiecutter projects
+
+.. _#343: https://github.com/pyupio/pyup/issues/343
 
 1.1.0 (2020-3-14)
 -----------------
