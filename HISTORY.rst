@@ -3,6 +3,10 @@
 History
 -------
 
+1.1.2a (current)
+----------------
+* Current unstable
+
 1.1.1 (2020-05-01)
 ------------------
 * Fixed package Python requirement metadata to Python 3.5+
