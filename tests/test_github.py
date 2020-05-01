@@ -53,7 +53,6 @@ class ProviderTest(TestCase):
         self.provider._api().get_repo.assert_called_once_with("name")
 
     def test_get_default_branch(self):
-
         self.repo.default_branch = "foo"
         self.assertEqual(
             self.provider.get_default_branch(self.repo),
@@ -86,7 +85,6 @@ class ProviderTest(TestCase):
             list(self.provider.iter_git_tree(self.repo, "some branch"))
 
     def test_get_file(self):
-
         content, obj = self.provider.get_file(self.repo, "path", "branch")
         self.assertIsNotNone(content)
         self.assertIsNotNone(obj)
@@ -97,8 +95,14 @@ class ProviderTest(TestCase):
         self.assertIsNone(content)
         self.assertIsNone(obj)
 
-    def test_get_requirement_file(self):
+    def test_get_file_placeholder(self):
+        # template path (e.g. cookiecutter template): '{' and '}' should not be escaped
+        content, obj = self.provider.get_file(self.repo, "{{path}}", "branch")
+        self.assertIsNotNone(content)
+        self.assertIsNotNone(obj)
+        self.repo.get_contents.assert_called_with("{{path}}", ref="branch")
 
+    def test_get_requirement_file(self):
         req = self.provider.get_requirement_file(self.repo, "path", "branch")
         self.assertIsNotNone(req)
         self.provider.bundle.get_requirement_file_class.assert_called_once_with()
