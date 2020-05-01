@@ -22,8 +22,8 @@ requirements = [
     "pyyaml>=4.2b4",
     "packaging",
     "python-gitlab>=1.3.0",
-    "dparse>=0.5.0",
-    "safety",
+    "dparse>=0.5.1",
+    "safety>=1.9.0",
     "jinja2>=2.3"
 ]
 

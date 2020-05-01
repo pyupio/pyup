@@ -8,6 +8,7 @@ History
 * Fixed package Python requirement metadata to Python 3.5+
 * Added an option to ignore SSL certificate
 * GitLab integration minor fixes
+* Upgraded Dparse and Safety requirement
 
 1.1.0 (2020-3-14)
 -----------------
