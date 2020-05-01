@@ -217,7 +217,7 @@ class ProviderTest(TestCase):
         mr = Mock()
         mr.merge.return_value = True
         config = Config()
-        config.update_config({'gitlab': {'remove_source_branch': True}})
+        config.update_config({'gitlab': {'should_remove_source_branch': True}})
         self.provider._merge_merge_request(mr, config)
         mr.merge.assert_called_once_with(merge_when_pipeline_succeeds=True,
                                          remove_source_branch=True)
