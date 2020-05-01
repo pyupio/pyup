@@ -3,15 +3,17 @@
 History
 -------
 
-1.1.1a (current)
------------------
+1.1.1 (2020-05-01)
+------------------
 * Fixed package Python requirement metadata to Python 3.5+
 * Added an option to ignore SSL certificate
 * GitLab integration minor fixes
 * Upgraded Dparse and Safety requirement
 * Fixed `#343`_ affecting Cookiecutter projects
+* Fixed `#348`_ affecting GitLab branch removal
 
 .. _#343: https://github.com/pyupio/pyup/issues/343
+.. _#348: https://github.com/pyupio/pyup/pull/348
 
 1.1.0 (2020-3-14)
 -----------------
