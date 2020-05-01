@@ -58,7 +58,7 @@ this should not be an issue.
 * Creating issues on invalid config files is now configurable
 
 0.10.0 (2018-3-15)
------------------
+------------------
 * The bot now creates issues if there are any problems with the config file
 * Added support for setup.cfg files (thanks @kxepal)
 * Switched to the GitLab v4 API (thanks @kxepal)
@@ -95,8 +95,7 @@ this should not be an issue.
 * Added support for GitHubs new collaborator invitation system.
 * The bot now correctly parses requirement files that begin with a whitespace.
 * Fixed a bug with requirement files that had special characters in the filepath.
-* Overall improvements with hashed requirement files. Almost all flavors should now be parsed
- correctly
+* Overall improvements with hashed requirement files. Almost all flavors should now be parsed correctly
 * Added support for Gitlab, thanks a lot to @samdroid-apps
 * Added support for compatible releases
 
@@ -145,14 +144,14 @@ this should not be an issue.
 ------------------
 
 * Fixed a bug with the github provider when committing too fast.
-* Requirement content replace function had a bug where not always the right requirement
-was replaced
+* Requirement content replace function had a bug where not always the right
+  requirement was replaced
 
 0.1.3 (2015-12-27)
 ------------------
 
-* PyGithub should be installed as a specific dependency to keep things sane and simple until the
-changes on upstream are merged.
+* PyGithub should be installed as a specific dependency to keep things sane
+  and simple until the changes on upstream are merged.
 
 0.1.2 (2015-12-27)
 ------------------
