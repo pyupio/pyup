@@ -32,7 +32,7 @@ class ProviderTest(TestCase):
     def test_api(self, github_mock):
         prov = Provider(bundle=RequirementsBundle())
         prov._api("foo")
-        github_mock.assert_called_once_with("foo", timeout=50, verify=True)
+        github_mock.assert_called_once_with("foo", base_url=None, timeout=50, verify=True)
 
     @patch("pyup.providers.github.Github")
     def test_api_different_host_in_provider_url(self, github_mock):
@@ -316,4 +316,4 @@ class ProviderTest(TestCase):
         provider._api("foo")
 
         self.assertTrue(provider.ignore_ssl)
-        github_mock.assert_called_once_with("foo", timeout=50, verify=(not ignore_ssl))
+        github_mock.assert_called_once_with("foo", base_url=None, timeout=50, verify=(not ignore_ssl))
