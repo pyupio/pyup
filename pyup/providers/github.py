@@ -15,7 +15,7 @@ class Provider(object):
         self.url = url
         self.ignore_ssl = ignore_ssl
         self.__api = None
-        
+        self.__token = ''
 
     @classmethod
     def is_same_user(cls, this, that):
@@ -23,8 +23,12 @@ class Provider(object):
 
     def _api(self, token):
         verify = not self.ignore_ssl
-        if not self.__api:
-            self.__api = Github(token, base_url=self.url, timeout=50, verify=verify)
+
+        # If we don't already have an instance or for some reason the token has changed
+        # we create a new instance
+        if not self.__api or token != self.__token:
+            self.__token = token
+            self.__api = Github(self.__token, base_url=self.url, timeout=50, verify=verify)
         return self.__api
 
     def get_user(self, token):
