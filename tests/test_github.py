@@ -43,6 +43,17 @@ class ProviderTest(TestCase):
         prov._api(token)
         github_mock.assert_called_once_with(token, base_url=url, timeout=50, verify=True)
 
+    @patch("pyup.providers.github.Github")
+    def test_api_different_token_new_instance(self, github_mock):
+        token1, token2 = 'foo', 'foo2'
+
+        prov = Provider(bundle=RequirementsBundle())
+        prov._api(token1)
+        prov._api(token1)
+        github_mock.assert_called_once_with(token1, base_url=None, timeout=50, verify=True)
+        prov._api(token2)
+        github_mock.assert_called_with(token2, base_url=None, timeout=50, verify=True)
+
 
     def test_get_user(self):
         self.provider.get_user("foo")
