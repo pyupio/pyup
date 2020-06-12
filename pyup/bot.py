@@ -4,7 +4,7 @@ import logging
 import yaml
 from .requirements import RequirementsBundle
 from .providers.github import Provider as GithubProvider
-from .errors import NoPermissionError, BranchExistsError
+from .errors import NoPermissionError, BranchExistsError, ConfigError
 from .config import Config
 
 logger = logging.getLogger(__name__)
@@ -13,10 +13,9 @@ logger = logging.getLogger(__name__)
 class Bot(object):
     def __init__(self, repo, user_token, bot_token=None,
                  provider=GithubProvider, bundle=RequirementsBundle, config=Config,
-                 integration=False):
-        self.bot_token = bot_token
+                 integration=False, provider_url=None, ignore_ssl=False):
         self.req_bundle = bundle()
-        self.provider = provider(self.req_bundle, integration)
+        self.provider = provider(self.req_bundle, integration, provider_url, ignore_ssl)
         self.user_token = user_token
         self.bot_token = bot_token
         self.fetched_files = []
@@ -70,17 +69,32 @@ class Bot(object):
             self._fetched_prs = True
         return self.req_bundle.pull_requests
 
-    def get_repo_config(self, repo, branch=None):
+    def get_repo_config(self, repo, branch=None, create_error_issue=True):
         branch = self.config.branch if branch is None else branch
-        try:
-            content, _ = self.provider.get_file(repo, "/.pyup.yml", branch)
-            if content is not None:
+        content, _ = self.provider.get_file(repo, ".pyup.yml", branch)
+        if content is not None:
+            try:
                 return yaml.safe_load(content)
-        except yaml.YAMLError:
-            logger.warning("Unable to parse config file /.pyup.yml", exc_info=True)
+            except yaml.YAMLError as e:
+                err = ConfigError(content=content, error=e.__str__())
+                if create_error_issue:
+                    issue_title = "Invalid .pyup.yml detected"
+                    # check that there's not an open issue already
+                    if issue_title not in [pr.title for pr in self.pull_requests if pr.is_open]:
+                        self.create_issue(
+                            title=issue_title,
+                            body="The bot encountered an error in your `.pyup.yml` config file:\n\n"
+                                 "```{error}\n```\n\n"
+                                 "You can validate it with this "
+                                 "[online YAML parser](http://yaml-online-parser.appspot.com/) or "
+                                 "by taking a look at the "
+                                 "[Documentation](https://pyup.io/docs/bot/config/).".format(
+                                    error=err.error)
+                        )
+                raise err
         return None
 
-    def configure(self, **kwargs):
+    def configure(self, create_error_issue=True, **kwargs):
         if kwargs.get("write_config", False):
             self.write_config = kwargs.get("write_config")
         # if the branch is not set, get the default branch
@@ -88,7 +102,10 @@ class Bot(object):
             self.config.branch = self.provider.get_default_branch(repo=self.user_repo)
         # set the config for this update run
         self.config.update_config(kwargs)
-        repo_config = self.get_repo_config(repo=self.user_repo)
+        repo_config = self.get_repo_config(
+            repo=self.user_repo,
+            create_error_issue=create_error_issue
+        )
         if repo_config:
             self.config.update_config(repo_config)
         if self.write_config:
@@ -164,6 +181,12 @@ class Bot(object):
 
         # todo: This block needs to be refactored
         for title, body, update_branch, updates in self.iter_updates(initial, scheduled):
+            # some scheduled updates don't have commits in them. This happens if a package is
+            # outdated, but the config file is blocking the update (insecure, no updates).
+            # check if this is the case here.
+            if not updates:
+                continue
+
             if self.config.pr_prefix:
                 title = "{prefix} {title}".format(prefix=self.config.pr_prefix, title=title)
             if initial_pr:
@@ -263,7 +286,7 @@ class Bot(object):
 
         # it's impossible to get the bots login if this is an integration, just check that
         # there's only one commit in the commit history.
-        if self.integration:
+        if self.integration or getattr(self.provider, 'name', '') == 'gitlab':
             return len(committer_set) == 1
 
         # check that there's exactly one committer in this PRs commit history and
@@ -338,14 +361,14 @@ class Bot(object):
         branch = 'pyup-config'
         if self.create_branch(branch, delete_empty=True):
             content = self.config.generate_config_file(new_config)
-            _, content_file = self.provider.get_file(self.user_repo, '/.pyup.yml', branch)
+            _, content_file = self.provider.get_file(self.user_repo, '.pyup.yml', branch)
             if content_file:
                 # a config file exists, update and commit it
                 logger.info(
                     "Config file exists, updating config for sha {}".format(content_file.sha))
                 self.provider.create_commit(
                     repo=self.user_repo,
-                    path="/.pyup.yml",
+                    path=".pyup.yml",
                     branch=branch,
                     content=content,
                     commit_message="update pyup.io config file",
@@ -356,7 +379,7 @@ class Bot(object):
             # there's no config file present, write a new config file and commit it
             self.provider.create_and_commit_file(
                 repo=self.user_repo,
-                path="/.pyup.yml",
+                path=".pyup.yml",
                 branch=branch,
                 content=content,
                 commit_message="create pyup.io config file",
@@ -406,8 +429,14 @@ class Bot(object):
                     updated_files[update.requirement_file.path] = {"sha": new_sha,
                                                                    "content": content}
                 else:
+                    if hasattr(self.user_repo, 'path_with_namespace'):
+                        repo_name = self.user_repo.path_with_namespace
+                    elif hasattr(self.user_repo, 'full_name'):
+                        repo_name = self.user_repo.full_name
+                    else:
+                        repo_name = str(self.user_repo)
                     logger.error("Empty commit at {repo}, unable to update {title}.".format(
-                        repo=self.user_repo.full_name, title=title)
+                        repo=repo_name, title=title)
                     )
 
             if updated_files:
@@ -432,28 +461,18 @@ class Bot(object):
         # if we have a bot user that creates the PR, we might run into problems on private
         # repos because the bot has to be a collaborator. We try to submit the PR before checking
         # the permissions because that saves us API calls in most cases
+        kwargs = dict(title=title,body=body, new_branch=new_branch,
+                      base_branch=self.config.branch, pr_label=self.config.label_prs, assignees=self.config.assignees,
+                      config=self.config)
         if self.bot_token:
             try:
-                return self.provider.create_pull_request(
-                    repo=self.bot_repo,
-                    title=title,
-                    body=body,
-                    base_branch=self.config.branch,
-                    new_branch=new_branch,
-                    pr_label=self.config.label_prs,
-                    assignees=self.config.assignees
-                )
+                return self.provider.create_pull_request(repo=self.bot_repo, **kwargs)
             except NoPermissionError:
                 self.provider.get_pull_request_permissions(self.bot, self.user_repo)
 
         return self.provider.create_pull_request(
             repo=self.bot_repo if self.bot_token else self.user_repo,
-            title=title,
-            body=body,
-            base_branch=self.config.branch,
-            new_branch=new_branch,
-            pr_label=self.config.label_prs,
-            assignees=self.config.assignees
+            **kwargs
         )
 
     def iter_git_tree(self, sha=None):
@@ -480,8 +499,11 @@ class Bot(object):
                     if "requirements" in path:
                         if path.endswith("txt") or path.endswith("pip"):
                             self.add_requirement_file(path, sha)
+                    if "setup.cfg" in path:
+                        self.add_requirement_file(path, sha)
         for req_file in self.config.requirements:
             self.add_requirement_file(req_file.path, sha=sha)
+        self.req_bundle.resolve_pipfiles()
 
     # if this function gets updated, the gist at https://gist.github.com/jayfk/c6509bbaf4429052ca3f
     # needs to be updated too

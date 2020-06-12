@@ -1,3 +1,6 @@
+# Editors
+.vscode/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -9,6 +12,7 @@ __pycache__/
 # Distribution / packaging
 .Python
 env/
+.venv/
 build/
 develop-eggs/
 dist/
@@ -63,3 +67,9 @@ target/
 
 # utility functions
 util/
+
+# Local development
+.env
+
+# Virtual env directory
+/venv/*

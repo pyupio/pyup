@@ -7,9 +7,6 @@
      :target: https://pyup.io/repos/github/pyupio/pyup/
      :alt: Updates
 
-.. image:: https://img.shields.io/pypi/v/pyupio.svg
-        :target: https://pypi.python.org/pypi/pyupio
-
 .. image:: https://travis-ci.org/pyupio/pyup.svg?branch=master
         :target: https://travis-ci.org/pyupio/pyup
 
@@ -21,16 +18,16 @@
 .. image:: https://codecov.io/github/pyupio/pyup/coverage.svg?branch=master
         :target: https://codecov.io/github/pyupio/pyup?branch=master
 
-A tool to update all your project's requirement files with on GitHub.
+A tool that updates all your project's Python dependency files through Pull Requests on GitHub/GitLab.
 
 .. image:: https://github.com/pyupio/pyup/blob/master/demo.gif
 
 About
 -----
 
-This repo contains the bot that is running at pyup.io. The online
-service comes with a user interface to manage all your project dependencies at a single place and a
-lot of additional features.
+This repo contains the bot that is running at pyup.io. You can install it locally and run the bot through the command line interface.
+
+Documentation: https://pyup.io/docs/
 
 Installation
 ------------
@@ -38,6 +35,10 @@ Installation
 To install pyup, run::
 
     $ pip install pyupio
+
+If you want to update Pipfiles, install the optional pipenv extra:
+
+    $ pip install dparse[pipenv]
 
 Obtain Token
 ------------
@@ -76,7 +77,38 @@ from your profile settings (eg. https://gitlab.com/profile/personal_access_token
 then run pyup from the cli::
 
     # gitlab.com:
-    $ pyup --repo=username/repo --user-token=<YOUR_TOKEN>
+    $ pyup --provider gitlab --repo=username/repo --user-token=<YOUR_TOKEN>
 
-    # other:
-    $ pyup --repo=username/repo --user-token=<YOUR_TOKEN>@https://your.gitlab/
+Custom Gitlab instance and GitHub Enterprise support
+----------------------------------------------------
+
+Pyup offer support for custom Gitlab instances and GitHub Enterprise via the provider_url option::
+
+    $ pyup --provider github --provider_url https://github.enterprise/api/v3 --repo=username/repo --user-token=<YOUR_TOKEN>
+    $ pyup --provider gitlab --provider_url https://your.gitlab/ --repo=username/repo --user-token=<YOUR_TOKEN>
+
+    # The alternative method to add a custom gitlab instance is still valid :
+    $ pyup --provider gitlab --repo=username/repo --user-token=<YOUR_TOKEN>@https://your.gitlab/
+
+
+Disable verification of SSL certificate::
+
+    $ pyup --provider github --provider_url https://github.enterprise/api/v3 --repo=username/repo --user-token=<YOUR_TOKEN> --ignore_ssl
+    $ pyup --provider gitlab --repo=username/repo --user-token=<YOUR_TOKEN>@https://your.gitlab/ --ignore_ssl
+
+Python 2.7
+----------
+
+This tool requires latest Python patch versions starting with version 3.5. We
+did support Python 2.7 in the past but, as for other Python 3.x minor versions,
+it reached its End-Of-Life and as such we are not able to support it anymore.
+
+We understand you might still have Python 2.7 projects running. At the same
+time, PyUp itself has a commitment to encourage developers to keep their
+software up-to-date, and it would not make sense for us to work with officially
+unsupported Python versions, or even those that reached their end of life.
+
+If you still need to run PyUp from a Python 2.7 environment, please use
+version 1.0.2 available at PyPi. Alternatively, you can run PyUp from a
+Python 3 environment to check the requirements file for your Python 2.7
+project.

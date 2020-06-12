@@ -10,13 +10,14 @@ import re
 
 SCHEDULE_REGEX = re.compile(
     # has to begin with every
-    "^every "
+    r"^every "
     # followed by day/month
     "((day|month)$"
     # or week/two weeks
     "|(week|two weeks))"
     # with an optional weekday
-    "( on (monday|tuesday|wednesday|thursday|friday|saturday|sunday))?"
+    "( on (monday|tuesday|wednesday|thursday|friday|saturday|sunday))?",
+    re.IGNORECASE
 )
 
 
@@ -24,6 +25,9 @@ class Config(object):
 
     UPDATE_ALL = "all"
     UPDATE_INSECURE = "insecure"
+    # the docs had a typo at some point that incorrectly reffered to 'security'
+    # instead of 'insecure'.
+    UPDATE_INSECURE_TYPO = "security"
     UPDATE_NONE = ["False", "false", False, None]
 
     def __init__(self):
@@ -37,6 +41,7 @@ class Config(object):
         self.label_prs = False
         self.schedule = ""
         self.assignees = []
+        self.gitlab = GitlabConfig()
         self.update = Config.UPDATE_ALL
         self.update_hashes = True
 
@@ -70,6 +75,8 @@ class Config(object):
                     # to make things consistent
                     if isinstance(value, basestring):
                         value = [value, ]
+                elif key == 'gitlab':
+                    value = GitlabConfig(**value)
                 elif key == 'pr_prefix':
                     # make sure that pr prefixes don't contain a PIPE
                     if "|" in value:
@@ -123,7 +130,8 @@ class Config(object):
         :return: bool
         """
         return self._get_requirement_attr("update", path=path) in (Config.UPDATE_ALL,
-                                                                   Config.UPDATE_INSECURE)
+                                                                   Config.UPDATE_INSECURE,
+                                                                   Config.UPDATE_INSECURE_TYPO)
 
     def is_valid_schedule(self):
         return SCHEDULE_REGEX.search(self.schedule) is not None
@@ -142,7 +150,21 @@ class RequirementConfig(object):
 
         # set pin default
         if self.pin is None:
-            self.pin = True
+            # don't pin pipfiles by default
+            if self.path.endswith("Pipfile"):
+                self.pin = False
+            else:
+                self.pin = True
+
+    def __repr__(self):
+        return str(self.__dict__)
+
+
+class GitlabConfig(object):
+
+    def __init__(self, should_remove_source_branch=False, merge_when_pipeline_succeeds=False):
+        self.should_remove_source_branch = should_remove_source_branch
+        self.merge_when_pipeline_succeeds = merge_when_pipeline_succeeds
 
     def __repr__(self):
         return str(self.__dict__)

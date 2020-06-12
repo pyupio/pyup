@@ -5,16 +5,18 @@ from pyup.bot import Bot
 from .test_pullrequest import pullrequest_factory
 from pyup.updates import RequirementUpdate, InitialUpdate
 from pyup.requirements import RequirementFile
-from pyup.errors import NoPermissionError
+from pyup.errors import NoPermissionError, ConfigError
 from pyup.config import RequirementConfig
 from mock import Mock, patch
 
 
-def bot_factory(repo="foo/foo", user_token="foo", bot_token=None, bot_class=Bot, prs=list()):
+def bot_factory(repo="foo/foo", user_token="foo", bot_token=None,
+                bot_class=Bot, ignore_ssl=False, prs=list()):
     bot = bot_class(
         repo=repo,
         user_token=user_token,
         bot_token=bot_token,
+        ignore_ssl=ignore_ssl,
     )
     bot._fetched_prs = True
     bot.req_bundle.pull_requests = prs
@@ -70,7 +72,7 @@ class BotPullRequestsTest(TestCase):
         bot._fetched_prs = False
         bot.provider.iter_issues = Mock(return_value=[])
         bot.pull_requests
-        self.assertEquals(bot.provider.iter_issues.call_count, 1)
+        self.assertEqual(bot.provider.iter_issues.call_count, 1)
 
 
 class BotRepoConfigTest(TestCase):
@@ -83,7 +85,8 @@ class BotRepoConfigTest(TestCase):
     def test_yaml_error(self):
         bot = bot_factory()
         bot.provider.get_file.return_value = "foo: bar: baz: fii:", None
-        self.assertEqual(bot.get_repo_config(bot.user_repo), None)
+        with self.assertRaises(ConfigError):
+            self.assertEqual(bot.get_repo_config(bot.user_repo), None)
 
     def test_fetches_file_error(self):
         bot = bot_factory()
@@ -402,8 +405,8 @@ class CreateBranchTest(TestCase):
         bot.provider.is_empty_branch.return_value = True
         bot.create_branch("new-branch", delete_empty=True)
 
-        self.assertEquals(bot.provider.is_empty_branch.call_count, 1)
-        self.assertEquals(bot.provider.delete_branch.call_count, 1)
+        self.assertEqual(bot.provider.is_empty_branch.call_count, 1)
+        self.assertEqual(bot.provider.delete_branch.call_count, 1)
         self.assertEqual(len(bot.provider.create_branch.mock_calls), 2)
 
     def test_branch_not_empty(self):
@@ -413,7 +416,7 @@ class CreateBranchTest(TestCase):
         bot.provider.is_empty_branch.return_value = False
         bot.create_branch("new-branch", delete_empty=True)
 
-        self.assertEquals(bot.provider.is_empty_branch.call_count, 1)
+        self.assertEqual(bot.provider.is_empty_branch.call_count, 1)
         bot.provider.delete_branch.assert_not_called()
         self.assertEqual(len(bot.provider.create_branch.mock_calls), 1)
 
@@ -579,7 +582,8 @@ class BotCreatePullRequestTest(TestCase):
             "body": "body",
             "title": "title",
             "pr_label": False,
-            "assignees": []
+            "assignees": [],
+            "config": bot.config
         })
 
     def test_bot_no_errors(self):
@@ -595,7 +599,8 @@ class BotCreatePullRequestTest(TestCase):
             "body": "body",
             "title": "title",
             "pr_label": False,
-            "assignees": []
+            "assignees": [],
+            "config": bot.config
         })
         self.assertEqual(bot.provider.get_pull_request_permissions.called, False)
 
@@ -613,7 +618,8 @@ class BotCreatePullRequestTest(TestCase):
             "body": "body",
             "title": "title",
             "pr_label": False,
-            "assignees": []
+            "assignees": [],
+            "config": bot.config
         })
         self.assertEqual(bot.provider.create_pull_request.call_args_list[1][1], {
             "base_branch": "base_branch",
@@ -622,7 +628,8 @@ class BotCreatePullRequestTest(TestCase):
             "body": "body",
             "title": "title",
             "pr_label": False,
-            "assignees": []
+            "assignees": [],
+            "config": bot.config
 
         })
 
@@ -641,7 +648,8 @@ class BotCreatePullRequestTest(TestCase):
             "body": "body",
             "title": "title",
             "pr_label": False,
-            "assignees": []
+            "assignees": [],
+            "config": bot.config
         })
         self.assertEqual(bot.provider.create_pull_request.call_args_list[1][1], {
             "base_branch": "base_branch",
@@ -650,7 +658,8 @@ class BotCreatePullRequestTest(TestCase):
             "body": "body",
             "title": "title",
             "pr_label": False,
-            "assignees": []
+            "assignees": [],
+            "config": bot.config
         })
 
 
@@ -706,7 +715,7 @@ class CloseStalePRsTestCase(TestCase):
         self.pr.type = Mock()
         bot.close_stale_prs(self.update, self.pr, False)
 
-        self.assertEquals(self.pr.type.call_count, 0)
+        self.assertEqual(self.pr.type.call_count, 0)
 
     def test_no_pull_requests(self):
         bot = bot_factory(bot_token="foo")
@@ -895,3 +904,13 @@ class ConflictingUpdateTest(TestCase):
         self.assertTrue(
             bot.has_conflicting_update(update1)
         )
+
+
+class IgnoreSslTest(TestCase):
+    def test_ignore_ssl_default_false(self):
+        bot = Bot(repo='foo/foo', user_token='foo')
+        self.assertFalse(bot.provider.ignore_ssl)
+
+    def test_ignore_ssl_true(self):
+        bot = Bot(repo='foo/foo', user_token='foo', ignore_ssl=True)
+        self.assertTrue(bot.provider.ignore_ssl)

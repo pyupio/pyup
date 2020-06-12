@@ -10,6 +10,7 @@ class PullRequest(object):
     INITIAL_TYPE = "initial"
     COMPILE_TYPE = "compile"
     SCHEDULED_TYPE = "scheduled"
+    CONFIG_ERROR_TYPE = "config"
     UNKNOWN_TYPE = "unknown"
 
     def __init__(self, state, title, url, created_at, number=None, issue=False):
@@ -40,6 +41,8 @@ class PullRequest(object):
             return PullRequest.COMPILE_TYPE
         elif "Scheduled" in self.title:
             return PullRequest.SCHEDULED_TYPE
+        elif "Invalid .pyup.yml" in self.title:
+            return PullRequest.CONFIG_ERROR_TYPE
         return PullRequest.UNKNOWN_TYPE
 
     @property
@@ -67,14 +70,19 @@ class PullRequest(object):
         return self.type == self.SCHEDULED_TYPE
 
     @property
+    def is_config_error(self):
+        return self.type == self.CONFIG_ERROR_TYPE
+
+    @property
     def is_open(self):
-        return self.state == "open"
+        return self.state in ("open", "opened")
 
     @property
     def is_valid(self):
         return self.is_update or self.is_security \
                or self.is_pin or self.is_initial \
-               or self.is_compile or self.is_scheduled
+               or self.is_compile or self.is_scheduled \
+               or self.is_config_error
 
     def get_requirement(self, prefix=""):
         if self.type != "initial":

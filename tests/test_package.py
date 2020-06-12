@@ -39,7 +39,7 @@ class FetchPackageTestCase(TestCase):
     @requests_mock.mock()
     def test_fetch_packages(self, requests):
         with open(os.path.dirname(os.path.realpath(__file__)) + "/data/django.json") as f:
-            requests.get("https://pypi.python.org/pypi/Django/json", text=f.read())
+            requests.get("https://pypi.org/pypi/Django/json", text=f.read())
 
         package = fetch_package("Django")
         self.assertNotEqual(package, None)
@@ -60,12 +60,12 @@ class FetchPackageTestCase(TestCase):
 
     @requests_mock.mock()
     def test_fetch_packages_status_code_not_200(self, requests):
-        requests.get("https://pypi.python.org/pypi/Django/json", text="ERROR", status_code=500)
+        requests.get("https://pypi.org/pypi/Django/json", text="ERROR", status_code=500)
         self.assertEqual(fetch_package("Django"), None)
 
     @requests_mock.mock()
     def test_fetch_packages_404(self, requests):
-        requests.get("https://pypi.python.org/pypi/Django/json", text="404", status_code=404)
+        requests.get("https://pypi.org/pypi/Django/json", text="404", status_code=404)
         self.assertEqual(fetch_package("Django"), None)
 
 

@@ -1,51 +1,23 @@
 from __future__ import unicode_literals
-from pkg_resources import parse_requirements
-from pkg_resources import parse_version
-from pkg_resources._vendor.packaging.specifiers import SpecifierSet
-import hashin
+
+from packaging.version import parse as parse_version
+from packaging.specifiers import SpecifierSet
+import requests
+
+from safety import safety
+from safety.errors import InvalidKeyError
+from collections import OrderedDict
+
 from .updates import InitialUpdate, SequentialUpdate, ScheduledUpdate
 from .pullrequest import PullRequest
 import logging
 from .package import Package, fetch_package
-import re
+from pyup import settings
+from datetime import datetime
+from dparse import parse, parser, updater, filetypes
+from dparse.dependencies import Dependency
+from dparse.parser import setuptools_parse_requirements_backport as parse_requirements
 
-# see https://gist.github.com/dperini/729294
-URL_REGEX = re.compile(
-    # protocol identifier
-    u"(?:(?:https?|ftp)://)"
-    # user:pass authentication
-    u"(?:\S+(?::\S*)?@)?"
-    u"(?:"
-    # IP address exclusion
-    # private & local networks
-    u"(?!(?:10|127)(?:\.\d{1,3}){3})"
-    u"(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})"
-    u"(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})"
-    # IP address dotted notation octets
-    # excludes loopback network 0.0.0.0
-    # excludes reserved space >= 224.0.0.0
-    # excludes network & broadcast addresses
-    # (first & last IP address of each class)
-    u"(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])"
-    u"(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}"
-    u"(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))"
-    u"|"
-    # host name
-    u"(?:(?:[a-z\u00a1-\uffff0-9]-?)*[a-z\u00a1-\uffff0-9]+)"
-    # domain name
-    u"(?:\.(?:[a-z\u00a1-\uffff0-9]-?)*[a-z\u00a1-\uffff0-9]+)*"
-    # TLD identifier
-    u"(?:\.(?:[a-z\u00a1-\uffff]{2,}))"
-    u")"
-    # port number
-    u"(?::\d{2,5})?"
-    # resource path
-    u"(?:/\S*)?",
-    re.UNICODE)
-
-PYTHON_VERSIONS = [
-    "2.7", "3.0", "3.1", "3.2", "3.3", "3.4", "3.5", "3.6"
-]
 logger = logging.getLogger(__name__)
 
 
@@ -54,6 +26,14 @@ class RequirementsBundle(list):
     def __init__(self, *args, **kwargs):
         super(RequirementsBundle, self).__init__(*args, **kwargs)
         self.pull_requests = []
+
+    def resolve_pipfiles(self):
+        for req_file in self:
+            if req_file.is_pipfile:
+                corresponding_path = req_file.get_pipfile_lock_path()
+                for _req_file in self:
+                    if _req_file.path == corresponding_path:
+                        req_file.corresponding_pipfile = _req_file
 
     def has_file_in_path(self, path):
         return path in [req_file.path for req_file in self]
@@ -105,6 +85,16 @@ class RequirementFile(object):
         self._requirements = None
         self._other_files = None
         self._is_valid = None
+        self.is_pipfile = False
+        self.is_pipfile_lock = False
+        self.is_setup_cfg = False
+        self.corresponding_pipfile = None
+
+    def get_pipfile_lock_path(self):
+        return "{}.lock".format(self.path)
+
+    def get_pipfile_path(self):
+        return self.path.replace(".lock", "")
 
     def __str__(self):
         return "RequirementFile(path='{path}', sha='{sha}', content='{content}')".format(
@@ -133,83 +123,77 @@ class RequirementFile(object):
 
     @staticmethod
     def parse_index_server(line):
-        matches = URL_REGEX.findall(line)
-        if matches:
-            url = matches[0]
-            return url if url.endswith("/") else url + "/"
-        return None
+        return parser.Parser.parse_index_server(line)
 
     def _hash_parser(self, line):
-        """
+        return parser.Parser.parse_hashes(line)
 
-        :param line:
-        :return:
-        """
-        regex = r"--hash=[\w]+:[\w]+"
-        hashes = []
-        for match in re.finditer(regex, line):
-            hashes.append(line[match.start():match.end()])
-        return re.sub(regex, "", line).strip(), hashes
+    def _parse_requirements_txt(self):
+        self.parse_dependencies(filetypes.requirements_txt)
+
+    def _parse_conda_yml(self):
+        self.parse_dependencies(filetypes.conda_yml)
+
+    def _parse_tox_ini(self):
+        self.parse_dependencies(filetypes.tox_ini)
+
+    def _parse_pipfile(self):
+        self.parse_dependencies(filetypes.pipfile)
+        self.is_pipfile = True
+
+    def _parse_pipfile_lock(self):
+        self.parse_dependencies(filetypes.pipfile_lock)
+        self.is_pipfile_lock = True
+
+    def _parse_setup_cfg(self):
+        self.parse_dependencies(filetypes.setup_cfg)
+        self.is_setup_cfg = True
 
     def _parse(self):
         self._requirements, self._other_files = [], []
-        index_server = None
-        for num, line in enumerate(self.iter_lines()):
-            line = line.strip()
-            if not line:
-                continue
-            elif "pyup: ignore file" in line and num in [0, 1]:
-                # don't process this file, filter rule match to completely ignore it
-                self._is_valid = False
-                return
-            if line.startswith('#'):
-                # comments are lines that start with # only
-                continue
-            if line.startswith('-i') or \
-                line.startswith('--index-url') or \
-                    line.startswith('--extra-index-url'):
-                # this file is using a private index server, try to parse it
-                index_server = self.parse_index_server(line)
-                continue
-            elif line.startswith('-r') or line.startswith('--requirement'):
-                self._other_files.append(self.resolve_file(self.path, line))
-            elif line.startswith('-f') or line.startswith('--find-links') or \
-                line.startswith('--no-index') or line.startswith('--allow-external') or \
-                line.startswith('--allow-unverified') or line.startswith('-Z') or \
-                    line.startswith('--always-unzip'):
-                continue
-            else:
-                try:
-                    if "pyup: ignore" in line:
-                        # filter rule match to completely ignore this requirement
-                        continue
-                    parseable_line = line
-
-                    # multiline requirements are not parseable
-                    if "\\" in line:
-                        parseable_line = line.replace("\\", "")
-                        for next_line in self.iter_lines(num + 1):
-                            parseable_line += next_line.strip().replace("\\", "")
-                            line += "\n" + next_line
-                            if "\\" in next_line:
-                                continue
-                            break
-
-                    hashes = []
-                    if "--hash" in parseable_line:
-                        parseable_line, hashes = self._hash_parser(parseable_line)
-
-                    klass = self.get_requirement_class()
-                    req = klass.parse(parseable_line, num + 1)
-                    req.hashes = hashes
-                    req.index_server = index_server
-                    # replace the requirements line with the 'real' line
-                    req.line = line
-                    if req.package is not None:
-                        self._requirements.append(req)
-                except ValueError:
-                    continue
+        if self.path.endswith('.yml') or self.path.endswith(".yaml"):
+            self._parse_conda_yml()
+        elif self.path.endswith('.ini'):
+            self._parse_tox_ini()
+        elif self.path.endswith("Pipfile"):
+            self._parse_pipfile()
+        elif self.path.endswith("Pipfile.lock"):
+            self._parse_pipfile_lock()
+        elif self.path.endswith('setup.cfg'):
+            self._parse_setup_cfg()
+        else:
+            self._parse_requirements_txt()
         self._is_valid = len(self._requirements) > 0 or len(self._other_files) > 0
+
+    def parse_dependencies(self, file_type):
+
+        klass = self.get_requirement_class()
+        result = parse(
+            self.content,
+            path=self.path,
+            sha=self.sha,
+            file_type=file_type,
+            marker=(
+                ("pyup: ignore file", "pyup:ignore file"),  # file marker
+                ("pyup: ignore", "pyup:ignore"),  # line marker
+            )
+        )
+        for dep in result.dependencies:
+            req = klass(
+                name=dep.name,
+                specs=dep.specs,
+                line=dep.line,
+                lineno=dep.line_numbers[0] if dep.line_numbers else 0,
+                extras=dep.extras,
+                file_type=file_type,
+            )
+            req.index_server = dep.index_server
+            if self.is_pipfile:
+                req.pipfile = self.path
+            if req.package:
+                req.hashes = dep.hashes
+                self._requirements.append(req)
+        self._other_files = result.resolved_files
 
     def iter_lines(self, lineno=0):
         for line in self.content.splitlines()[lineno:]:
@@ -217,24 +201,17 @@ class RequirementFile(object):
 
     @classmethod
     def resolve_file(cls, file_path, line):
-        line = line.replace("-r ", "").replace("--requirement ", "")
-        parts = file_path.split("/")
-        if " #" in line:
-            line = line.split("#")[0].strip()
-        if len(parts) == 1:
-            return line
-        return "/".join(parts[:-1]) + "/" + line
+        return parser.Parser.resolve_file(file_path, line)
 
-    def get_requirement_class(self):   # pragma: no cover
+    def get_requirement_class(self):  # pragma: no cover
         return Requirement
 
 
 class Requirement(object):
-    def __init__(self, name, specs, hashCmp, line, lineno, extras):
+    def __init__(self, name, specs, line, lineno, extras, file_type):
         self.name = name
         self.key = name.lower()
         self.specs = specs
-        self.hashCmp = hashCmp
         self.line = line
         self.lineno = lineno
         self.index_server = None
@@ -243,6 +220,29 @@ class Requirement(object):
         self.hashes = []
         self._fetched_package = False
         self._package = None
+        self.file_type = file_type
+        self.pipfile = None
+
+        self.hashCmp = (
+            self.key,
+            self.specs,
+            frozenset(self.extras),
+        )
+
+        self._is_insecure = None
+        self._changelog = None
+
+        if len(self.specs._specs) == 1 and next(iter(self.specs._specs))._spec[0] == "~=":
+            # convert compatible releases to something more easily consumed,
+            # e.g. '~=1.2.3' is equivalent to '>=1.2.3,<1.3.0', while '~=1.2'
+            # is equivalent to '>=1.2,<2.0'
+            min_version = next(iter(self.specs._specs))._spec[1]
+            max_version = list(parse_version(min_version).release)
+            max_version[-1] = 0
+            max_version[-2] = max_version[-2] + 1
+            max_version = '.'.join(str(x) for x in max_version)
+
+            self.specs = SpecifierSet('>=%s,<%s' % (min_version, max_version))
 
     def __eq__(self, other):
         return (
@@ -256,31 +256,59 @@ class Requirement(object):
     def __str__(self):
         return "Requirement.parse({line}, {lineno})".format(line=self.line, lineno=self.lineno)
 
-    @property
-    def is_pinned(self):
-        if len(self.specs) == 1 and self.specs[0][0] == "==":
-            return True
-        return False
+    def __repr__(self):
+        return self.__str__()
 
     @property
-    def is_compatible(self):
-        if len(self.specs) == 1 and self.specs[0][0] == "~=":
+    def is_pinned(self):
+        if len(self.specs._specs) == 1 and next(iter(self.specs._specs))._spec[0] == "==":
             return True
         return False
 
     @property
     def is_open_ranged(self):
-        if len(self.specs) == 1 and self.specs[0][0] == ">=":
+        if len(self.specs._specs) == 1 and next(iter(self.specs._specs))._spec[0] == ">=":
             return True
         return False
 
     @property
     def is_ranged(self):
-        return len(self.specs) >= 1 and not self.is_pinned
+        return len(self.specs._specs) >= 1 and not self.is_pinned
 
     @property
     def is_loose(self):
-        return len(self.specs) == 0
+        return len(self.specs._specs) == 0
+
+    @staticmethod
+    def convert_semver(version):
+        semver = {'major': 0, "minor": 0, "patch": 0}
+        version = version.split(".")
+        # don't be overly clever here. repitition makes it more readable and works exactly how
+        # it is supposed to
+        try:
+            semver['major'] = int(version[0])
+            semver['minor'] = int(version[1])
+            semver['patch'] = int(version[2])
+        except (IndexError, ValueError):
+            pass
+        return semver
+
+    @property
+    def can_update_semver(self):
+        # return early if there's no update filter set
+        if "pyup: update" not in self.line:
+            return True
+        update = self.line.split("pyup: update")[1].strip().split("#")[0]
+        current_version = Requirement.convert_semver(next(iter(self.specs._specs))._spec[1])
+        next_version = Requirement.convert_semver(self.latest_version)
+        if update == "major":
+            if current_version['major'] < next_version['major']:
+                return True
+        elif update == 'minor':
+            if current_version['major'] < next_version['major'] \
+                    or current_version['minor'] < next_version['minor']:
+                return True
+        return False
 
     @property
     def filter(self):
@@ -288,24 +316,37 @@ class Requirement(object):
         if "rq.filter:" in self.line:
             rqfilter = self.line.split("rq.filter:")[1].strip().split("#")[0]
         elif "pyup:" in self.line:
-            rqfilter = self.line.split("pyup:")[1].strip().split("#")[0]
+            if "pyup: update" not in self.line:
+                rqfilter = self.line.split("pyup:")[1].strip().split("#")[0]
+                # unset the filter once the date set in 'until' is reached
+                if "until" in rqfilter:
+                    rqfilter, until = [l.strip() for l in rqfilter.split("until")]
+                    try:
+                        until = datetime.strptime(until, "%Y-%m-%d")
+                        if until < datetime.now():
+                            rqfilter = False
+                    except ValueError:
+                        # wrong date formatting
+                        pass
         if rqfilter:
             try:
                 rqfilter, = parse_requirements("filter " + rqfilter)
-                if len(rqfilter.specs) > 0:
-                    return rqfilter.specs
+                if len(rqfilter.specifier._specs) > 0:
+                    return rqfilter.specifier
             except ValueError:
                 pass
         return False
 
     @property
     def version(self):
-        if self.is_pinned or self.is_compatible:
-            return self.specs[0][1]
+        if self.is_pinned:
+            return next(iter(self.specs._specs))._spec[1]
 
         specs = self.specs
         if self.filter:
-            specs += self.filter
+            specs = SpecifierSet(
+                ",".join(["".join(s._spec) for s in list(specs._specs) + list(self.filter._specs)])
+            )
         return self.get_latest_version_within_specs(
             specs,
             versions=self.package.versions,
@@ -328,13 +369,14 @@ class Requirement(object):
 
     @property
     def prereleases(self):
-        return self.is_pinned and parse_version(self.specs[0][1]).is_prerelease
+        return self.is_pinned and parse_version(
+            next(iter(self.specs._specs))._spec[1]).is_prerelease
 
     @staticmethod
     def get_latest_version_within_specs(specs, versions, prereleases=None):
         # build up a spec set and convert compatible specs to pinned ones
         spec_set = SpecifierSet(
-            ",".join(["".join([x.replace("~=", "=="), y]) for x, y in specs])
+            ",".join(["".join(s._spec).replace("~=", "==") for s in specs])
         )
         candidates = []
         for version in versions:
@@ -354,17 +396,56 @@ class Requirement(object):
 
     @property
     def needs_update(self):
-        if self.is_pinned or self.is_ranged or self.is_compatible:
-            return self.is_outdated
-        return True
+        if self.is_pinned or self.is_ranged:
+            return self.can_update_semver and self.is_outdated
+        return self.can_update_semver
 
     @property
     def is_insecure(self):
-        # security is not our concern for the moment. However, it'd be nice if we had a central
-        # place where we can query for known security vulnerabilites on python packages.
-        # There's an open issue here:
-        # https://github.com/pypa/warehouse/issues/798
-        raise NotImplementedError
+        if self._is_insecure is None:
+            if not settings.api_key:
+                self._is_insecure = False
+            else:
+                self._is_insecure = len(safety.check(
+                    packages=(self,),
+                    cached=True,
+                    key=settings.api_key,
+                    db_mirror="",
+                    ignore_ids=()
+                )) != 0
+
+        return self._is_insecure
+
+    @property
+    def changelog(self):
+        if self._changelog is None:
+            self._changelog = OrderedDict()
+            if settings.api_key:
+                r = requests.get(
+                    "https://pyup.io/api/v1/changelogs/{}/".format(self.key),
+                    headers={"X-Api-Key": settings.api_key}
+                )
+                if r.status_code == 403:
+                    raise InvalidKeyError
+                if r.status_code == 200:
+                    data = r.json()
+                    if data:
+                        # sort the changelog by release
+                        sorted_log = sorted(
+                            data.items(), key=lambda v: parse_version(v[0]), reverse=True)
+                        # go over each release and add it to the log if it's within the "upgrade
+                        # range" e.g. update from 1.2 to 1.3 includes a changelog for 1.2.1 but
+                        # not for 0.4.
+                        for version, log in sorted_log:
+                            parsed_version = parse_version(version)
+                            if self.is_pinned and parsed_version > parse_version(
+                                self.version) and parsed_version <= parse_version(
+                                    self.latest_version_within_specs):
+                                self._changelog[version] = log
+                            elif not self.is_pinned and parsed_version <= parse_version(
+                                    self.latest_version_within_specs):
+                                self._changelog[version] = log
+        return self._changelog
 
     @property
     def is_outdated(self):
@@ -379,73 +460,70 @@ class Requirement(object):
         return self.name
 
     def get_hashes(self, version):
-        data = hashin.get_package_hashes(
-            self.name,
-            version=version,
-            algorithm="sha256",
-            python_versions=PYTHON_VERSIONS,
-            verbose=True
-        )
+        r = requests.get('https://pypi.org/pypi/{name}/{version}/json'.format(
+            name=self.key,
+            version=version
+        ))
+        hashes = []
+        data = r.json()
+        for item in data.get("releases", {}).get(version, []):
+            sha256 = item.get("digests", {}).get("sha256", False)
+            if sha256:
+                hashes.append({"hash": sha256})
         return data["hashes"]
 
     def update_content(self, content, update_hashes=True):
-        """
-        Updates the requirement to the latest version for the given content and adds hashes
-        if neccessary.
-        :param content: str, content
-        :return: str, updated content
-        """
-        new_line = "{}=={}".format(self.full_name, self.latest_version_within_specs)
-        appendix = ''
-        # leave environment markers intact
-        if ";" in self.line:
-            # condense multiline, split out the env marker, strip comments and --hashes
-            new_line += ";" + self.line.splitlines()[0].split(";", 1)[1] \
-                .split("#")[0].split("--hash")[0].rstrip()
-        # add the comment
-        if "#" in self.line:
-            # split the line into parts: requirement and comment
-            parts = self.line.split("#")
-            requirement, comment = parts[0], "#".join(parts[1:])
-            # find all whitespaces between the requirement and the comment
-            whitespaces = (hex(ord('\t')), hex(ord(' ')))
-            trailing_whitespace = ''
-            for c in requirement[::-1]:
-                if hex(ord(c)) in whitespaces:
-                    trailing_whitespace += c
-                else:
-                    break
-            appendix += trailing_whitespace + "#" + comment
-        # if this is a hashed requirement, add a multiline break before the comment
-        if self.hashes and not new_line.endswith("\\"):
-            new_line += " \\"
-        # if this is a hashed requirement, add the hashes
-        if update_hashes and self.hashes:
-            new_hashes = self.get_hashes(self.latest_version_within_specs)
-            for n, new_hash in enumerate(new_hashes):
-                new_line += "\n    --hash=sha256:{}".format(new_hash["hash"])
-                # append a new multiline break if this is not the last line
-                if len(new_hashes) > n + 1:
-                    new_line += " \\"
-        new_line += appendix
-        regex = r"^{}(?=\s*\r?\n?$)".format(re.escape(self.line))
+        if self.file_type == filetypes.tox_ini:
+            updater_class = updater.ToxINIUpdater
+        elif self.file_type == filetypes.conda_yml:
+            updater_class = updater.CondaYMLUpdater
+        elif self.file_type == filetypes.requirements_txt:
+            updater_class = updater.RequirementsTXTUpdater
+        elif self.file_type == filetypes.pipfile:
+            updater_class = updater.PipfileUpdater
+        elif self.file_type == filetypes.pipfile_lock:
+            updater_class = updater.PipfileLockUpdater
+        elif self.file_type == filetypes.setup_cfg:
+            updater_class = updater.SetupCFGUpdater
+        else:
+            raise NotImplementedError
 
-        return re.sub(regex, new_line, content, flags=re.MULTILINE)
+        dep = Dependency(
+            name=self.name,
+            specs=self.specs,
+            line=self.line,
+            line_numbers=[self.lineno, ] if self.lineno != 0 else None,
+            dependency_type=self.file_type,
+            hashes=self.hashes,
+            extras=self.extras
+        )
+        hashes = []
+        if self.hashes and update_hashes:
+            for item in sorted(self.get_hashes(self.latest_version_within_specs), key=lambda x: x["hash"]):
+                hashes.append({"method": "sha256", "hash": item["hash"]})
+
+        return updater_class.update(
+            content=content,
+            dependency=dep,
+            version=self.latest_version_within_specs,
+            hashes=hashes
+        )
 
     @classmethod
-    def parse(cls, s, lineno):
+    def parse(cls, s, lineno, file_type=filetypes.requirements_txt):
         # setuptools requires a space before the comment. If this isn't the case, add it.
         if "\t#" in s:
             parsed, = parse_requirements(s.replace("\t#", "\t #"))
         else:
             parsed, = parse_requirements(s)
+
         return cls(
-            name=parsed.project_name,
-            specs=parsed.specs,
+            name=parsed.name,
+            specs=parsed.specifier,
             line=s,
             lineno=lineno,
-            hashCmp=parsed.hashCmp,
-            extras=parsed.extras
+            extras=parsed.extras,
+            file_type=file_type
         )
 
     def get_package_class(self):  # pragma: no cover

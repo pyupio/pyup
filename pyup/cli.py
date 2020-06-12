@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
-from pyup import __version__
-from pyup.bot import DryBot, Bot
+from pyup import __version__, settings
+from pyup.bot import Bot
 from pyup.requirements import RequirementFile, RequirementsBundle
 from pyup.providers.github import Provider as GithubProvider
 from pyup.providers.gitlab import Provider as GitlabProvider
+
 import click
 from tqdm import tqdm
 import logging
@@ -14,16 +15,21 @@ import logging
 @click.option('--repo', prompt='repository', help='')
 @click.option('--user-token', prompt='user token', help='')
 @click.option('--bot-token', help='', default=None)
+@click.option("--key", default="",
+              help="API Key for pyup.io's vulnerability database. Can be set as SAFETY_API_KEY "
+                   "environment variable. Default: empty")
 @click.option('--provider', help='API to use; either github or gitlab', default="github")
-@click.option('--dry', help='Run the bot without committing', default=False)
+@click.option('--provider_url', help='Optional custom URL to your provider', default=None)
 @click.option('--branch', help='Set the branch the bot should use', default='master')
 @click.option('--initial', help='Set this to bundle all PRs into a large one',
               default=False, is_flag=True)
-@click.option('--pin', help='', default=True)
-@click.option('--close-prs', help='Tell the bot to close stale pull requests', default=True)
+@click.option('--ignore_ssl', help='Set this to ignore SSL Certificate',
+              default=False, is_flag=True)
 @click.option('--log', help='Set the log level', default="ERROR")
-def main(repo, user_token, bot_token, provider, dry, branch, initial, pin, close_prs, log):
+def main(repo, user_token, bot_token, key, provider, provider_url, branch, initial, ignore_ssl, log):
     logging.basicConfig(level=getattr(logging, log.upper(), None))
+
+    settings.configure(key=key)
 
     if provider == 'github':
         ProviderClass = GithubProvider
@@ -32,19 +38,16 @@ def main(repo, user_token, bot_token, provider, dry, branch, initial, pin, close
     else:
         raise NotImplementedError
 
-    if dry:
-        BotClass = DryBot
-    else:
-        BotClass = CLIBot
-
-    bot = BotClass(
+    bot = CLIBot(
         repo=repo,
         user_token=user_token,
         bot_token=bot_token,
-        provider=ProviderClass
+        provider=ProviderClass,
+        provider_url=provider_url,
+        ignore_ssl=ignore_ssl,
     )
 
-    bot.update(branch=branch, initial=initial, pin=pin, close_prs=close_prs)
+    bot.update(branch=branch, initial=initial)
 
 
 if __name__ == '__main__':
@@ -54,9 +57,12 @@ if __name__ == '__main__':
 class CLIBot(Bot):
 
     def __init__(self, repo, user_token, bot_token=None,
-                 provider=GithubProvider, bundle=RequirementsBundle):
+                 provider=GithubProvider, bundle=RequirementsBundle,
+                 provider_url=None, ignore_ssl=False):
         bundle = CLIBundle
-        super(CLIBot, self).__init__(repo, user_token, bot_token, provider, bundle)
+        super(CLIBot, self).__init__(repo, user_token, bot_token, provider,
+                                     bundle, provider_url=provider_url,
+                                     ignore_ssl=ignore_ssl)
 
     def iter_updates(self, initial, scheduled):
 
@@ -87,6 +93,6 @@ class CLIBundle(RequirementsBundle):
 
 class CLIRequirementFile(RequirementFile):
     def iter_lines(self, lineno=0):
-        bar = tqdm(self.content.splitlines(), desc="Processing {}".format(self.path))
+        bar = tqdm(self.content.splitlines()[lineno:], desc="Processing {}".format(self.path))
         for item in bar:
             yield item

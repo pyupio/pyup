@@ -14,8 +14,16 @@ class BadTokenError(Exception):
 
 
 class Provider(object):
-    def __init__(self, bundle, intergration=False):
+    name = 'gitlab'
+
+    class Committer(object):
+        def __init__(self, login):
+            self.login = login
+
+    def __init__(self, bundle, intergration=False, url=None, ignore_ssl=False):
         self.bundle = bundle
+        self.url = url
+        self.ignore_ssl = ignore_ssl
         if intergration:
             raise NotImplementedError(
                 'Gitlab provider does not support integration mode')
@@ -27,7 +35,7 @@ class Provider(object):
     def _api(self, token):
         parts = token.split('@')
         if len(parts) == 1:
-            host = 'https://gitlab.com'
+            host = self.url or 'https://gitlab.com'
             auth = parts[0]
         elif len(parts) == 2:
             auth, host = parts
@@ -36,7 +44,7 @@ class Provider(object):
                 'Got token "{}": format should be wither "apikey" for '
                 'gitlab.com, or "apikey@https://yourgitlab.local"'.format(
                     token))
-        return Gitlab(host, auth)
+        return Gitlab(host, auth, ssl_verify=(not self.ignore_ssl))
 
     def get_user(self, token):
         gl = self._api(token)
@@ -59,11 +67,13 @@ class Provider(object):
         return True
 
     def iter_git_tree(self, repo, branch):
-        for item in repo.repository_tree(ref=branch, recursive=True):
+        for item in repo.repository_tree(ref=branch, recursive=True, all=True):
             yield item['type'], item['path']
 
     def get_file(self, repo, path, branch):
         logger.info("Getting file at {} for branch {}".format(path, branch))
+        # remove unnecessary leading slash to avoid gitlab errors. See #375
+        path = path.lstrip('/')
         try:
             contentfile = repo.files.get(file_path=path, ref=branch)
         except GitlabGetError as e:
@@ -80,7 +90,7 @@ class Provider(object):
         # TODO: committer
         return repo.files.create({
             'file_path': path,
-            'branch_name': branch,
+            'branch': branch,
             'content': content,
             'commit_message': commit_message
         })
@@ -96,7 +106,7 @@ class Provider(object):
 
     def create_branch(self, repo, base_branch, new_branch):
         try:
-            repo.branches.create({"branch_name": new_branch,
+            repo.branches.create({"branch": new_branch,
                                   "ref": base_branch})
         except GitlabCreateError as e:
             if e.error_message == 'Branch already exists':
@@ -142,39 +152,46 @@ class Provider(object):
         f.content = b64encode(content.encode()).decode()
         f.encoding = 'base64'
         # TODO: committer
-        f.save(branch_name=branch, commit_message=commit_message)
+        f.save(branch=branch, commit_message=commit_message)
 
-    def close_pull_request(self, bot_repo, user_repo, mr, comment, prefix):
+    def get_pull_request_committer(self, repo, pull_request):
+        return [
+            self.Committer(participant['username'])
+            for participant in repo.mergerequests.get(pull_request.number).participants()
+        ]
+
+    def close_pull_request(self, bot_repo, user_repo, pull_request, comment, prefix):
+        mr = user_repo.mergerequests.get(pull_request.number)
         mr.state_event = 'close'
         mr.save()
         mr.notes.create({'body': comment})
 
-        self.delete_branch(user_repo, mr.source_branch, prefix)
+        source_branch = mr.changes()['source_branch']
+        logger.info("Deleting source branch {}".format(source_branch))
+        self.delete_branch(user_repo, source_branch, prefix)
 
-    def create_pull_request(self, repo, title, body, base_branch, new_branch, pr_label, assignees):
+    def _merge_merge_request(self, mr, config):
+        mr.merge(remove_source_branch=config.gitlab.should_remove_source_branch,
+                 merge_when_pipeline_succeeds=True)
+
+    def create_pull_request(self, repo, title, body, base_branch, new_branch, pr_label, assignees, config):
         # TODO: Check permissions
         try:
             if len(body) >= 65536:
                 logger.warning("PR body exceeds maximum length of 65536 chars, reducing")
                 body = body[:65536 - 1]
 
-            request = {
-                'source_branch': new_branch,
-                'target_branch': base_branch,
-                'title': title,
-                'description': body,
-            }
-            if pr_label is not None:
-                request['pr_label'] = pr_label
-            if assignees is not None:
-                request['assignee_id'] = assignees
             mr = repo.mergerequests.create({
                 'source_branch': new_branch,
                 'target_branch': base_branch,
                 'title': title,
                 'description': body,
                 'pr_label': pr_label,
+                'remove_source_branch': config.gitlab.should_remove_source_branch
             })
+
+            if config.gitlab.merge_when_pipeline_succeeds:
+                self._merge_merge_request(mr, config)
 
             return self.bundle.get_pull_request_class()(
                 state=mr.state,
@@ -216,7 +233,7 @@ class Provider(object):
 
     def iter_issues(self, repo, creator):
         # TODO: handle creator
-        for issue in repo.issues.list():
+        for issue in repo.mergerequests.list(state='opened', all=True):
             yield self.bundle.get_pull_request_class()(
                 state=issue.state,
                 title=issue.title,
