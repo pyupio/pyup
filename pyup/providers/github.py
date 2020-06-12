@@ -22,14 +22,16 @@ class Provider(object):
         return this.login == that.login
 
     def _api(self, token):
-        verify = not self.ignore_ssl
+        if self.__api and token == self.__token:
+            return self.__api
 
         # If we don't already have an instance or for some reason the token has changed
         # we create a new instance
-        if not self.__api or token != self.__token:
-            self.__token = token
-            self.__api = Github(self.__token, base_url=self.url, timeout=50, verify=verify)
+        verify = not self.ignore_ssl
+        self.__api = Github(self.__token, base_url=self.url, timeout=50, verify=verify)
+        self.__token = token
         return self.__api
+
 
     def get_user(self, token):
         return self._api(token).get_user()
