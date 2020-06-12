@@ -28,8 +28,8 @@ class Provider(object):
         # If we don't already have an instance or for some reason the token has changed
         # we create a new instance
         verify = not self.ignore_ssl
-        self.__api = Github(self.__token, base_url=self.url, timeout=50, verify=verify)
         self.__token = token
+        self.__api = Github(self.__token, base_url=self.url, timeout=50, verify=verify)
         return self.__api
 
 
