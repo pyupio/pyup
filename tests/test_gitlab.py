@@ -211,7 +211,7 @@ class ProviderTest(TestCase):
         config = Config()
         self.provider._merge_merge_request(mr, config)
         mr.merge.assert_called_once_with(merge_when_pipeline_succeeds=True,
-                                         remove_source_branch=False)
+                                         source_remove_source_branch=False)
 
     def test_merge_pull_request_with_remove(self):
         mr = Mock()
@@ -220,7 +220,7 @@ class ProviderTest(TestCase):
         config.update_config({'gitlab': {'should_remove_source_branch': True}})
         self.provider._merge_merge_request(mr, config)
         mr.merge.assert_called_once_with(merge_when_pipeline_succeeds=True,
-                                         remove_source_branch=True)
+                                         source_remove_source_branch=True)
 
     def test_create_pull_request_with_exceeding_body(self):
         body = ''.join(["a" for i in range(0, 65536 + 1)])
