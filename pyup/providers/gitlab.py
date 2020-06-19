@@ -171,7 +171,7 @@ class Provider(object):
         self.delete_branch(user_repo, source_branch, prefix)
 
     def _merge_merge_request(self, mr, config):
-        mr.merge(remove_source_branch=config.gitlab.should_remove_source_branch,
+        mr.merge(should_remove_source_branch=config.gitlab.should_remove_source_branch,
                  merge_when_pipeline_succeeds=True)
 
     def create_pull_request(self, repo, title, body, base_branch, new_branch, pr_label, assignees, config):
