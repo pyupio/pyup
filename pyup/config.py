@@ -41,6 +41,8 @@ class Config(object):
         self.label_prs = False
         self.schedule = ""
         self.assignees = []
+        self.commit_message_template_pin = "Pin {package_name} to latest version {new_version}"
+        self.commit_message_template_update = "Update {package_name} from {old_version} to {new_version}"
         self.gitlab = GitlabConfig()
         self.update = Config.UPDATE_ALL
         self.update_hashes = True
