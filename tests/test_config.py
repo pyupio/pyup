@@ -121,6 +121,17 @@ class ConfigTestCase(TestCase):
         self.assertEqual(config.requirements[1].pin, True)
         self.assertEqual(config.requirements[1].compile.specs, ["baz.in", "foo.in"])
 
+    def test_update_with_invalid_requirements_config(self):
+        update = {
+            "requirements": None
+        }
+        config = Config()
+        
+        self.assertEqual(config.requirements, [])
+        config.update_config(update)
+        self.assertEqual(config.requirements, [])
+        self.assertNotEqual(config.requirements, None)
+
     def test_valid_schedule(self):
         config = Config()
 
