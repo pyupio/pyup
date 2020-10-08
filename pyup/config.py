@@ -134,7 +134,7 @@ class Config(object):
                                                                    Config.UPDATE_INSECURE_TYPO)
 
     def is_valid_schedule(self):
-        return SCHEDULE_REGEX.search(self.schedule) is not None
+        return SCHEDULE_REGEX.search(self.schedule) if type(self.schedule) == str else None
 
     def __repr__(self):
         return str(self.__dict__)
