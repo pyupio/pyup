@@ -6,6 +6,7 @@ History
 1.1.2a (current)
 ----------------
 * Current unstable
+* Schedule wont break config reading if it is not a string
 * New feature `#274`_ allows customizing commit messages
 * Fixed `#384`_ affecting GitLab automatic merge
 
