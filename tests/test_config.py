@@ -153,6 +153,9 @@ class ConfigTestCase(TestCase):
                 "every month on tuesday",
                 "some other crap",
                 "every bla",
+                1,
+                [1, 2, 3],
+                {'every': 'week'},
                 "foo"]:
             config.schedule = sched
             self.assertFalse(config.is_valid_schedule())
