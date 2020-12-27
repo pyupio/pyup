@@ -16,3 +16,4 @@ Contributors
 ------------
 
 * Christophe Lecointe
+* Johannes Lippmann

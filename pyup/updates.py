@@ -18,11 +18,12 @@ class Update(dict):
 
     @classmethod
     def create_update_key(cls, requirement):
-        key = requirement.key
-        if not requirement.is_pinned:
-            key += '-pin'
+        if requirement.is_pinned:
+            key = "{package}-{new_version}".format(
+                package=requirement.key,
+                new_version=requirement.latest_version_within_specs)
         else:
-            key += "-" + requirement.latest_version_within_specs
+            key = "{package}-pin".format(package=requirement.key)
         return key
 
     def __init__(self, requirement_files, config):
@@ -45,16 +46,15 @@ class Update(dict):
         else:
             self[key] = [update]
 
-    @classmethod
-    def get_commit_message(cls, requirement):
+    def get_commit_message(self, requirement):
         if requirement.is_pinned:
-            return "Update {} from {} to {}".format(
-                requirement.key, requirement.version,
-                requirement.latest_version_within_specs
-            )
-        return "Pin {} to latest version {}".format(
-            requirement.key,
-            requirement.latest_version_within_specs
+            message_template = self.config.commit_message_template_update or "Update {package_name} from {old_version} to {new_version}"
+        else:
+            message_template = self.config.commit_message_template_pin or "Pin {package_name} to latest version {new_version}"
+        return message_template.format(
+            package_name=requirement.key,
+            old_version=requirement.version,
+            new_version=requirement.latest_version_within_specs
         )
 
     def should_update(self, requirement, requirement_file):

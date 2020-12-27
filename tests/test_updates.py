@@ -91,12 +91,19 @@ class UpdateCreateUpdateKeyTest(UpdateBaseTest):
 
 
 class UpdateGetCommitMessageTest(UpdateBaseTest):
+
+    def setUp(self):
+        super(UpdateGetCommitMessageTest, self).setUp()
+        self.config.commit_message_template_pin = "Version {new_version} for {package_name} is fix now."
+        self.config.commit_message_template_update = "{old_version} is old, update {package_name} to {new_version}."
+        self.update = ScheduledUpdate([], self.config)
+
     def test_unpinned_requirement(self):
         req = Mock()
         req.key = "django"
         req.is_pinned = False
         req.latest_version_within_specs = "1.10"
-        self.assertEqual(Update.get_commit_message(req), "Pin django to latest version 1.10")
+        self.assertEqual(self.update.get_commit_message(req), "Version 1.10 for django is fix now.")
 
     def test_pinned_requirement(self):
         req = Mock()
@@ -104,7 +111,7 @@ class UpdateGetCommitMessageTest(UpdateBaseTest):
         req.is_pinned = True
         req.latest_version_within_specs = "1.10"
         req.version = "1.0"
-        self.assertEqual(Update.get_commit_message(req), "Update django from 1.0 to 1.10")
+        self.assertEqual(self.update.get_commit_message(req), "1.0 is old, update django to 1.10.")
 
 
 class UpdateInitTestCase(UpdateBaseTest):
