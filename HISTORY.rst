@@ -6,8 +6,10 @@ History
 1.1.2a (current)
 ----------------
 * Current unstable
+* New feature `#274`_ allows customizing commit messages
 * Fixed `#384`_ affecting GitLab automatic merge
 
+.. _#274: https://github.com/pyupio/pyup/issues/274
 .. _#384: https://github.com/pyupio/pyup/issues/384
 
 1.1.1 (2020-05-01)

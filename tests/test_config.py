@@ -34,6 +34,8 @@ class ConfigTestCase(TestCase):
         self.assertEqual(config.requirements, [])
         self.assertEqual(config.schedule, "")
         self.assertEqual(config.assignees, [])
+        self.assertEqual(config.commit_message_template_pin, "Pin {package_name} to latest version {new_version}")
+        self.assertEqual(config.commit_message_template_update, "Update {package_name} from {old_version} to {new_version}")
         self.assertEqual(config.update, "all")
         self.assertEqual(config.pr_prefix, "")
 
