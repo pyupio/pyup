@@ -18,11 +18,12 @@ class Update(dict):
 
     @classmethod
     def create_update_key(cls, requirement):
-        key = requirement.key
-        if not requirement.is_pinned:
-            key += '-pin'
+        if requirement.is_pinned:
+            key = "{package}-{new_version}".format(
+                package=requirement.key,
+                new_version=requirement.latest_version_within_specs)
         else:
-            key += "-" + requirement.latest_version_within_specs
+            key = "{package}-pin".format(package=requirement.key)
         return key
 
     def __init__(self, requirement_files, config):
