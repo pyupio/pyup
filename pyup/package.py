@@ -4,10 +4,10 @@ from packaging.version import parse as parse_version
 import requests
 
 
-def fetch_package(name, index_server=None):
+def fetch_package(name, index_server=None,session=requests.Session()):
     url = index_server + name if index_server else \
         "https://pypi.org/pypi/{name}/json".format(name=name)
-    r = requests.get(url, timeout=3)
+    r = session.get(url, timeout=3)
     if r.status_code != 200:
         return None
     json = r.json()

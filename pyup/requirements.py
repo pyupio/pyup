@@ -222,7 +222,7 @@ class Requirement(object):
         self._package = None
         self.file_type = file_type
         self.pipfile = None
-
+        self.session = requests.Session()
         self.hashCmp = (
             self.key,
             self.specs,
@@ -390,7 +390,7 @@ class Requirement(object):
     @property
     def package(self):
         if not self._fetched_package:
-            self._package = fetch_package(self.name, self.index_server)
+            self._package = fetch_package(self.name, self.index_server,self.session)
             self._fetched_package = True
         return self._package
 
@@ -421,7 +421,7 @@ class Requirement(object):
         if self._changelog is None:
             self._changelog = OrderedDict()
             if settings.api_key:
-                r = requests.get(
+                r = self.session.get(
                     "https://pyup.io/api/v1/changelogs/{}/".format(self.key),
                     headers={"X-Api-Key": settings.api_key}
                 )
@@ -460,7 +460,7 @@ class Requirement(object):
         return self.name
 
     def get_hashes(self, version):
-        r = requests.get('https://pypi.org/pypi/{name}/{version}/json'.format(
+        r = self.session.get('https://pypi.org/pypi/{name}/{version}/json'.format(
             name=self.key,
             version=version
         ))
