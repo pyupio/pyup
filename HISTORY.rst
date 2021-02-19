@@ -3,6 +3,10 @@
 History
 -------
 
+1.1.3-dev (master)
+-------------------
+* Current unstable version
+
 1.1.2 (2021-02-19)
 -------------------
 * Schedule wont break config reading if it is not a string
