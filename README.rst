@@ -20,7 +20,7 @@
 
 A tool that updates all your project's Python dependency files through Pull Requests on GitHub/GitLab.
 
-.. image:: https://github.com/pyupio/pyup/blob/master/demo.gif
+.. image:: https://github.com/pyupio/pyup/raw/master/demo.gif
 
 About
 -----

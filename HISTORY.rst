@@ -3,9 +3,8 @@
 History
 -------
 
-1.1.2a (current)
-----------------
-* Current unstable
+1.1.2 (2021-02-19)
+-------------------
 * Schedule wont break config reading if it is not a string
 * New feature `#274`_ allows customizing commit messages
 * Fixed `#384`_ affecting GitLab automatic merge
