@@ -55,6 +55,8 @@ class Config(object):
         for key, value in d.items():
             if hasattr(self, key):
                 if key == "requirements":
+                    if not value:
+                        continue
                     items, value = value, []
                     for item in items:
                         if isinstance(item, basestring):
