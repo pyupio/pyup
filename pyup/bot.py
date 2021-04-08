@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, print_function, unicode_literals
+from os.path import normpath
 import logging
 import yaml
 from .requirements import RequirementsBundle
@@ -509,6 +510,7 @@ class Bot(object):
     # needs to be updated too
     def add_requirement_file(self, path, sha=None):
         logger.info("Adding requirement file at {}".format(path))
+        path = normpath(path)
         branch = sha if sha is not None else self.config.branch
         if not self.req_bundle.has_file_in_path(path):
             req_file = self.provider.get_requirement_file(
