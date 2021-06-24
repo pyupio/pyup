@@ -192,8 +192,8 @@ class Provider(object):
             email = committer.email
         else:
             for item in committer.get_emails():
-                if item["primary"]:
-                    email = item["email"]
+                if item.primary:
+                    email = item.email
         if email is None:
             msg = "Unable to get {login}'s email adress. " \
                   "You may have to add the scope user:email".format(login=committer.login)

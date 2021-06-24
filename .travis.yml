@@ -17,12 +17,12 @@ install: pip install -U tox
 language: python
 matrix:
   include:
+  - env: TOXENV=py39
+    python: 3.9.1
   - env: TOXENV=py38
     python: 3.8.2
   - env: TOXENV=py37
     python: 3.7.7
   - env: TOXENV=py36
     python: 3.6.10
-  - env: TOXENV=py35
-    python: 3.5.9
 script: tox

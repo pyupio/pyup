@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, print_function, unicode_literals
+
+from collections import namedtuple
 from unittest import TestCase
 from pyup.providers.github import Provider
 from pyup.requirements import RequirementsBundle
@@ -70,7 +72,7 @@ class ProviderTest(TestCase):
             "foo"
         )
 
-        p = PropertyMock(side_effect=UnknownObjectException(data="", status=1))
+        p = PropertyMock(side_effect=UnknownObjectException(data="", status=1, headers={}))
         type(self.repo).default_branch = p
         with self.assertRaises(errors.RepoDoesNotExistError):
             self.provider.get_default_branch(self.repo)
@@ -81,7 +83,7 @@ class ProviderTest(TestCase):
         self.provider.get_pull_request_permissions(user, self.repo)
         self.repo.add_to_collaborators.assert_called_once_with("some-dude")
 
-        self.repo.add_to_collaborators.side_effect = GithubException(data="", status=1)
+        self.repo.add_to_collaborators.side_effect = GithubException(data="", status=1, headers={})
         with self.assertRaises(errors.NoPermissionError):
             self.provider.get_pull_request_permissions(user, self.repo)
 
@@ -91,7 +93,7 @@ class ProviderTest(TestCase):
         items = list(self.provider.iter_git_tree(self.repo, "some branch"))
         self.assertEqual(items, [("type", "path")])
 
-        self.repo.get_git_tree.side_effect = GithubException(data="", status=999)
+        self.repo.get_git_tree.side_effect = GithubException(data="", status=999, headers={})
         with self.assertRaises(GithubException):
             list(self.provider.iter_git_tree(self.repo, "some branch"))
 
@@ -101,7 +103,7 @@ class ProviderTest(TestCase):
         self.assertIsNotNone(obj)
         self.repo.get_contents.assert_called_with("path", ref="branch")
 
-        self.repo.get_contents.side_effect = GithubException(data="", status=1)
+        self.repo.get_contents.side_effect = GithubException(data="", status=1, headers={})
         content, obj = self.provider.get_file(self.repo, "path", "branch")
         self.assertIsNone(content)
         self.assertIsNone(obj)
@@ -127,7 +129,7 @@ class ProviderTest(TestCase):
         self.provider.create_branch(self.repo, "base branch", "new branch")
         self.repo.get_git_ref.assert_called_once_with("heads/base branch")
 
-        self.repo.get_git_ref.side_effect = GithubException(data="", status=1)
+        self.repo.get_git_ref.side_effect = GithubException(data="", status=1, headers={})
         with self.assertRaises(errors.BranchExistsError):
             self.provider.create_branch(self.repo, "base branch", "new branch")
 
@@ -167,7 +169,7 @@ class ProviderTest(TestCase):
         self.provider.create_commit("path", "branch", "commit", "content", "sha", self.repo, "com")
         self.assertEqual(self.repo.update_file.call_count, 1)
 
-        self.repo.update_file.side_effect = GithubException(data="", status=1)
+        self.repo.update_file.side_effect = GithubException(data="", status=1, headers={})
         with self.assertRaises(GithubException):
             self.provider.create_commit("path", "branch", "commit", "content", "sha", self.repo,
                                         "com")
@@ -211,7 +213,7 @@ class ProviderTest(TestCase):
         committer = Mock()
         committer.email = None
         committer.login = "foo"
-        committer.get_emails.return_value = [{"primary": True, "email": "primary@bar.com"},]
+        committer.get_emails.return_value = [namedtuple("EmailData", ["primary", "email"])(True, "primary@bar.com")]
         data = self.provider.get_committer_data(committer)._identity
         self.assertEqual(data["name"], "foo")
         self.assertEqual(data["email"], "primary@bar.com")
@@ -231,7 +233,7 @@ class ProviderTest(TestCase):
         data = self.provider.get_pull_request_committer(self.repo, pr)
         self.assertEqual(data, ["foo"])
 
-        self.repo.get_pull.side_effect = UnknownObjectException(data="", status=1)
+        self.repo.get_pull.side_effect = UnknownObjectException(data="", status=1, headers={})
         data = self.provider.get_pull_request_committer(self.repo, pr)
         self.assertEqual(data, [])
 
@@ -247,7 +249,7 @@ class ProviderTest(TestCase):
         self.provider.close_pull_request(self.repo, self.repo, pr, "comment", prefix="pyup-")
         self.assertEqual(self.repo.get_git_ref().delete.call_count, 1)
 
-        self.repo.get_pull.side_effect = UnknownObjectException(data="", status=1)
+        self.repo.get_pull.side_effect = UnknownObjectException(data="", status=1, headers={})
         data = self.provider.close_pull_request(self.repo, self.repo, Mock(), "comment",
                                                 prefix="pyup-")
         self.assertEqual(data, False)
@@ -263,7 +265,7 @@ class ProviderTest(TestCase):
         self.assertEqual(self.provider.bundle.get_pull_request_class.call_count, 1)
         self.assertEqual(self.provider.bundle.get_pull_request_class().call_count, 1)
 
-        self.repo.create_pull.side_effect = GithubException(data="", status=1)
+        self.repo.create_pull.side_effect = GithubException(data="", status=1, headers={})
         with self.assertRaises(errors.NoPermissionError):
             self.provider.create_pull_request(self.repo, "title", "body", "master", "new", False, [])
 
@@ -283,10 +285,10 @@ class ProviderTest(TestCase):
     def test_create_issue(self):
         self.assertIsNot(self.provider.create_issue(self.repo, "title", "body"), False)
 
-        self.repo.create_issue.side_effect = GithubException(data="", status=404)
+        self.repo.create_issue.side_effect = GithubException(data="", status=404, headers={})
         self.assertEqual(self.provider.create_issue(self.repo, "title", "body"), False)
 
-        self.repo.create_issue.side_effect = GithubException(data="", status=999)
+        self.repo.create_issue.side_effect = GithubException(data="", status=999, headers={})
         with self.assertRaises(GithubException):
             self.assertEqual(self.provider.create_issue(self.repo, "title", "body"), False)
 
@@ -302,15 +304,15 @@ class ProviderTest(TestCase):
 
     def test_create_label(self):
         # label does not exist, need to create it
-        self.repo.get_label.side_effect = UnknownObjectException(None, None)
+        self.repo.get_label.side_effect = UnknownObjectException(None, None, headers={})
         self.provider.get_or_create_label(self.repo, "another-label")
         self.repo.get_label.assert_called_once_with(name="another-label")
         self.repo.create_label.assert_called_once_with(name="another-label", color="1BB0CE")
 
     def test_create_label_fails(self):
         # label does not exist, need to create it
-        self.repo.get_label.side_effect = UnknownObjectException(None, None)
-        self.repo.create_label.side_effect = GithubException(None, None)
+        self.repo.get_label.side_effect = UnknownObjectException(None, None, headers={})
+        self.repo.create_label.side_effect = GithubException(None, None, headers={})
         label = self.provider.get_or_create_label(self.repo, "another-label")
         self.assertIsNone(label)
         self.repo.get_label.assert_called_once_with(name="another-label")
