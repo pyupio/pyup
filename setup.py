@@ -16,7 +16,7 @@ with open('HISTORY.rst') as history_file:
 
 requirements = [
     "requests",
-    "pygithub>=1.43.3",
+    "pygithub>=1.55",
     "click",
     "tqdm",
     "pyyaml>=4.2b4",
