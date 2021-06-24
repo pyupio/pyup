@@ -26,7 +26,9 @@ import logging
 @click.option('--ignore_ssl', help='Set this to ignore SSL Certificate',
               default=False, is_flag=True)
 @click.option('--log', help='Set the log level', default="ERROR")
-def main(repo, user_token, bot_token, key, provider, provider_url, branch, initial, ignore_ssl, log):
+@click.option('--integration', help='Run as an integration (e.g. oauth app token)',
+              default=False, is_flag=True)
+def main(repo, user_token, bot_token, key, provider, provider_url, branch, initial, ignore_ssl, log, integration):
     logging.basicConfig(level=getattr(logging, log.upper(), None))
 
     settings.configure(key=key)
@@ -45,6 +47,7 @@ def main(repo, user_token, bot_token, key, provider, provider_url, branch, initi
         provider=ProviderClass,
         provider_url=provider_url,
         ignore_ssl=ignore_ssl,
+        integration=integration,
     )
 
     bot.update(branch=branch, initial=initial)
@@ -58,11 +61,11 @@ class CLIBot(Bot):
 
     def __init__(self, repo, user_token, bot_token=None,
                  provider=GithubProvider, bundle=RequirementsBundle,
-                 provider_url=None, ignore_ssl=False):
+                 provider_url=None, ignore_ssl=False, integration=False):
         bundle = CLIBundle
         super(CLIBot, self).__init__(repo, user_token, bot_token, provider,
                                      bundle, provider_url=provider_url,
-                                     ignore_ssl=ignore_ssl)
+                                     ignore_ssl=ignore_ssl, integration=integration)
 
     def iter_updates(self, initial, scheduled):
 
